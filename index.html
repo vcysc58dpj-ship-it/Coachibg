@@ -206,6 +206,16 @@
   .quote{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:14px;line-height:1.5;font-style:italic;}
   .quote .qm{color:var(--accent);font-size:26px;font-weight:800;font-style:normal;line-height:0;align-self:flex-start;margin-top:6px;}
   .quote .qm.qr{align-self:flex-end;margin-top:0;margin-bottom:-2px;}
+  /* Habits-Prozent-Karte */
+  .pctcard{display:flex;gap:14px;align-items:center;background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:6px;}
+  .pctcard .pct-icon{width:44px;height:44px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;flex:none;}
+  .pctcard .pct-icon svg{width:22px;height:22px;color:var(--accent);}
+  .pctcard .pct-body{min-width:0;flex:1;}
+  .pctcard .pct-lab{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
+  .pctcard .pct-row{display:flex;align-items:baseline;gap:10px;margin:2px 0 3px;}
+  .pctcard .pct-big{font-size:34px;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-0.02em;}
+  .pctcard .pct-sub{font-size:13px;color:var(--dim);font-weight:600;}
+  .pctcard .pct-msg{font-size:13px;color:var(--faint);}
   /* Check-in */
   .ci-seg{display:flex;gap:6px;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;}
   .ci-seg button{flex:1;padding:9px 0;border:none;background:none;color:var(--dim);font-size:14px;font-weight:700;border-radius:9px;cursor:pointer;}
@@ -728,6 +738,21 @@ function ChatTab({cdata,upd,role}){
   </>;
 }
 
+function WeekCalendar({weekDates,selDate,setSelDate,weekOffset,changeWeek,dots,t}){
+  const monthLabel=new Date(weekDates[0]+"T00:00:00").toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+  return <div className="card">
+    <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
+      <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{monthLabel}</span><button className="cnav" disabled={weekOffset>=0} onClick={()=>changeWeek(1)} aria-label="Woche vor">›</button></div>
+    </div>
+    <div className="calstrip">{weekDates.map(d=>{ const isSel=d===selDate; const isToday=d===t; const dot=dots&&dots[d]; const future=d>t;
+      return <button key={d} className={"calcol"+(future?" fut":"")} disabled={future} onClick={()=>setSelDate(d)}>
+        <div className="cwd">{["MO","DI","MI","DO","FR","SA","SO"][(new Date(d+"T00:00:00").getDay()+6)%7]}</div>
+        <div className={"cdate"+(isSel?" sel":"")+(isToday&&!isSel?" today":"")}>{d.split("-")[2]}</div>
+        <div className={"cdot"+(dot?" on":"")}/>
+      </button>;
+    })}</div>
+  </div>;
+}
 function LiveDashboard({clientId,toast,go,name}){
   const t=today();
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
@@ -834,18 +859,7 @@ function LiveDashboard({clientId,toast,go,name}){
     <div className="dashgreet">{greetWord}{firstName?", "+firstName:""}.</div>
 
     {/* Kalender */}
-    <div className="card">
-      <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
-        <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{monthLabel}</span><button className="cnav" disabled={weekOffset>=0} onClick={()=>changeWeek(1)} aria-label="Woche vor">›</button></div>
-      </div>
-      <div className="calstrip">{weekDates.map(d=>{ const isSel=d===selDate; const isToday=d===t; const dot=trainDates[d]; const future=d>t;
-        return <button key={d} className={"calcol"+(future?" fut":"")} disabled={future} onClick={()=>setSelDate(d)}>
-          <div className="cwd">{["MO","DI","MI","DO","FR","SA","SO"][(new Date(d+"T00:00:00").getDay()+6)%7]}</div>
-          <div className={"cdate"+(isSel?" sel":"")+(isToday&&!isSel?" today":"")}>{d.split("-")[2]}</div>
-          <div className={"cdot"+(dot?" on":"")}/>
-        </button>;
-      })}</div>
-    </div>
+    <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={trainDates} t={t}/>
 
     {/* Habits (für gewählten Tag, direkt abhakbar) */}
     {habits.length>0 && <div className="card">
@@ -1413,11 +1427,13 @@ function LiveHabitsTab({clientId,role,toast}){
   const [log,setLog]=useState({});         // log[date][habitId]=true
   const [newH,setNewH]=useState("");
   const [weekOffset,setWeekOffset]=useState(0); // 0=aktuelle Woche, -1=letzte ...
+  const [selDate,setSelDate]=useState(today());
 
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
   const weekStart=addDays(mondayOf(new Date()), weekOffset*7);
   const weekDates=Array.from({length:7}).map((_,i)=>dstr(addDays(weekStart,i)));
   const validDays=weekDates.filter(d=>d<=t).length || 7; // bis heute (bei vergangenen Wochen 7)
+  const changeWeek=(delta)=>{ const no=weekOffset+delta; if(no>0) return; const ws=addDays(mondayOf(new Date()), no*7); const wd=Array.from({length:7}).map((_,i)=>dstr(addDays(ws,i))); setWeekOffset(no); setSelDate(wd[6]<=t?wd[6]:t); };
 
   const loadHabits=async()=>{
     try{
@@ -1460,12 +1476,22 @@ function LiveHabitsTab({clientId,role,toast}){
 
   if(habits===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
 
-  const rangeLabel = weekOffset===0 ? "Diese Woche" : (fmtDay(weekDates[0])+"–"+fmtDay(weekDates[6]));
-  const WeekNav=()=> <div className="weeknav">
-    <button className="navbtn" onClick={()=>setWeekOffset(weekOffset-1)} aria-label="Woche zurück">‹</button>
-    <div className="wkrange">{rangeLabel}<div className="wksub">{fmtDay(weekDates[0])}–{fmtDay(weekDates[6])}</div></div>
-    <button className="navbtn" disabled={weekOffset>=0} onClick={()=>{ if(weekOffset<0) setWeekOffset(weekOffset+1); }} aria-label="Woche vor">›</button>
-  </div>;
+  // Punkte unter Tagen: an Tagen mit mind. einem erledigten Habit
+  const dots={}; weekDates.forEach(d=>{ if(log[d] && Object.keys(log[d]).length) dots[d]=true; });
+  // Wochen-Prozent + Tageswert
+  const weekDone=weekDates.reduce((n,d)=> n + (log[d]?Object.keys(log[d]).length:0), 0);
+  const weekPossible=(habits.length||0) * validDays;
+  const weekPct=weekPossible? Math.round((weekDone/weekPossible)*100) : 0;
+  const selDone=log[selDate]?Object.keys(log[selDate]).length:0;
+  const msg = weekPct>=80?"Stark! Genau so bleibt man dran." : weekPct>=50?"Dranbleiben! Konsistenz schafft Ergebnisse." : "Jeder Tag zählt — bleib dran.";
+  const PercentCard=()=> habits.length>0 ? <div className="pctcard">
+    <div className="pct-icon"><Icon name="habits"/></div>
+    <div className="pct-body">
+      <div className="pct-lab">{weekOffset===0?"Diese Woche":"Diese Woche"}</div>
+      <div className="pct-row"><span className="pct-big">{weekPct}%</span><span className="pct-sub">{selDone}/{habits.length} Habits {selDate===t?"heute":""}</span></div>
+      <div className="pct-msg">{msg}</div>
+    </div>
+  </div> : null;
 
   const Strip=({hid,clickable})=> <div className="weekstrip">{weekDates.map(d=>{
     const done=log[d]&&log[d][hid]; const future=d>t; const isToday=d===t;
@@ -1479,7 +1505,7 @@ function LiveHabitsTab({clientId,role,toast}){
 
   if(role==="coach"){
     return <div className="mbody">
-      <WeekNav/>
+      <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
       {habits.length===0 && <div className="muted">Noch keine Gewohnheiten angelegt.</div>}
       {habits.map(h=>{ const done=weekDates.filter(d=>log[d]&&log[d][h.id]).length;
         return <div key={h.id} className="mcard">
@@ -1487,6 +1513,7 @@ function LiveHabitsTab({clientId,role,toast}){
             <div style={{fontWeight:600,fontSize:15}}>{h.name}</div><div className="tag">{done}/{validDays}</div></div>
           <Strip hid={h.id} clickable={false}/></div>;
       })}
+      <PercentCard/>
       <div className="sectlabel">Habits bearbeiten</div>
       <div className="mcard">
         {habits.map(h=>(<div key={h.id} className="exrow"><div className="en">{h.name}</div>
@@ -1497,7 +1524,7 @@ function LiveHabitsTab({clientId,role,toast}){
     </div>;
   }
   return <div className="mbody">
-    <WeekNav/>
+    <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
     {habits.length===0 && <div className="muted">Dein Coach hat noch keine Gewohnheiten angelegt.</div>}
     {habits.map(h=>{ const done=weekDates.filter(d=>log[d]&&log[d][h.id]).length;
       return <div key={h.id} className="mcard" style={{padding:14}}>
@@ -1506,6 +1533,7 @@ function LiveHabitsTab({clientId,role,toast}){
         <Strip hid={h.id} clickable={true}/>
       </div>;
     })}
+    <PercentCard/>
   </div>;
 }
 
@@ -2141,6 +2169,7 @@ function LiveFoodTab({clientId,role,toast}){
   const [settings,setSettings]=useState(null);
   const [checklist,setChecklist]=useState([]);
   const [weekOffset,setWeekOffset]=useState(0);
+  const [selDate,setSelDate]=useState(today());
   const [logs,setLogs]=useState({});      // logs[date]={kcal,protein,carbs,fat}
   const [checks,setChecks]=useState({});   // checks[date][item_id]=true
 
@@ -2149,6 +2178,7 @@ function LiveFoodTab({clientId,role,toast}){
   const weekStart=addDays(mondayOf(new Date()), weekOffset*7);
   const weekDates=Array.from({length:7}).map((_,i)=>dstr(addDays(weekStart,i)));
   const validDays=weekDates.filter(d=>d<=t).length || 7;
+  const changeWeek=(delta)=>{ const no=weekOffset+delta; if(no>0) return; const ws=addDays(mondayOf(new Date()), no*7); const wd=Array.from({length:7}).map((_,i)=>dstr(addDays(ws,i))); setWeekOffset(no); setSelDate(wd[6]<=t?wd[6]:t); };
 
   const loadBase=async()=>{
     try{
@@ -2181,12 +2211,8 @@ function LiveFoodTab({clientId,role,toast}){
   if(settings===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
   const macrosOn=settings.macros_enabled, checksOn=settings.checks_enabled;
 
-  const rangeLabel = weekOffset===0 ? "Diese Woche" : (fmtDay(weekDates[0])+"–"+fmtDay(weekDates[6]));
-  const WeekNav=()=> <div className="weeknav">
-    <button className="navbtn" onClick={()=>setWeekOffset(weekOffset-1)} aria-label="Woche zurück">‹</button>
-    <div className="wkrange">{rangeLabel}<div className="wksub">{fmtDay(weekDates[0])}–{fmtDay(weekDates[6])}</div></div>
-    <button className="navbtn" disabled={weekOffset>=0} onClick={()=>{ if(weekOffset<0) setWeekOffset(weekOffset+1); }} aria-label="Woche vor">›</button>
-  </div>;
+  // Punkte unter Tagen: Tag hat Makro-Eintrag oder gesetztes Häkchen
+  const dots={}; weekDates.forEach(d=>{ const hasM=logs[d]&&logs[d].kcal!=null; const hasC=checks[d]&&Object.keys(checks[d]).length; if(hasM||hasC) dots[d]=true; });
 
   // ---------- COACH: Konfiguration + Wochen-Einsicht ----------
   if(role==="coach"){
@@ -2202,7 +2228,7 @@ function LiveFoodTab({clientId,role,toast}){
       {checksOn && <LiveChecklistEditor clientId={clientId} items={checklist} reload={loadBase} toast={toast}/>}
       {(macrosOn||checksOn) && <>
         <div className="sectlabel" style={{marginTop:18}}>Einträge des Kunden</div>
-        <WeekNav/>
+        <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
         {macrosOn && <div className="mcard">
           <div style={{fontWeight:700,marginBottom:10}}>Makros</div>
           {weekDates.map(d=>{ const e=logs[d]; const future=d>t;
@@ -2245,8 +2271,8 @@ function LiveFoodTab({clientId,role,toast}){
   };
 
   return <div className="mbody">
-    <WeekNav/>
-    {macrosOn && <MacroWeek settings={settings} weekDates={weekDates} logs={logs} t={t} onSave={saveMacros}/>}
+    <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
+    {macrosOn && <MacroWeek settings={settings} weekDates={weekDates} logs={logs} t={t} onSave={saveMacros} openDate={selDate} setOpenDate={setSelDate}/>}
     {checksOn && <>
       <div className="sectlabel" style={{marginTop:macrosOn?16:0}}>Häkchen</div>
       {checklist.length===0 && <div className="muted">Dein Coach hat noch keine Punkte angelegt.</div>}
@@ -2263,8 +2289,7 @@ function LiveFoodTab({clientId,role,toast}){
   </div>;
 }
 
-function MacroWeek({settings,weekDates,logs,t,onSave}){
-  const [openDate,setOpenDate]=useState(t);
+function MacroWeek({settings,weekDates,logs,t,onSave,openDate,setOpenDate}){
   const m=settings;
   const e=logs[openDate]||null;
   const [k,setK]=useState(""),[p,setP]=useState(""),[cb,setCb]=useState(""),[f,setF]=useState("");
@@ -2273,10 +2298,6 @@ function MacroWeek({settings,weekDates,logs,t,onSave}){
     return <div className="macro"><div className="top"><span className="nm">{label}</span><span className="vv">{val||0} / {target} {unit}</span></div><div className="bar"><div style={{width:pct+"%"}}/></div></div>; };
   const editable=openDate<=t;
   return <div>
-    <div className="sectlabel">Makros</div>
-    <div className="daypills">{weekDates.map(d=>{ const has=logs[d]&&logs[d].kcal!=null; const fut=d>t;
-      return <button key={d} className={"pill"+(d===openDate?" sel":"")+(has?" has":"")+(fut?" fut":"")} disabled={fut} onClick={()=>setOpenDate(d)}>
-        <span className="pw">{weekdayShort(d)}</span><span className="pn">{d.split("-")[2]}</span></button>; })}</div>
     <div className="mcard">
       <div style={{fontWeight:700,marginBottom:10}}>{openDate===t?"Heute":fmtFull(openDate)}</div>
       {e&&e.kcal!=null ? <>{bar("Kalorien",e.kcal,m.kcal,"kcal")}{bar("Protein",e.protein,m.protein,"g")}{bar("Kohlenhydrate",e.carbs,m.carbs,"g")}{bar("Fett",e.fat,m.fat,"g")}</>
