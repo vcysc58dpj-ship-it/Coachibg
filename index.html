@@ -1318,7 +1318,11 @@ function AnamneseForm({clientId,onDone,submitLabel,toast}){
     let qs;
     try{
       const { data } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
-      qs=(data&&data.length)?data.map(q=>({key:q.id,id:q.id,label:q.label,type:q.type})):DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type}));
+      if(data && data.length){ qs=data.map(q=>({key:q.id,id:q.id,label:q.label,type:q.type})); }
+      else {
+        let tpl=null; try{ const { data:t } = await window.supa.from("anamnese_template").select("label,type,position").order("position",{ascending:true}); if(t && t.length) tpl=t; }catch(e){}
+        qs=tpl ? tpl.map((q,i)=>({key:"tpl"+i,id:null,label:q.label,type:q.type})) : DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type}));
+      }
     }catch(e){ qs=DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type})); }
     const o={}; qs.forEach(q=>{ o[q.key]={text:"",file:null,fileName:""}; }); setVals(o); setQuestions(qs);
   })(); },[clientId]);
@@ -1396,7 +1400,9 @@ function CoachAnamneseEditor({clientId,toast}){
       if(error) throw error;
       if((!data||data.length===0) && !seededRef.current){
         seededRef.current=true;
-        const rows=DEFAULT_ANAMNESE.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
+        let seed=DEFAULT_ANAMNESE;
+        try{ const { data:tpl } = await window.supa.from("anamnese_template").select("label,type,position").order("position",{ascending:true}); if(tpl && tpl.length) seed=tpl.map(t=>({label:t.label,type:t.type})); }catch(e){}
+        const rows=seed.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
         const { error:ie } = await window.supa.from("anamnese_questions").insert(rows);
         if(!ie){ const { data:d2 } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setQuestions((d2||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position}))); return; }
       }
@@ -1457,6 +1463,44 @@ function CoachAnamnese({clientId,toast}){
     <AnamneseAnswersCard clientId={clientId} title="Anamnese · Erstgespräch"/>
     <div style={{height:10}}/>
     <CoachAnamneseEditor clientId={clientId} toast={toast}/>
+  </>;
+}
+
+// Coach: globale Standard-Anamnese-Vorlage (gilt für NEUE Kunden)
+function CoachAnamneseTemplate({toast}){
+  const [uid,setUid]=useState(null);
+  const [questions,setQuestions]=useState(null);
+  const [newLabel,setNewLabel]=useState(""); const [newType,setNewType]=useState("text");
+  const [busy,setBusy]=useState(false);
+  const seededRef=useRef(false);
+  const load=async(coachId)=>{
+    try{
+      const { data,error } = await window.supa.from("anamnese_template").select("id,label,type,position,created_at").eq("coach_id",coachId).order("position",{ascending:true}).order("created_at",{ascending:true});
+      if(error) throw error;
+      if((!data||data.length===0) && !seededRef.current){
+        seededRef.current=true;
+        const rows=DEFAULT_ANAMNESE.map((q,i)=>({ coach_id:coachId, label:q.label, type:q.type, position:i }));
+        const { error:ie } = await window.supa.from("anamnese_template").insert(rows);
+        if(!ie){ const { data:d2 } = await window.supa.from("anamnese_template").select("id,label,type,position,created_at").eq("coach_id",coachId).order("position",{ascending:true}).order("created_at",{ascending:true}); setQuestions((d2||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position}))); return; }
+      }
+      setQuestions((data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})));
+    }catch(e){ toast("Vorlage konnte nicht geladen werden"); setQuestions([]); }
+  };
+  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); const id=data&&data.user?data.user.id:null; setUid(id); if(id) load(id); else setQuestions([]); }catch(e){ setQuestions([]); } })(); },[]);
+  const addQ=async()=>{ if(!newLabel.trim()||busy||!uid) return; setBusy(true); try{ const pos=questions.length; const { error } = await window.supa.from("anamnese_template").insert({ coach_id:uid, label:newLabel.trim(), type:newType, position:pos }); if(error) throw error; setNewLabel(""); setNewType("text"); await load(uid); }catch(e){ toast("Hinzufügen fehlgeschlagen: "+(e.message||"")); }finally{ setBusy(false); } };
+  const delQ=async(id)=>{ if(!await askConfirm({title:"Frage aus Vorlage entfernen?",message:"Gilt nur für NEUE Kunden. Bereits angelegte Kunden behalten ihre Fragen.",confirmText:"Entfernen",danger:true})) return; try{ const { error } = await window.supa.from("anamnese_template").delete().eq("id",id); if(error) throw error; await load(uid); }catch(e){ toast("Entfernen fehlgeschlagen"); } };
+  const move=async(idx,dir)=>{ const j=idx+dir; if(j<0||j>=questions.length) return; const a=questions[idx],b=questions[j]; try{ await window.supa.from("anamnese_template").update({position:b.position}).eq("id",a.id); await window.supa.from("anamnese_template").update({position:a.position}).eq("id",b.id); await load(uid); }catch(e){ toast("Reihenfolge konnte nicht geändert werden"); } };
+  if(questions===null) return <div className="muted">Lädt…</div>;
+  return <>
+    <div className="sectlabel">Standard-Anamnese</div>
+    <div className="muted" style={{fontSize:13,marginBottom:12}}>Diese Vorlage bekommen NEUE Kunden automatisch. Änderungen hier gelten für künftige Kunden – bestehende Kunden passt du direkt bei ihnen im Check-in → Anamnese an.</div>
+    {questions.map((q,i)=>(<div key={q.id} className="mcard ci-qrow"><div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div><div className="ci-qacts"><button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button><button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button><button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button></div></div>))}
+    <div className="sectlabel">Frage hinzufügen</div>
+    <div className="mcard">
+      <div className="field" style={{marginBottom:10}}><label>Frage</label><input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie sieht dein Alltag aus?" style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/></div>
+      <div className="field" style={{marginBottom:14}}><label>Antworttyp</label><div className="typewrap">{ANAM_TYPES.map(tp=>(<button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>))}</div></div>
+      <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
+    </div>
   </>;
 }
 
@@ -3585,8 +3629,8 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
     }catch(e){ toast("Löschen fehlgeschlagen: "+(e.message||"")); }
   };
 
-  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"account",l:"Konto",i:"settings"}];
-  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",account:"Konto"};
+  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"anamnese",l:"Anamnese-Vorlage",i:"checkin"},{k:"account",l:"Konto",i:"settings"}];
+  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",anamnese:"Anamnese-Vorlage",account:"Konto"};
 
   let body;
   if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast}/>;
@@ -3623,6 +3667,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   else if(tab==="cloud") body=<LiveCloudTab clientId={meId} role="coach" toast={toast} mode="broadcast"/>;
   else if(tab==="chat") body=<CoachChatList clients={(clients||[]).filter(c=>c.active!==false)} onOpen={onOpen}/>;
   else if(tab==="account") body=<AccountSettings theme={theme} setTheme={setTheme} toast={toast} onRefresh={onRefresh}/>;
+  else if(tab==="anamnese") body=<CoachAnamneseTemplate toast={toast}/>;
 
   return <div className="app">
     <div className="topbar">
@@ -3926,7 +3971,6 @@ function RecoveryScreen({onDone,toast}){
 }
 
 function Onboarding({session,profile,onDone,onSignOut,toast}){
-  const [step,setStep]=useState("profile"); // profile | anamnese
   const [name,setName]=useState((profile&&profile.display_name)||"");
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
@@ -3974,24 +4018,12 @@ function Onboarding({session,profile,onDone,onSignOut,toast}){
       try{ await window.supa.auth.signInWithPassword({ email:mail, password:pw }); }catch(_e){}
 
       toast("Willkommen, "+nm.split(/\s+/)[0]+"!");
-      setBusy(false);
-      setStep("anamnese");
+      onDone();
     }catch(e){
       setMsg({type:"err",text:"Konnte nicht speichern: "+(e.message||"Unbekannter Fehler")});
       setBusy(false);
     }
   };
-
-  if(step==="anamnese") return <div style={{height:"100dvh",overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-    <div className="center" style={{minHeight:0,justifyContent:"flex-start",paddingTop:32,paddingBottom:48}}>
-      <div style={{marginBottom:16}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
-      <div className="card">
-        <h2 style={{fontSize:21,marginBottom:4}}>Kurze Anamnese</h2>
-        <div className="muted" style={{marginBottom:16,fontSize:13.5}}>Damit dein Coach dich von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div>
-        <AnamneseForm clientId={uid} toast={toast} submitLabel="Anamnese absenden & loslegen" onDone={onDone}/>
-      </div>
-    </div>
-  </div>;
 
   return <div className="center">
     <div style={{marginBottom:20}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
@@ -4045,7 +4077,7 @@ function App(){
     if(!live) return;
     let active=true;
     let routed=false;
-    const route=(prof)=>{
+    const route=async(prof)=>{
       if(!active) return;
       if(prof && prof.role==="client" && prof.active===false){
         // Deaktiviertes Kundenkonto: abmelden + Hinweis
@@ -4057,6 +4089,12 @@ function App(){
       setProfile(prof);
       setRole(prof && prof.role === "client" ? "client" : "coach");
       if(prof && prof.role==="client" && prof.onboarded===false){ setScreen("onboarding"); }
+      else if(prof && prof.role==="client"){
+        // Anamnese-Gate: erst in die App, wenn die Anamnese abgeschickt wurde
+        let sub=null; try{ const { data } = await window.supa.from("anamnese").select("id").eq("client_id",prof.id).maybeSingle(); sub=data; }catch(e){ sub={__skip:true}; }
+        if(!active) return;
+        setScreen(sub ? "app" : "anamnese");
+      }
       else { setScreen("app"); }
       try{ history.replaceState({}, "", location.origin+location.pathname); }catch(e){}
     };
@@ -4137,7 +4175,18 @@ function App(){
   if(screen==="loading") return <Splash/>;
   else if(screen==="auth") view=<Auth/>;
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
-  else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("app"); }} onSignOut={signOut} toast={toast}/>;
+  else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("anamnese"); }} onSignOut={signOut} toast={toast}/>;
+  else if(screen==="anamnese") view=<div style={{height:"100dvh",overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+    <div className="center" style={{minHeight:0,justifyContent:"flex-start",paddingTop:32,paddingBottom:48}}>
+      <div style={{marginBottom:16}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
+      <div className="card">
+        <h2 style={{fontSize:21,marginBottom:4}}>Kurze Anamnese</h2>
+        <div className="muted" style={{marginBottom:16,fontSize:13.5}}>Damit dein Coach dich von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div>
+        <AnamneseForm clientId={profile&&profile.id} toast={toast} submitLabel="Anamnese absenden & loslegen" onDone={async()=>{ setRole("client"); setScreen("app"); }}/>
+        <div style={{textAlign:"center",marginTop:14}}><button className="link" style={{color:"var(--faint)"}} onClick={signOut}>Abmelden</button></div>
+      </div>
+    </div>
+  </div>;
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile}/>;
