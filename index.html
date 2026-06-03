@@ -585,9 +585,9 @@
   .settbl td:first-child{color:var(--dim);width:54px;}
   .settbl .u{color:var(--faint);font-size:12px;margin-left:2px;}
   .bubble.media{padding:4px;max-width:74%;}
-  .bubble .bimg,.bubble .bvid{display:block;border-radius:13px;width:230px;max-width:100%;max-height:300px;object-fit:cover;}
+  .bubble .bimg,.bubble .bvid{display:block;border-radius:13px;width:230px;max-width:100%;height:230px;object-fit:cover;background:var(--bg-3);}
   .bubble .bvid{background:#000;}
-  .bubble .baud{display:flex;flex-direction:column;gap:3px;padding:6px 6px 2px;}
+  .bubble .baud{display:flex;flex-direction:column;gap:3px;padding:6px 6px 2px;min-height:46px;}
   .bubble .baud audio{width:212px;height:38px;}
   .bubble .adur{font-family:"IBM Plex Mono";font-size:10px;opacity:.65;padding-left:4px;}
   .bubble.media .t{padding:2px 6px 3px;}
@@ -1159,26 +1159,10 @@ function LiveChatTab({clientId,role,toast}){
     return ()=>{ alive=false; document.removeEventListener("visibilitychange",onVis); if(pollRef.current) clearInterval(pollRef.current); try{ window.supa.removeChannel(ch); }catch(e){} };
   },[clientId]);
 
-  const listRef=useRef(null), contentRef=useRef(null), stickRef=useRef(true), didInit=useRef(false);
-  const scrollBottom=()=>{ const el=listRef.current; if(el) el.scrollTop=el.scrollHeight; };
-  const onListScroll=()=>{ const el=listRef.current; if(!el) return; stickRef.current=(el.scrollHeight-el.scrollTop-el.clientHeight)<90; };
-  // Erstes Laden / neue Nachrichten: unten andocken
-  useEffect(()=>{
-    if(msgs===null) return;
-    if(!didInit.current){ didInit.current=true; stickRef.current=true; scrollBottom(); requestAnimationFrame(scrollBottom); }
-    else if(stickRef.current){ scrollBottom(); }
-  },[msgs && msgs.length]);
-  // Verzögert ladende Medien (Bilder/Sprachnachrichten) ändern die Höhe -> unten halten
-  useEffect(()=>{
-    if(!contentRef.current || typeof ResizeObserver==="undefined") return;
-    const ro=new ResizeObserver(()=>{ if(stickRef.current) scrollBottom(); });
-    ro.observe(contentRef.current);
-    return ()=>ro.disconnect();
-  },[]);
+  useEffect(()=>{ endRef.current && endRef.current.scrollIntoView({behavior:"smooth"}); },[msgs && msgs.length]);
   useEffect(()=>()=>{ if(timerRef.current) cancelAnimationFrame(timerRef.current); if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop()); },[]);
 
   const insertMsg=async(extra)=>{
-    stickRef.current=true;
     const row={ client_id:clientId, sender_id:meRef.current, sender_role:role, kind:extra.kind||"text", body:extra.body||null, file_path:extra.path||null, duration_seconds:extra.dur||null };
     const { data, error } = await window.supa.from("messages").insert(row).select("id,sender_role,body,kind,file_path,duration_seconds,created_at").single();
     if(error){ toast("Senden fehlgeschlagen: "+(error.message||"")); return; }
@@ -1232,13 +1216,11 @@ function LiveChatTab({clientId,role,toast}){
   const cancelRec=()=>{ cancelRef.current=true; if(mrRef.current && mrRef.current.state!=="inactive") mrRef.current.stop(); setRecording(false); };
 
   return <>
-    <div className="msgs" ref={listRef} onScroll={onListScroll}>
-      <div ref={contentRef}>
-        {msgs===null && <div className="empty">Lädt…</div>}
-        {msgs!==null && msgs.length===0 && <div className="empty">Schreib die erste Nachricht.</div>}
-        {(msgs||[]).map(m=>(<MsgBubble key={m.id} m={m} mine={m.from===role}/>))}
-        <div ref={endRef}/>
-      </div>
+    <div className="msgs">
+      {msgs===null && <div className="empty">Lädt…</div>}
+      {msgs!==null && msgs.length===0 && <div className="empty">Schreib die erste Nachricht.</div>}
+      {(msgs||[]).map(m=>(<MsgBubble key={m.id} m={m} mine={m.from===role}/>))}
+      <div ref={endRef}/>
     </div>
     <div className="composer">
       {recording
@@ -3464,11 +3446,7 @@ function CreateClientSheet({onClose,onCreate,onCreated,toast}){
           <div className="setline"><span>E-Mail</span><span className="sv">{done.email}</span></div>
           <div className="setline"><span>Passwort</span><span className="sv">{done.pw}</span></div>
         </div>
-        <div className="mini" style={{gap:8,marginTop:12}}>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={async()=>{ const ok=await copyText(done.email); toast(ok?"E-Mail kopiert":"Konnte nicht kopieren"); }}>E-Mail kopieren</button>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={async()=>{ const ok=await copyText(done.pw); toast(ok?"Passwort kopiert":"Konnte nicht kopieren"); }}>Passwort kopieren</button>
-        </div>
-        <button className="btn" style={{marginTop:10}} onClick={async()=>{ const ok=await copyText("E-Mail: "+done.email+"  Passwort: "+done.pw); toast(ok?"Beides kopiert":"Konnte nicht kopieren"); }}>Beides kopieren</button>
+        <button className="btn" style={{marginTop:12}} onClick={async()=>{ const ok=await copyText("E-Mail: "+done.email+"\n\nPasswort: "+done.pw); toast(ok?"Zugangsdaten kopiert":"Konnte nicht kopieren"); }}>Zugangsdaten kopieren</button>
         <button className="btn btn-ghost" style={{marginTop:10}} onClick={onCreated}>Fertig</button>
       </>}
     </div>
