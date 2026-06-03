@@ -365,6 +365,8 @@
   .done-sub{color:var(--faint);font-size:12.5px;margin-top:2px;font-family:"IBM Plex Mono";}
   .done-pct{color:#22C55E;font-weight:800;font-size:14px;flex:none;}
   .done-body{padding:0 15px 14px;}
+  .setinput{width:100%;box-sizing:border-box;background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:12px 13px;color:var(--text);font-size:15px;font-family:inherit;}
+  .setinput:focus{outline:none;border-color:var(--accent);}
   .worknote{background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:4px 0 10px;font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
   .worknote .wn-lab{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
   .done-acts{display:flex;gap:10px;margin-top:6px;}
@@ -3086,41 +3088,123 @@ function CloudTab({cdata,upd,role,name,shared,addShared,delShared,toast}){
       : <FileList files={shared} canDelete={false} onDelete={()=>{}}/>}
   </div>;
 }
-function SettingsTab({cdata,upd,theme,setTheme,toast,clientId,live}){
-  const [busy,setBusy]=useState(false);
+function AccountSettings({theme,setTheme,toast,onRefresh}){
+  const live=!!window.supa;
+  const [uid,setUid]=useState(null);
+  const [curEmail,setCurEmail]=useState("");
+  const [name,setName]=useState("");
+  const [avatar,setAvatar]=useState("");
+  const [newEmail,setNewEmail]=useState("");
+  const [pw,setPw]=useState(""), [pw2,setPw2]=useState("");
+  const [busy,setBusy]=useState("");   // 'avatar'|'name'|'email'|'pw'
+  const [loaded,setLoaded]=useState(false);
+
+  useEffect(()=>{ (async()=>{
+    if(!live){ setLoaded(true); return; }
+    try{
+      const { data:u } = await window.supa.auth.getUser();
+      const user=u&&u.user; if(!user) { setLoaded(true); return; }
+      setUid(user.id); setCurEmail(user.email||""); setNewEmail(user.email||"");
+      const { data:p } = await window.supa.from("profiles").select("display_name,avatar_url").eq("id",user.id).single();
+      if(p){ setName(p.display_name||""); setAvatar(p.avatar_url||""); }
+    }catch(e){}
+    setLoaded(true);
+  })(); },[]);
+
   const uploadAvatar=async(file)=>{
-    if(!file) return;
-    if(!live || !clientId){ // Demo: nur lokal
-      readToData(file,(u)=>{ upd(c=>({...c,avatarUrl:u})); toast("Profilbild aktualisiert"); });
-      return;
-    }
-    setBusy(true);
+    if(!file||!uid) return; setBusy("avatar");
     try{
       const ext=((file.type.split("/")[1])||"jpg").replace("jpeg","jpg");
-      const path=clientId+"/avatar."+ext;
-      const { error:upErr } = await window.supa.storage.from("avatars").upload(path, file, { upsert:true, contentType:file.type||"image/jpeg" });
-      if(upErr) throw upErr;
+      const path=uid+"/avatar."+ext;
+      const { error:upErr } = await window.supa.storage.from("avatars").upload(path,file,{upsert:true,contentType:file.type||"image/jpeg"}); if(upErr) throw upErr;
       const { data:pub } = window.supa.storage.from("avatars").getPublicUrl(path);
       const url=pub.publicUrl+"?t="+Date.now();
-      const { error:dbErr } = await window.supa.from("profiles").update({ avatar_url:url }).eq("id",clientId);
-      if(dbErr) throw dbErr;
-      upd(c=>({...c,avatarUrl:url}));
-      toast("Profilbild gespeichert");
+      const { error:dbErr } = await window.supa.from("profiles").update({ avatar_url:url }).eq("id",uid); if(dbErr) throw dbErr;
+      setAvatar(url); toast("Profilbild gespeichert"); onRefresh&&onRefresh();
     }catch(e){ toast("Profilbild fehlgeschlagen: "+(e.message||"")); }
-    finally{ setBusy(false); }
+    finally{ setBusy(""); }
   };
-  const removeAvatar=async()=>{
-    if(live && clientId){ try{ await window.supa.from("profiles").update({ avatar_url:null }).eq("id",clientId); }catch(e){} }
-    upd(c=>({...c,avatarUrl:""}));
+  const removeAvatar=async()=>{ if(!uid) return; try{ await window.supa.from("profiles").update({ avatar_url:null }).eq("id",uid); setAvatar(""); onRefresh&&onRefresh(); }catch(e){} };
+  const saveName=async()=>{
+    const nm=name.trim(); if(!nm){ toast("Name darf nicht leer sein"); return; } if(!uid) return; setBusy("name");
+    try{ const { error } = await window.supa.from("profiles").update({ display_name:nm }).eq("id",uid); if(error) throw error; toast("Name gespeichert"); onRefresh&&onRefresh(); }
+    catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); } finally{ setBusy(""); }
   };
+  const changeEmail=async()=>{
+    const mail=newEmail.trim().toLowerCase();
+    if(!mail || mail.indexOf("@")<1){ toast("Bitte gültige E-Mail eingeben"); return; }
+    if(mail===curEmail){ toast("Das ist bereits deine E-Mail"); return; }
+    setBusy("email");
+    try{
+      const { data, error } = await window.supa.functions.invoke("update-email",{ body:{ email:mail } });
+      if(error){ let m=error.message||"Fehlgeschlagen"; try{ const ctx=error.context; if(ctx&&typeof ctx.json==="function"){ const j=await ctx.json(); if(j&&j.error) m=j.error; } }catch(_e){} throw new Error(m); }
+      if(data&&data.error) throw new Error(data.error);
+      setCurEmail(mail); toast("E-Mail geändert"); onRefresh&&onRefresh();
+    }catch(e){ toast("E-Mail-Änderung fehlgeschlagen: "+(e.message||"")); }
+    finally{ setBusy(""); }
+  };
+  const changePassword=async()=>{
+    if(pw.length<8){ toast("Mindestens 8 Zeichen"); return; }
+    if(pw!==pw2){ toast("Passwörter stimmen nicht überein"); return; }
+    setBusy("pw");
+    try{ const { error } = await window.supa.auth.updateUser({ password:pw }); if(error) throw error; setPw(""); setPw2(""); toast("Passwort geändert"); }
+    catch(e){ toast("Passwort-Änderung fehlgeschlagen: "+(e.message||"")); } finally{ setBusy(""); }
+  };
+
+  return <>
+    <div className="sectlabel">Profil</div>
+    <div className="mcard">
+      <div className="setavatar">
+        <div className="big">{avatar?<img src={avatar} alt=""/>:initials(name||"?")}</div>
+        <label className="link" style={{cursor:busy==="avatar"?"default":"pointer",opacity:busy==="avatar"?.6:1}}>{busy==="avatar"?"Lädt…":"Profilbild ändern"}
+          <input type="file" accept="image/*" disabled={busy==="avatar"||!live} style={{display:"none"}} onChange={(e)=>{const f=e.target.files[0]; if(f)uploadAvatar(f); e.target.value="";}}/></label>
+        {avatar && busy!=="avatar" && <button className="link" style={{color:"var(--faint)"}} onClick={removeAvatar}>Entfernen</button>}
+      </div>
+    </div>
+
+    {live && <>
+      <div className="sectlabel">Name</div>
+      <div className="mcard">
+        <input className="setinput" value={name} onChange={(e)=>setName(e.target.value)} placeholder="Dein Name"/>
+        <button className="btn" style={{marginTop:10}} disabled={busy==="name"} onClick={saveName}>{busy==="name"?"Speichert…":"Name speichern"}</button>
+      </div>
+
+      <div className="sectlabel">E-Mail</div>
+      <div className="mcard">
+        <div className="muted" style={{fontSize:12.5,marginBottom:8}}>Aktuell: {curEmail||"—"}</div>
+        <input className="setinput" type="email" value={newEmail} onChange={(e)=>setNewEmail(e.target.value)} placeholder="neue@mail.de"/>
+        <button className="btn" style={{marginTop:10}} disabled={busy==="email"} onClick={changeEmail}>{busy==="email"?"Ändert…":"E-Mail ändern"}</button>
+      </div>
+
+      <div className="sectlabel">Passwort</div>
+      <div className="mcard">
+        <input className="setinput" type="password" value={pw} onChange={(e)=>setPw(e.target.value)} placeholder="Neues Passwort"/>
+        <input className="setinput" type="password" value={pw2} onChange={(e)=>setPw2(e.target.value)} placeholder="Wiederholen" style={{marginTop:8}}/>
+        <button className="btn" style={{marginTop:10}} disabled={busy==="pw"} onClick={changePassword}>{busy==="pw"?"Ändert…":"Passwort ändern"}</button>
+      </div>
+    </>}
+
+    <div className="sectlabel">Darstellung</div>
+    <div className="mcard" style={{padding:"6px 16px"}}>
+      <div className="tglrow"><div><div className="en">Helles Design</div><div className="enote">Zwischen hellem und dunklem Modus wechseln</div></div>
+        <Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
+    </div>
+  </>;
+}
+
+function SettingsTab({cdata,upd,theme,setTheme,toast,clientId,live,onRefresh}){
+  // Live: vollständige Kontoeinstellungen (Bild/Name/E-Mail/Passwort). Demo: nur lokales Bild + Theme.
+  if(live && clientId){
+    return <div className="mbody"><AccountSettings theme={theme} setTheme={setTheme} toast={toast} onRefresh={onRefresh}/></div>;
+  }
+  const uploadAvatar=(file)=>{ if(!file) return; readToData(file,(u)=>{ upd(c=>({...c,avatarUrl:u})); toast("Profilbild aktualisiert"); }); };
   return <div className="mbody">
     <div className="sectlabel">Profil</div>
     <div className="mcard">
       <div className="setavatar">
         <div className="big">{cdata.avatarUrl?<img src={cdata.avatarUrl} alt=""/>:initials(cdata.name)}</div>
-        <label className="link" style={{cursor:busy?"default":"pointer",opacity:busy?.6:1}}>{busy?"Lädt…":"Profilbild ändern"}
-          <input type="file" accept="image/*" disabled={busy} style={{display:"none"}} onChange={(e)=>{const f=e.target.files[0]; if(f)uploadAvatar(f); e.target.value="";}}/></label>
-        {cdata.avatarUrl && !busy && <button className="link" style={{color:"var(--faint)"}} onClick={removeAvatar}>Entfernen</button>}
+        <label className="link" style={{cursor:"pointer"}}>Profilbild ändern
+          <input type="file" accept="image/*" style={{display:"none"}} onChange={(e)=>{const f=e.target.files[0]; if(f)uploadAvatar(f); e.target.value="";}}/></label>
       </div>
     </div>
     <div className="sectlabel">Darstellung</div>
@@ -3209,7 +3293,7 @@ function BroadcastSheet({onClose,onSend,count}){
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
-function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId}){
+function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh}){
   const [tab,setTab]=useState(viewerRole==="coach"?"chat":"home");
   const [menu,setMenu]=useState(false);
   const tabs=viewerRole==="coach"?COACH_TABS:CLIENT_TABS;
@@ -3223,7 +3307,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   else if(tab==="food") content=(live && clientId) ? <LiveFoodTab clientId={clientId} role={viewerRole} toast={toast}/> : <FoodTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
   else if(tab==="weight") content=(live && clientId) ? <LiveWeightTab clientId={clientId} role={viewerRole} toast={toast}/> : <WeightTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
   else if(tab==="cloud") content=(clientId) ? <LiveCloudTab clientId={clientId} role={viewerRole} toast={toast}/> : <CloudTab cdata={cdata} upd={upd} role={viewerRole} name={name} shared={shared} addShared={addShared} delShared={delShared} toast={toast}/>;
-  else content=<SettingsTab cdata={cdata} upd={upd} theme={theme} setTheme={setTheme} toast={toast} clientId={clientId} live={live}/>;
+  else content=<SettingsTab cdata={cdata} upd={upd} theme={theme} setTheme={setTheme} toast={toast} clientId={clientId} live={live} onRefresh={onRefresh}/>;
   return <div className="app">
     <div className="topbar">
       {onBack && <button className="back" onClick={onBack}>‹</button>}
@@ -3236,7 +3320,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
 }
 
 /* ---------- COACH HOME ---------- */
-function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast}){
+function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast,onRefresh}){
   const [tab,setTab]=useState("home"); // home | clients | cloud | chat
   const [menu,setMenu]=useState(false);
   const [bc,setBc]=useState(false);
@@ -3258,8 +3342,8 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   };
   useEffect(()=>{ load(); },[]);
 
-  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"}];
-  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat"};
+  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"account",l:"Konto",i:"settings"}];
+  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",account:"Konto"};
 
   let body;
   if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast}/>;
@@ -3285,6 +3369,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   </>;
   else if(tab==="cloud") body=<LiveCloudTab clientId={meId} role="coach" toast={toast} mode="broadcast"/>;
   else if(tab==="chat") body=<CoachChatList clients={clients} onOpen={onOpen}/>;
+  else if(tab==="account") body=<AccountSettings theme={theme} setTheme={setTheme} toast={toast} onRefresh={onRefresh}/>;
 
   return <div className="app">
     <div className="topbar">
@@ -3767,9 +3852,9 @@ function App(){
   else if(screen==="auth") view=<Auth/>;
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
   else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("app"); }} onSignOut={signOut} toast={toast}/>;
-  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id}/>; }
+  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id}/>; }
-  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast}/>;
+  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
   return <>{view}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
