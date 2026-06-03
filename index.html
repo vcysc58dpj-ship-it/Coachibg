@@ -21,11 +21,12 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;margin:0;}
+  body{overflow:hidden;}
   body{font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;color:var(--text);
     background:radial-gradient(125% 60% at 50% -12%, rgba(225,29,46,0.13), transparent 60%), var(--bg);
     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overscroll-behavior-y:none;}
-  #root{height:100vh;height:100dvh;}
-  .app{height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:560px;margin:0 auto;position:relative;overflow:hidden;}
+  #root{height:100vh;height:100dvh;height:var(--app-h,100dvh);}
+  .app{height:100vh;height:100dvh;height:var(--app-h,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;position:relative;overflow:hidden;}
   h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-0.02em;margin:0;}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
   input,textarea,select{font-family:inherit;}
@@ -45,7 +46,7 @@
 
   .card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:20px;}
 
-  .center{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:28px 22px;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
+  .center{min-height:var(--app-h,100dvh);display:flex;flex-direction:column;justify-content:center;padding:28px 22px;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
   .tagline{color:var(--dim);font-size:15px;margin-top:10px;text-align:center;}
   .logo-auth{display:block;height:60px;margin:0 auto;object-fit:contain;}
 
@@ -377,6 +378,18 @@
   .logobtn{background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;}
   .anq{margin-bottom:18px;}
   .anq-label{font-size:14.5px;font-weight:600;margin-bottom:9px;color:var(--text);line-height:1.35;}
+  .anwiz{height:var(--app-h,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
+  .anwiz-head{padding:calc(env(safe-area-inset-top) + 16px) 22px 6px;display:flex;justify-content:center;flex:none;}
+  .anwiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 22px 14px;}
+  .anwiz-foot{flex:none;padding:14px 22px calc(env(safe-area-inset-bottom) + 16px);border-top:1px solid var(--line);background:var(--bg-2);}
+  .anwiz-prog{height:7px;border-radius:99px;background:var(--bg-3);overflow:hidden;}
+  .anwiz-prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .25s ease;}
+  .anwiz-prog-label{font-size:12.5px;color:var(--dim);text-align:center;margin:8px 0 12px;}
+  .anwiz-btns{display:flex;gap:10px;}
+  .pagepick{display:inline-flex;align-items:center;gap:8px;background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:5px 8px;}
+  .pagepick button{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg-2);color:var(--text);font-size:18px;line-height:1;cursor:pointer;}
+  .pagepick button:disabled{opacity:.4;}
+  .pagehdr{font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin:14px 2px 8px;}
   .worknote{background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:4px 0 10px;font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
   .worknote .wn-lab{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
   .done-acts{display:flex;gap:10px;margin-top:6px;}
@@ -1280,19 +1293,19 @@ function CheckinEntry({c,qs,open,onToggle}){
 }
 /* ---------- ANAMNESE (spezieller erster Check-in) ---------- */
 const DEFAULT_ANAMNESE=[
-  {label:"Was ist dein Hauptziel mit dem Coaching?",type:"text"},
-  {label:"Größe (cm)",type:"number"},
-  {label:"Aktuelles Gewicht (kg)",type:"number"},
-  {label:"Wie viel Trainingserfahrung hast du? (Jahre / kurze Beschreibung)",type:"text"},
-  {label:"Wie oft pro Woche kannst du realistisch trainieren?",type:"number"},
-  {label:"Hast du Vorerkrankungen, Beschwerden oder Verletzungen?",type:"yesno"},
-  {label:"Wenn ja, welche? (Details)",type:"text"},
-  {label:"Nimmst du regelmäßig Medikamente?",type:"yesno"},
-  {label:"Wie schätzt du deine aktuelle Ernährung ein?",type:"scale"},
-  {label:"Wie ist dein Schlaf aktuell?",type:"scale"},
-  {label:"Wie hoch ist dein Stresslevel im Alltag?",type:"scale"},
-  {label:"Was hat dich bisher am meisten zurückgehalten?",type:"text"},
-  {label:"Gibt es sonst etwas, das ich über dich wissen sollte?",type:"text"},
+  {label:"Was ist dein Hauptziel mit dem Coaching?",type:"text",page:1},
+  {label:"Größe (cm)",type:"number",page:1},
+  {label:"Aktuelles Gewicht (kg)",type:"number",page:1},
+  {label:"Wie viel Trainingserfahrung hast du? (Jahre / kurze Beschreibung)",type:"text",page:2},
+  {label:"Wie oft pro Woche kannst du realistisch trainieren?",type:"number",page:2},
+  {label:"Hast du Vorerkrankungen, Beschwerden oder Verletzungen?",type:"yesno",page:3},
+  {label:"Wenn ja, welche? (Details)",type:"text",page:3},
+  {label:"Nimmst du regelmäßig Medikamente?",type:"yesno",page:3},
+  {label:"Wie schätzt du deine aktuelle Ernährung ein?",type:"scale",page:4},
+  {label:"Wie ist dein Schlaf aktuell?",type:"scale",page:4},
+  {label:"Wie hoch ist dein Stresslevel im Alltag?",type:"scale",page:4},
+  {label:"Was hat dich bisher am meisten zurückgehalten?",type:"text",page:5},
+  {label:"Gibt es sonst etwas, das ich über dich wissen sollte?",type:"text",page:5},
 ];
 const ANAM_TYPES=[{v:"scale",l:"Skala 1–10"},{v:"yesno",l:"Ja / Nein"},{v:"text",l:"Freitext"},{v:"number",l:"Zahl"},{v:"photo",l:"Foto"}];
 const anamTypeLabel=(v)=>{ const x=ANAM_TYPES.find(x=>x.v===v); return x?x.l:v; };
@@ -1312,20 +1325,22 @@ function QInput({type,val,onText,onFile}){
 }
 
 // Kunde füllt die Anamnese aus (im Onboarding)
-function AnamneseForm({clientId,onDone,submitLabel,toast}){
-  const [questions,setQuestions]=useState(null);
+function AnamneseWizard({clientId,onDone,onSignOut,toast}){
+  const [questions,setQuestions]=useState(null); // [{key,id,label,type,page}]
   const [vals,setVals]=useState({});
+  const [pageIdx,setPageIdx]=useState(0);
   const [busy,setBusy]=useState(false);
+  const bodyRef=useRef(null);
   useEffect(()=>{ (async()=>{
     let qs;
     try{
-      const { data } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
-      if(data && data.length){ qs=data.map(q=>({key:q.id,id:q.id,label:q.label,type:q.type})); }
+      const { data } = await window.supa.from("anamnese_questions").select("id,label,type,position,page,created_at").eq("client_id",clientId).order("page",{ascending:true}).order("position",{ascending:true}).order("created_at",{ascending:true});
+      if(data && data.length){ qs=data.map(q=>({key:q.id,id:q.id,label:q.label,type:q.type,page:q.page||1})); }
       else {
-        let tpl=null; try{ const { data:t } = await window.supa.from("anamnese_template").select("label,type,position").order("position",{ascending:true}); if(t && t.length) tpl=t; }catch(e){}
-        qs=tpl ? tpl.map((q,i)=>({key:"tpl"+i,id:null,label:q.label,type:q.type})) : DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type}));
+        let tpl=null; try{ const { data:t } = await window.supa.from("anamnese_template").select("label,type,position,page").order("page",{ascending:true}).order("position",{ascending:true}); if(t && t.length) tpl=t; }catch(e){}
+        qs=tpl ? tpl.map((q,i)=>({key:"tpl"+i,id:null,label:q.label,type:q.type,page:q.page||1})) : DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type,page:q.page||1}));
       }
-    }catch(e){ qs=DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type})); }
+    }catch(e){ qs=DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type,page:q.page||1})); }
     const o={}; qs.forEach(q=>{ o[q.key]={text:"",file:null,fileName:""}; }); setVals(o); setQuestions(qs);
   })(); },[clientId]);
   const setText=(k,v)=>setVals(s=>({...s,[k]:{...s[k],text:v}}));
@@ -1355,14 +1370,37 @@ function AnamneseForm({clientId,onDone,submitLabel,toast}){
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); setBusy(false); }
   };
 
-  if(questions===null) return <div className="muted">Lädt…</div>;
-  return <>
-    {questions.map(q=>(<div key={q.key} className="anq">
-      <div className="anq-label">{q.label}</div>
-      <QInput type={q.type} val={vals[q.key]||{text:"",fileName:""}} onText={(v)=>setText(q.key,v)} onFile={(f)=>setFile(q.key,f)}/>
-    </div>))}
-    <button className="btn" style={{marginTop:6}} disabled={busy} onClick={save}>{busy?"Speichert…":(submitLabel||"Anamnese absenden")}</button>
-  </>;
+  if(questions===null) return <div className="anwiz"><div className="anwiz-head"><img className="logo-auth" src={LOGO} alt="NK"/></div><div className="anwiz-body"><div className="muted">Lädt…</div></div></div>;
+
+  const pages=[...new Set(questions.map(q=>q.page))].sort((a,b)=>a-b);
+  const total=Math.max(pages.length,1);
+  const curPage=pages[pageIdx]!=null?pages[pageIdx]:1;
+  const pageQs=questions.filter(q=>q.page===curPage);
+  const last=pageIdx>=total-1;
+  const pct=Math.round(((pageIdx+1)/total)*100);
+  const goNext=()=>{ if(last){ save(); } else { setPageIdx(i=>i+1); if(bodyRef.current) bodyRef.current.scrollTop=0; } };
+  const goBack=()=>{ if(pageIdx>0){ setPageIdx(i=>i-1); if(bodyRef.current) bodyRef.current.scrollTop=0; } };
+
+  return <div className="anwiz">
+    <div className="anwiz-head"><img className="logo-auth" src={LOGO} alt="NK"/></div>
+    <div className="anwiz-body" ref={bodyRef}>
+      {pageIdx===0 && <><h2 style={{fontSize:21,margin:"4px 2px 4px"}}>Kurze Anamnese</h2>
+        <div className="muted" style={{margin:"0 2px 16px",fontSize:13.5}}>Damit dich dein Coach von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div></>}
+      {pageQs.map(q=>(<div key={q.key} className="anq">
+        <div className="anq-label">{q.label}</div>
+        <QInput type={q.type} val={vals[q.key]||{text:"",fileName:""}} onText={(v)=>setText(q.key,v)} onFile={(f)=>setFile(q.key,f)}/>
+      </div>))}
+      {onSignOut && <div style={{textAlign:"center",marginTop:18}}><button className="link" style={{color:"var(--faint)"}} onClick={onSignOut}>Abmelden</button></div>}
+    </div>
+    <div className="anwiz-foot">
+      <div className="anwiz-prog"><div className="anwiz-prog-fill" style={{width:pct+"%"}}/></div>
+      <div className="anwiz-prog-label">Seite {pageIdx+1} von {total}</div>
+      <div className="anwiz-btns">
+        {pageIdx>0 && <button className="btn btn-ghost" style={{flex:"0 0 auto",minWidth:110}} disabled={busy} onClick={goBack}>‹ Zurück</button>}
+        <button className="btn" style={{flex:1}} disabled={busy} onClick={goNext}>{busy?"Speichert…":(last?"Absenden":"Weiter")}</button>
+      </div>
+    </div>
+  </div>;
 }
 
 // Anzeige der eingereichten Anamnese-Antworten (nur Coach)
@@ -1391,71 +1429,80 @@ function AnamneseAnswersCard({clientId,title}){
 }
 
 // Coach: Anamnese-Fragen pro Kunde anpassen (Standard wird automatisch übernommen)
-function CoachAnamneseEditor({clientId,toast}){
+// Gemeinsamer Fragen-Editor mit Seiten-Zuordnung (für Kunde + Vorlage)
+function QuestionEditor({table,idCol,idVal,seedFn,toast,introText}){
+  const sel="id,label,type,position,page,created_at";
   const [questions,setQuestions]=useState(null);
-  const [newLabel,setNewLabel]=useState(""); const [newType,setNewType]=useState("text");
+  const [newLabel,setNewLabel]=useState(""); const [newType,setNewType]=useState("text"); const [newPage,setNewPage]=useState(1);
   const [busy,setBusy]=useState(false);
   const seededRef=useRef(false);
+  const fetchRows=async()=>{ const { data,error } = await window.supa.from(table).select(sel).eq(idCol,idVal).order("page",{ascending:true}).order("position",{ascending:true}).order("created_at",{ascending:true}); if(error) throw error; return (data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position,page:q.page||1})); };
   const load=async()=>{
     try{
-      const { data,error } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
-      if(error) throw error;
-      if((!data||data.length===0) && !seededRef.current){
+      let rows=await fetchRows();
+      if(rows.length===0 && !seededRef.current){
         seededRef.current=true;
-        let seed=DEFAULT_ANAMNESE;
-        try{ const { data:tpl } = await window.supa.from("anamnese_template").select("label,type,position").order("position",{ascending:true}); if(tpl && tpl.length) seed=tpl.map(t=>({label:t.label,type:t.type})); }catch(e){}
-        const rows=seed.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
-        const { error:ie } = await window.supa.from("anamnese_questions").insert(rows);
-        if(!ie){ const { data:d2 } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setQuestions((d2||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position}))); return; }
+        let seed=[]; try{ seed=await seedFn(); }catch(e){ seed=DEFAULT_ANAMNESE; }
+        if(!seed||!seed.length) seed=DEFAULT_ANAMNESE;
+        const ins=seed.map((q,i)=>{ const r={label:q.label,type:q.type,position:i,page:q.page||1}; r[idCol]=idVal; return r; });
+        const { error:ie } = await window.supa.from(table).insert(ins);
+        if(!ie){ rows=await fetchRows(); }
       }
-      setQuestions((data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})));
-    }catch(e){ toast("Anamnese-Fragen konnten nicht geladen werden"); setQuestions([]); }
+      setQuestions(rows);
+    }catch(e){ toast("Fragen konnten nicht geladen werden"); setQuestions([]); }
   };
-  useEffect(()=>{ if(clientId) load(); },[clientId]);
+  useEffect(()=>{ if(idVal) load(); },[idVal]);
 
-  const addQ=async()=>{
-    if(!newLabel.trim()||busy) return; setBusy(true);
-    try{ const pos=questions.length; const { error } = await window.supa.from("anamnese_questions").insert({ client_id:clientId, label:newLabel.trim(), type:newType, position:pos }); if(error) throw error; setNewLabel(""); setNewType("text"); await load(); }
-    catch(e){ toast("Frage hinzufügen fehlgeschlagen: "+(e.message||"")); }
-    finally{ setBusy(false); }
-  };
-  const delQ=async(id)=>{
-    if(!await askConfirm({title:"Frage entfernen?",message:"Bereits gegebene Antworten bleiben im Verlauf erhalten.",confirmText:"Entfernen",danger:true})) return;
-    try{ const { error } = await window.supa.from("anamnese_questions").delete().eq("id",id); if(error) throw error; await load(); }
-    catch(e){ toast("Entfernen fehlgeschlagen"); }
-  };
-  const move=async(idx,dir)=>{
-    const j=idx+dir; if(j<0||j>=questions.length) return;
-    const a=questions[idx], b=questions[j];
-    try{ await window.supa.from("anamnese_questions").update({position:b.position}).eq("id",a.id); await window.supa.from("anamnese_questions").update({position:a.position}).eq("id",b.id); await load(); }
-    catch(e){ toast("Reihenfolge konnte nicht geändert werden"); }
-  };
+  const addQ=async()=>{ if(!newLabel.trim()||busy) return; setBusy(true); try{ const maxPos=questions.reduce((m,q)=>Math.max(m,q.position),-1); const row={label:newLabel.trim(),type:newType,position:maxPos+1,page:Math.max(1,newPage||1)}; row[idCol]=idVal; const { error } = await window.supa.from(table).insert(row); if(error) throw error; setNewLabel(""); setNewType("text"); await load(); }catch(e){ toast("Hinzufügen fehlgeschlagen: "+(e.message||"")); }finally{ setBusy(false); } };
+  const delQ=async(id)=>{ if(!await askConfirm({title:"Frage entfernen?",message:"Bereits gegebene Antworten bleiben im Verlauf erhalten.",confirmText:"Entfernen",danger:true})) return; try{ const { error } = await window.supa.from(table).delete().eq("id",id); if(error) throw error; await load(); }catch(e){ toast("Entfernen fehlgeschlagen"); } };
+  const swap=async(a,b)=>{ try{ await window.supa.from(table).update({position:b.position}).eq("id",a.id); await window.supa.from(table).update({position:a.position}).eq("id",b.id); await load(); }catch(e){ toast("Reihenfolge konnte nicht geändert werden"); } };
+  const movePage=async(q,dir)=>{ const np=Math.max(1,q.page+dir); if(np===q.page) return; const maxPos=questions.reduce((m,x)=>Math.max(m,x.position),-1); try{ const { error } = await window.supa.from(table).update({page:np,position:maxPos+1}).eq("id",q.id); if(error) throw error; await load(); }catch(e){ toast("Seite konnte nicht geändert werden"); } };
 
   if(questions===null) return <div className="mcard"><div className="muted">Lädt…</div></div>;
+  const pages=[...new Set(questions.map(q=>q.page))].sort((a,b)=>a-b);
+  const maxPage=pages.length?pages[pages.length-1]:1;
   return <>
-    <div className="sectlabel">Fragen anpassen</div>
-    <div className="muted" style={{fontSize:13,marginBottom:10}}>Der Standard-Fragebogen ist bereits hinterlegt. Du kannst Fragen für diesen Kunden anpassen, ergänzen oder entfernen. Der Kunde füllt die Anamnese einmalig beim ersten Login aus.</div>
-    {questions.map((q,i)=>(
-      <div key={q.id} className="mcard ci-qrow">
-        <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
-        <div className="ci-qacts">
-          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button>
-          <button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button>
-          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
-        </div>
-      </div>
-    ))}
+    {introText && <div className="muted" style={{fontSize:13,marginBottom:6}}>{introText}</div>}
+    {pages.map(pg=>{ const list=questions.filter(q=>q.page===pg);
+      return <div key={pg}>
+        <div className="pagehdr">Seite {pg}</div>
+        {list.map((q,i)=>(
+          <div key={q.id} className="mcard ci-qrow">
+            <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
+            <div className="ci-qacts">
+              <button className="iconbtn" disabled={i===0} onClick={()=>swap(q,list[i-1])} aria-label="hoch">↑</button>
+              <button className="iconbtn" disabled={i===list.length-1} onClick={()=>swap(q,list[i+1])} aria-label="runter">↓</button>
+              <button className="iconbtn" disabled={pg<=1} onClick={()=>movePage(q,-1)} aria-label="Seite zurück">‹</button>
+              <button className="iconbtn" onClick={()=>movePage(q,1)} aria-label="Seite vor">›</button>
+              <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+            </div>
+          </div>
+        ))}
+      </div>;
+    })}
     <div className="sectlabel">Frage hinzufügen</div>
     <div className="mcard">
       <div className="field" style={{marginBottom:10}}><label>Frage</label>
-        <input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie sieht dein Alltag aus?"
-          style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/>
+        <input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie sieht dein Alltag aus?" style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/>
       </div>
-      <div className="field" style={{marginBottom:14}}><label>Antworttyp</label>
+      <div className="field" style={{marginBottom:12}}><label>Antworttyp</label>
         <div className="typewrap">{ANAM_TYPES.map(tp=>(<button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>))}</div>
+      </div>
+      <div className="field" style={{marginBottom:14}}><label>Seite</label>
+        <div className="pagepick"><button disabled={newPage<=1} onClick={()=>setNewPage(p=>Math.max(1,p-1))} aria-label="weniger">−</button><span style={{minWidth:70,textAlign:"center",fontWeight:600}}>Seite {newPage}</span><button disabled={newPage>=maxPage+1} onClick={()=>setNewPage(p=>Math.min(maxPage+1,p+1))} aria-label="mehr">+</button></div>
+        <div className="muted" style={{fontSize:12,marginTop:6}}>Bisher {maxPage} {maxPage===1?"Seite":"Seiten"}. Eine höhere Zahl legt eine neue Seite an.</div>
       </div>
       <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
     </div>
+  </>;
+}
+
+function CoachAnamneseEditor({clientId,toast}){
+  const seedFn=async()=>{ try{ const { data:tpl } = await window.supa.from("anamnese_template").select("label,type,position,page").order("page",{ascending:true}).order("position",{ascending:true}); if(tpl && tpl.length) return tpl.map(t=>({label:t.label,type:t.type,page:t.page||1})); }catch(e){} return DEFAULT_ANAMNESE; };
+  return <>
+    <div className="sectlabel">Fragen anpassen</div>
+    <QuestionEditor table="anamnese_questions" idCol="client_id" idVal={clientId} seedFn={seedFn} toast={toast}
+      introText="Der Standard-Fragebogen ist hinterlegt. Passe Fragen und ihre Seiten für diesen Kunden an. Der Kunde füllt die Anamnese einmalig beim ersten Login aus."/>
   </>;
 }
 
@@ -1475,38 +1522,12 @@ function CoachAnamnese({clientId,toast}){
 // Coach: globale Standard-Anamnese-Vorlage (gilt für NEUE Kunden)
 function CoachAnamneseTemplate({toast}){
   const [uid,setUid]=useState(null);
-  const [questions,setQuestions]=useState(null);
-  const [newLabel,setNewLabel]=useState(""); const [newType,setNewType]=useState("text");
-  const [busy,setBusy]=useState(false);
-  const seededRef=useRef(false);
-  const load=async(coachId)=>{
-    try{
-      const { data,error } = await window.supa.from("anamnese_template").select("id,label,type,position,created_at").eq("coach_id",coachId).order("position",{ascending:true}).order("created_at",{ascending:true});
-      if(error) throw error;
-      if((!data||data.length===0) && !seededRef.current){
-        seededRef.current=true;
-        const rows=DEFAULT_ANAMNESE.map((q,i)=>({ coach_id:coachId, label:q.label, type:q.type, position:i }));
-        const { error:ie } = await window.supa.from("anamnese_template").insert(rows);
-        if(!ie){ const { data:d2 } = await window.supa.from("anamnese_template").select("id,label,type,position,created_at").eq("coach_id",coachId).order("position",{ascending:true}).order("created_at",{ascending:true}); setQuestions((d2||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position}))); return; }
-      }
-      setQuestions((data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})));
-    }catch(e){ toast("Vorlage konnte nicht geladen werden"); setQuestions([]); }
-  };
-  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); const id=data&&data.user?data.user.id:null; setUid(id); if(id) load(id); else setQuestions([]); }catch(e){ setQuestions([]); } })(); },[]);
-  const addQ=async()=>{ if(!newLabel.trim()||busy||!uid) return; setBusy(true); try{ const pos=questions.length; const { error } = await window.supa.from("anamnese_template").insert({ coach_id:uid, label:newLabel.trim(), type:newType, position:pos }); if(error) throw error; setNewLabel(""); setNewType("text"); await load(uid); }catch(e){ toast("Hinzufügen fehlgeschlagen: "+(e.message||"")); }finally{ setBusy(false); } };
-  const delQ=async(id)=>{ if(!await askConfirm({title:"Frage aus Vorlage entfernen?",message:"Gilt nur für NEUE Kunden. Bereits angelegte Kunden behalten ihre Fragen.",confirmText:"Entfernen",danger:true})) return; try{ const { error } = await window.supa.from("anamnese_template").delete().eq("id",id); if(error) throw error; await load(uid); }catch(e){ toast("Entfernen fehlgeschlagen"); } };
-  const move=async(idx,dir)=>{ const j=idx+dir; if(j<0||j>=questions.length) return; const a=questions[idx],b=questions[j]; try{ await window.supa.from("anamnese_template").update({position:b.position}).eq("id",a.id); await window.supa.from("anamnese_template").update({position:a.position}).eq("id",b.id); await load(uid); }catch(e){ toast("Reihenfolge konnte nicht geändert werden"); } };
-  if(questions===null) return <div className="muted">Lädt…</div>;
+  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); setUid(data&&data.user?data.user.id:null); }catch(e){ setUid(null); } })(); },[]);
+  if(!uid) return <div className="muted">Lädt…</div>;
   return <>
     <div className="sectlabel">Standard-Anamnese</div>
-    <div className="muted" style={{fontSize:13,marginBottom:12}}>Diese Vorlage bekommen NEUE Kunden automatisch. Änderungen hier gelten für künftige Kunden – bestehende Kunden passt du direkt bei ihnen im Check-in → Anamnese an.</div>
-    {questions.map((q,i)=>(<div key={q.id} className="mcard ci-qrow"><div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div><div className="ci-qacts"><button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button><button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button><button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button></div></div>))}
-    <div className="sectlabel">Frage hinzufügen</div>
-    <div className="mcard">
-      <div className="field" style={{marginBottom:10}}><label>Frage</label><input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie sieht dein Alltag aus?" style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/></div>
-      <div className="field" style={{marginBottom:14}}><label>Antworttyp</label><div className="typewrap">{ANAM_TYPES.map(tp=>(<button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>))}</div></div>
-      <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
-    </div>
+    <QuestionEditor table="anamnese_template" idCol="coach_id" idVal={uid} seedFn={async()=>DEFAULT_ANAMNESE} toast={toast}
+      introText="Diese Vorlage bekommen NEUE Kunden automatisch. Änderungen gelten für künftige Kunden – bestehende Kunden passt du direkt bei ihnen im Check-in → Anamnese an."/>
   </>;
 }
 
@@ -4062,6 +4083,15 @@ function App(){
   const [theme,setTheme]=useState(()=>{ try{ return localStorage.getItem("nk_theme")||"dark"; }catch(e){ return "dark"; } });
   const [shared,setShared]=useState([{id:"sf1",name:"Trainingsprinzipien.txt",mime:"text/plain",kind:"file",by:"coach",date:dstr(addDays(new Date(),-10)),url:"data:text/plain;charset=utf-8,"+encodeURIComponent("Progressive Overload. Konsistenz schlaegt Perfektion. Schlaf und Protein priorisieren. Fragen? Schreib mir jederzeit.")}]);
   useEffect(()=>{ document.documentElement.setAttribute("data-theme", theme); try{ localStorage.setItem("nk_theme",theme); }catch(e){} const mc=document.querySelector("meta[name=theme-color]"); if(mc) mc.setAttribute("content", theme==="light"?"#F4F1ED":"#131111"); },[theme]);
+  // Sichtbare Höhe an die Tastatur koppeln: Topbar bleibt oben, nur Eingabe + Tastatur rücken hoch
+  useEffect(()=>{
+    const vv=window.visualViewport;
+    const setH=()=>{ const h=vv?vv.height:window.innerHeight; document.documentElement.style.setProperty("--app-h", h+"px"); };
+    setH();
+    if(vv){ vv.addEventListener("resize",setH); vv.addEventListener("scroll",setH); }
+    window.addEventListener("resize",setH); window.addEventListener("orientationchange",setH);
+    return ()=>{ if(vv){ vv.removeEventListener("resize",setH); vv.removeEventListener("scroll",setH); } window.removeEventListener("resize",setH); window.removeEventListener("orientationchange",setH); };
+  },[]);
   const toast=(m)=>{ setToastMsg(m); setTimeout(()=>setToastMsg(""),1600); };
 
   // Profil laden (legt der DB-Trigger automatisch an; hier nur lesen)
@@ -4177,17 +4207,7 @@ function App(){
   else if(screen==="auth") view=<Auth/>;
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
   else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("anamnese"); }} onSignOut={signOut} toast={toast}/>;
-  else if(screen==="anamnese") view=<div style={{height:"100dvh",overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
-    <div className="center" style={{minHeight:0,justifyContent:"flex-start",paddingTop:32,paddingBottom:48}}>
-      <div style={{marginBottom:16}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
-      <div className="card">
-        <h2 style={{fontSize:21,marginBottom:4}}>Kurze Anamnese</h2>
-        <div className="muted" style={{marginBottom:16,fontSize:13.5}}>Damit dein Coach dich von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div>
-        <AnamneseForm clientId={profile&&profile.id} toast={toast} submitLabel="Anamnese absenden & loslegen" onDone={async()=>{ setRole("client"); setScreen("app"); }}/>
-        <div style={{textAlign:"center",marginTop:14}}><button className="link" style={{color:"var(--faint)"}} onClick={signOut}>Abmelden</button></div>
-      </div>
-    </div>
-  </div>;
+  else if(screen==="anamnese") view=<AnamneseWizard clientId={profile&&profile.id} toast={toast} onSignOut={signOut} onDone={async()=>{ setRole("client"); setScreen("app"); }}/>;
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile}/>;
