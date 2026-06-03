@@ -1276,6 +1276,190 @@ function CheckinEntry({c,qs,open,onToggle}){
     </div>}
   </div>;
 }
+/* ---------- ANAMNESE (spezieller erster Check-in) ---------- */
+const DEFAULT_ANAMNESE=[
+  {label:"Was ist dein Hauptziel mit dem Coaching?",type:"text"},
+  {label:"Größe (cm)",type:"number"},
+  {label:"Aktuelles Gewicht (kg)",type:"number"},
+  {label:"Wie viel Trainingserfahrung hast du? (Jahre / kurze Beschreibung)",type:"text"},
+  {label:"Wie oft pro Woche kannst du realistisch trainieren?",type:"number"},
+  {label:"Hast du Vorerkrankungen, Beschwerden oder Verletzungen?",type:"yesno"},
+  {label:"Wenn ja, welche? (Details)",type:"text"},
+  {label:"Nimmst du regelmäßig Medikamente?",type:"yesno"},
+  {label:"Wie schätzt du deine aktuelle Ernährung ein?",type:"scale"},
+  {label:"Wie ist dein Schlaf aktuell?",type:"scale"},
+  {label:"Wie hoch ist dein Stresslevel im Alltag?",type:"scale"},
+  {label:"Was hat dich bisher am meisten zurückgehalten?",type:"text"},
+  {label:"Gibt es sonst etwas, das ich über dich wissen sollte?",type:"text"},
+];
+const ANAM_TYPES=[{v:"scale",l:"Skala 1–10"},{v:"yesno",l:"Ja / Nein"},{v:"text",l:"Freitext"},{v:"number",l:"Zahl"},{v:"photo",l:"Foto"}];
+const anamTypeLabel=(v)=>{ const x=ANAM_TYPES.find(x=>x.v===v); return x?x.l:v; };
+
+// Eingabefeld je Antworttyp (geteilt)
+function QInput({type,val,onText,onFile}){
+  if(type==="scale") return <div className="scalewrap">{Array.from({length:10}).map((_,i)=>{ const n=i+1; const on=String(n)===String(val.text);
+    return <button key={n} className={"scaleb"+(on?" on":"")} onClick={()=>onText(String(n))}>{n}</button>; })}</div>;
+  if(type==="yesno") return <div className="ynwrap">
+    <button className={"ynb"+(val.text==="Ja"?" on":"")} onClick={()=>onText("Ja")}>Ja</button>
+    <button className={"ynb"+(val.text==="Nein"?" on no":"")} onClick={()=>onText("Nein")}>Nein</button></div>;
+  if(type==="text") return <textarea className="ta" value={val.text} onChange={(e)=>onText(e.target.value)} placeholder="Deine Antwort…"/>;
+  if(type==="number") return <input className="qin" inputMode="decimal" style={{width:"100%",boxSizing:"border-box"}} value={val.text} onChange={(e)=>onText(e.target.value)} placeholder="Zahl eingeben"/>;
+  if(type==="photo") return <label className="photopick">{val.fileName?<span>📷 {val.fileName}</span>:<span>📷 Foto auswählen</span>}
+    <input type="file" accept="image/*" style={{display:"none"}} onChange={(e)=>{ const f=e.target.files[0]; if(f) onFile(f); e.target.value=""; }}/></label>;
+  return null;
+}
+
+// Kunde füllt die Anamnese aus (im Onboarding)
+function AnamneseForm({clientId,onDone,submitLabel,toast}){
+  const [questions,setQuestions]=useState(null);
+  const [vals,setVals]=useState({});
+  const [busy,setBusy]=useState(false);
+  useEffect(()=>{ (async()=>{
+    let qs;
+    try{
+      const { data } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
+      qs=(data&&data.length)?data.map(q=>({key:q.id,id:q.id,label:q.label,type:q.type})):DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type}));
+    }catch(e){ qs=DEFAULT_ANAMNESE.map((q,i)=>({key:"def"+i,id:null,label:q.label,type:q.type})); }
+    const o={}; qs.forEach(q=>{ o[q.key]={text:"",file:null,fileName:""}; }); setVals(o); setQuestions(qs);
+  })(); },[clientId]);
+  const setText=(k,v)=>setVals(s=>({...s,[k]:{...s[k],text:v}}));
+  const setFile=(k,f)=>setVals(s=>({...s,[k]:{...s[k],file:f,fileName:f?f.name:""}}));
+
+  const save=async()=>{
+    if(busy) return; setBusy(true);
+    try{
+      let anamId=null;
+      const { data:ins, error:ie } = await window.supa.from("anamnese").insert({ client_id:clientId }).select("id").single();
+      if(ie){ const { data:ex } = await window.supa.from("anamnese").select("id").eq("client_id",clientId).maybeSingle(); if(ex) anamId=ex.id; else throw ie; }
+      else anamId=ins.id;
+      const rows=[]; let pos=0;
+      for(const q of questions){
+        const v=vals[q.key]||{}; let answer_file=null;
+        if(q.type==="photo" && v.file){
+          const ext=(v.file.name.split(".").pop()||"jpg").toLowerCase();
+          const path=clientId+"/anamnese/"+anamId+"_"+pos+"_"+nid()+"."+ext;
+          const { error:ue } = await window.supa.storage.from("client-files").upload(path, v.file, { contentType:v.file.type||"image/jpeg", upsert:false });
+          if(ue) throw ue; answer_file=path;
+        }
+        rows.push({ anamnese_id:anamId, client_id:clientId, question_id:q.id||null, question_label:q.label, answer_text:(q.type==="photo"?null:(v.text||null)), answer_file, position:pos }); pos++;
+      }
+      if(rows.length){ const { error:ae } = await window.supa.from("anamnese_answers").insert(rows); if(ae) throw ae; }
+      toast("Anamnese gespeichert ✓");
+      onDone();
+    }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); setBusy(false); }
+  };
+
+  if(questions===null) return <div className="mcard"><div className="muted">Lädt…</div></div>;
+  return <>
+    {questions.map(q=>(<div key={q.key} className="mcard">
+      <div className="ci-flabel">{q.label}</div>
+      <QInput type={q.type} val={vals[q.key]||{text:"",fileName:""}} onText={(v)=>setText(q.key,v)} onFile={(f)=>setFile(q.key,f)}/>
+    </div>))}
+    <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(submitLabel||"Anamnese absenden")}</button>
+  </>;
+}
+
+// Anzeige der eingereichten Anamnese-Antworten (nur Coach)
+function AnamneseAnswersCard({clientId,title}){
+  const [state,setState]=useState(undefined); // undefined=lädt | null=keine | {date,answers}
+  useEffect(()=>{ (async()=>{
+    try{
+      const { data:a } = await window.supa.from("anamnese").select("id,submitted_at").eq("client_id",clientId).maybeSingle();
+      if(!a){ setState(null); return; }
+      const { data:ans } = await window.supa.from("anamnese_answers").select("question_label,answer_text,answer_file,position").eq("client_id",clientId).order("position",{ascending:true});
+      const list=ans||[];
+      for(const x of list){ if(x.answer_file){ try{ const { data:s } = await window.supa.storage.from("client-files").createSignedUrl(x.answer_file,60*60*24); x.signedUrl=(s&&s.signedUrl)||""; }catch(e){} } }
+      setState({date:a.submitted_at, answers:list});
+    }catch(e){ setState(null); }
+  })(); },[clientId]);
+  if(state===undefined) return <div className="mcard"><div className="muted">Lädt…</div></div>;
+  if(state===null) return <div className="mcard"><div className="ci-hdate">{title||"Anamnese"}</div><div className="muted" style={{fontSize:13}}>Der Kunde hat die Anamnese noch nicht ausgefüllt.</div></div>;
+  return <div className="mcard">
+    <div className="ci-hdate">{title||"Anamnese"} · {fmtFull(dstr(new Date(state.date)))}</div>
+    {state.answers.length===0 && <div className="muted" style={{fontSize:13}}>Keine Antworten.</div>}
+    {state.answers.map((a,i)=>(<div key={i} className="ci-ha">
+      <div className="ci-haq">{a.question_label}</div>
+      {a.answer_file ? (a.signedUrl ? <img className="ci-haimg" src={a.signedUrl} alt=""/> : <div className="muted" style={{fontSize:13}}>📷 Foto</div>) : <div className="ci-haa">{a.answer_text||"—"}</div>}
+    </div>))}
+  </div>;
+}
+
+// Coach: Anamnese-Fragen pro Kunde anpassen (Standard wird automatisch übernommen)
+function CoachAnamneseEditor({clientId,toast}){
+  const [questions,setQuestions]=useState(null);
+  const [newLabel,setNewLabel]=useState(""); const [newType,setNewType]=useState("text");
+  const [busy,setBusy]=useState(false);
+  const seededRef=useRef(false);
+  const load=async()=>{
+    try{
+      const { data,error } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
+      if(error) throw error;
+      if((!data||data.length===0) && !seededRef.current){
+        seededRef.current=true;
+        const rows=DEFAULT_ANAMNESE.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
+        const { error:ie } = await window.supa.from("anamnese_questions").insert(rows);
+        if(!ie){ const { data:d2 } = await window.supa.from("anamnese_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setQuestions((d2||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position}))); return; }
+      }
+      setQuestions((data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})));
+    }catch(e){ toast("Anamnese-Fragen konnten nicht geladen werden"); setQuestions([]); }
+  };
+  useEffect(()=>{ if(clientId) load(); },[clientId]);
+
+  const addQ=async()=>{
+    if(!newLabel.trim()||busy) return; setBusy(true);
+    try{ const pos=questions.length; const { error } = await window.supa.from("anamnese_questions").insert({ client_id:clientId, label:newLabel.trim(), type:newType, position:pos }); if(error) throw error; setNewLabel(""); setNewType("text"); await load(); }
+    catch(e){ toast("Frage hinzufügen fehlgeschlagen: "+(e.message||"")); }
+    finally{ setBusy(false); }
+  };
+  const delQ=async(id)=>{
+    if(!await askConfirm({title:"Frage entfernen?",message:"Bereits gegebene Antworten bleiben im Verlauf erhalten.",confirmText:"Entfernen",danger:true})) return;
+    try{ const { error } = await window.supa.from("anamnese_questions").delete().eq("id",id); if(error) throw error; await load(); }
+    catch(e){ toast("Entfernen fehlgeschlagen"); }
+  };
+  const move=async(idx,dir)=>{
+    const j=idx+dir; if(j<0||j>=questions.length) return;
+    const a=questions[idx], b=questions[j];
+    try{ await window.supa.from("anamnese_questions").update({position:b.position}).eq("id",a.id); await window.supa.from("anamnese_questions").update({position:a.position}).eq("id",b.id); await load(); }
+    catch(e){ toast("Reihenfolge konnte nicht geändert werden"); }
+  };
+
+  if(questions===null) return <div className="mcard"><div className="muted">Lädt…</div></div>;
+  return <>
+    <div className="sectlabel">Fragen anpassen</div>
+    <div className="muted" style={{fontSize:13,marginBottom:10}}>Der Standard-Fragebogen ist bereits hinterlegt. Du kannst Fragen für diesen Kunden anpassen, ergänzen oder entfernen. Der Kunde füllt die Anamnese einmalig beim ersten Login aus.</div>
+    {questions.map((q,i)=>(
+      <div key={q.id} className="mcard ci-qrow">
+        <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
+        <div className="ci-qacts">
+          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button>
+          <button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button>
+          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+        </div>
+      </div>
+    ))}
+    <div className="sectlabel">Frage hinzufügen</div>
+    <div className="mcard">
+      <div className="field" style={{marginBottom:10}}><label>Frage</label>
+        <input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie sieht dein Alltag aus?"
+          style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/>
+      </div>
+      <div className="field" style={{marginBottom:14}}><label>Antworttyp</label>
+        <div className="typewrap">{ANAM_TYPES.map(tp=>(<button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>))}</div>
+      </div>
+      <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
+    </div>
+  </>;
+}
+
+function CoachAnamnese({clientId,toast}){
+  return <>
+    <div className="sectlabel">Antworten des Kunden</div>
+    <AnamneseAnswersCard clientId={clientId} title="Anamnese · Erstgespräch"/>
+    <div style={{height:10}}/>
+    <CoachAnamneseEditor clientId={clientId} toast={toast}/>
+  </>;
+}
+
 function LiveCheckinTab({clientId,role,toast}){
   const t=today();
   const WD=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
@@ -1323,11 +1507,19 @@ function LiveCheckinTab({clientId,role,toast}){
   // =================== COACH ===================
   if(role==="coach"){
     const Seg=()=> <div className="ci-seg">
-      <button className={view==="settings"?"on":""} onClick={()=>setView("settings")}>Einstellungen</button>
+      <button className={view==="settings"?"on":""} onClick={()=>setView("settings")}>Check-in</button>
+      <button className={view==="anamnese"?"on":""} onClick={()=>setView("anamnese")}>Anamnese</button>
       <button className={view==="history"?"on":""} onClick={()=>setView("history")}>Verlauf</button>
     </div>;
 
-    if(view==="history") return <div className="mbody"><Seg/><CheckinHistory history={history} typeLabel={typeLabel}/></div>;
+    if(view==="anamnese") return <div className="mbody"><Seg/><CoachAnamnese clientId={clientId} toast={toast}/></div>;
+
+    if(view==="history") return <div className="mbody"><Seg/>
+      <div className="sectlabel">Anamnese</div>
+      <AnamneseAnswersCard clientId={clientId} title="Anamnese · Erstgespräch"/>
+      <div className="sectlabel" style={{marginTop:18}}>Check-ins</div>
+      <CheckinHistory history={history} typeLabel={typeLabel}/>
+    </div>;
 
     return <div className="mbody"><Seg/>
       <CoachCheckinSettings clientId={clientId} questions={questions} weekday={weekday} WD={WD} TYPES={TYPES} typeLabel={typeLabel}
@@ -3734,6 +3926,7 @@ function RecoveryScreen({onDone,toast}){
 }
 
 function Onboarding({session,profile,onDone,onSignOut,toast}){
+  const [step,setStep]=useState("profile"); // profile | anamnese
   const [name,setName]=useState((profile&&profile.display_name)||"");
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
@@ -3780,13 +3973,25 @@ function Onboarding({session,profile,onDone,onSignOut,toast}){
       // 4) Frisch mit den neuen Zugangsdaten anmelden, damit die Sitzung gültig bleibt
       try{ await window.supa.auth.signInWithPassword({ email:mail, password:pw }); }catch(_e){}
 
-      toast("Willkommen, "+nm+"!");
-      onDone();
+      toast("Willkommen, "+nm.split(/\s+/)[0]+"!");
+      setBusy(false);
+      setStep("anamnese");
     }catch(e){
       setMsg({type:"err",text:"Konnte nicht speichern: "+(e.message||"Unbekannter Fehler")});
       setBusy(false);
     }
   };
+
+  if(step==="anamnese") return <div style={{height:"100dvh",overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+    <div className="center" style={{minHeight:0,justifyContent:"flex-start",paddingTop:32,paddingBottom:48}}>
+      <div style={{marginBottom:16}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
+      <div className="card">
+        <h2 style={{fontSize:21,marginBottom:4}}>Kurze Anamnese</h2>
+        <div className="muted" style={{marginBottom:16,fontSize:13.5}}>Damit dein Coach dich von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div>
+        <AnamneseForm clientId={uid} toast={toast} submitLabel="Anamnese absenden & loslegen" onDone={onDone}/>
+      </div>
+    </div>
+  </div>;
 
   return <div className="center">
     <div style={{marginBottom:20}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
