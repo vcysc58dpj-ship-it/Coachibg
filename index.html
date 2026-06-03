@@ -70,6 +70,9 @@
   .clientrow .nm{flex:1;font-weight:600;font-size:16px;}
   .clientrow .sub{font-size:12.5px;color:var(--faint);margin-top:2px;}
   .clientrow .chev{color:var(--faint);font-size:20px;}
+  .clientrow .cr-tap{flex:1;display:flex;align-items:center;gap:13px;background:none;border:none;text-align:left;cursor:pointer;padding:0;min-width:0;}
+  .clientrow .cr-menu{width:40px;height:40px;border-radius:11px;background:none;border:none;color:var(--faint);font-size:24px;line-height:1;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .clientrow .cr-menu:active{background:var(--bg-3);}
   .empty{text-align:center;color:var(--dim);padding:34px 10px;font-size:15px;line-height:1.55;}
 
   .invite{margin-top:14px;background:var(--bg-2);border:1px dashed var(--line-2);border-radius:14px;padding:15px;}
@@ -367,6 +370,10 @@
   .done-body{padding:0 15px 14px;}
   .setinput{width:100%;box-sizing:border-box;background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:12px 13px;color:var(--text);font-size:15px;font-family:inherit;}
   .setinput:focus{outline:none;border-color:var(--accent);}
+  .chathead{display:flex;align-items:center;gap:10px;min-width:0;}
+  .chathead .chav{width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--accent);}
+  .chathead .chav img{width:100%;height:100%;object-fit:cover;}
+  .chathead .ttl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .worknote{background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:4px 0 10px;font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
   .worknote .wn-lab{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
   .done-acts{display:flex;gap:10px;margin-top:6px;}
@@ -3293,7 +3300,25 @@ function BroadcastSheet({onClose,onSend,count}){
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
-function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh}){
+function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar}){
+  const [partner,setPartner]=useState({name:(viewerRole==="coach"?name:"Coach"),avatar:(viewerRole==="coach"?(partnerAvatar||""):"")});
+  useEffect(()=>{
+    if(!live){ return; }
+    (async()=>{
+      try{
+        if(viewerRole==="coach"){
+          setPartner({name:name||"Kunde",avatar:partnerAvatar||""});
+        } else {
+          // Kunde: Coach-Profil laden
+          const { data:u } = await window.supa.auth.getUser(); const uid=u&&u.user?u.user.id:null; if(!uid) return;
+          const { data:meP } = await window.supa.from("profiles").select("coach_id").eq("id",uid).single();
+          const cidc=meP&&meP.coach_id; if(!cidc) return;
+          const { data:co } = await window.supa.from("profiles").select("display_name,avatar_url").eq("id",cidc).single();
+          if(co) setPartner({name:co.display_name||"Coach",avatar:co.avatar_url||""});
+        }
+      }catch(e){}
+    })();
+  },[live,viewerRole,clientId,name,partnerAvatar]);
   const [tab,setTab]=useState(viewerRole==="coach"?"chat":"home");
   const [menu,setMenu]=useState(false);
   const tabs=viewerRole==="coach"?COACH_TABS:CLIENT_TABS;
@@ -3311,7 +3336,11 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   return <div className="app">
     <div className="topbar">
       {onBack && <button className="back" onClick={onBack}>‹</button>}
-      <div className="lead">{viewerRole==="coach" ? <span className="ttl">{title}</span> : <img className="logo-sm" src={LOGO} alt="NK"/>}</div>
+      <div className="lead">
+        {tab==="chat"
+          ? <span className="chathead"><span className="chav">{partner.avatar?<img src={partner.avatar} alt=""/>:initials(partner.name)}</span><span className="ttl">{partner.name}</span></span>
+          : (viewerRole==="coach" ? <span className="ttl">{title}</span> : <img className="logo-sm" src={LOGO} alt="NK"/>)}
+      </div>
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
@@ -3327,14 +3356,16 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   const [showCreate,setShowCreate]=useState(false);
   const [clients,setClients]=useState(null);
   const [meId,setMeId]=useState(null);
+  const [me,setMe]=useState({name:"Coach",avatar:""});
   const [err,setErr]=useState(null);
+  const [actClient,setActClient]=useState(null); // Kunde für Aktions-Sheet
 
-  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); setMeId(data&&data.user?data.user.id:null); }catch(e){} })(); },[]);
+  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); const uid=data&&data.user?data.user.id:null; setMeId(uid); if(uid){ const { data:p } = await window.supa.from("profiles").select("display_name,avatar_url").eq("id",uid).single(); if(p) setMe({name:p.display_name||"Coach",avatar:p.avatar_url||""}); } }catch(e){} })(); },[]);
   const load=async()=>{
     setErr(null);
     try{
       const { data, error } = await window.supa.from("profiles")
-        .select("id,display_name,email,avatar_url,created_at,onboarded,checkin_weekday")
+        .select("id,display_name,email,avatar_url,created_at,onboarded,checkin_weekday,active")
         .eq("role","client").order("created_at",{ascending:false});
       if(error) throw error;
       setClients(data||[]);
@@ -3342,33 +3373,60 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   };
   useEffect(()=>{ load(); },[]);
 
+  const setActive=async(c,val)=>{
+    setActClient(null);
+    try{ const { error } = await window.supa.from("profiles").update({ active:val }).eq("id",c.id); if(error) throw error; toast(val?"Kunde aktiviert":"Kunde deaktiviert"); await load(); }
+    catch(e){ toast("Fehlgeschlagen: "+(e.message||"")); }
+  };
+  const delClient=async(c)=>{
+    setActClient(null);
+    const nm=c.display_name||c.email||"dieser Kunde";
+    if(!await askConfirm({title:"Kunde löschen?",message:"„"+nm+"\" wird mit allen Daten (Chat, Pläne, Check-ins, Dateien) endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",confirmText:"Endgültig löschen",danger:true})) return;
+    try{
+      const { data, error } = await window.supa.functions.invoke("delete-client",{ body:{ clientId:c.id } });
+      if(error){ let m=error.message||"Fehlgeschlagen"; try{ const ctx=error.context; if(ctx&&typeof ctx.json==="function"){ const j=await ctx.json(); if(j&&j.error) m=j.error; } }catch(_e){} throw new Error(m); }
+      if(data&&data.error) throw new Error(data.error);
+      toast("Kunde gelöscht"); await load();
+    }catch(e){ toast("Löschen fehlgeschlagen: "+(e.message||"")); }
+  };
+
   const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"account",l:"Konto",i:"settings"}];
   const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",account:"Konto"};
 
   let body;
   if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast}/>;
-  else if(tab==="clients") body=<>
-    <div className="sectlabel">Deine Kunden</div>
-    {clients===null && <div className="muted">Lädt…</div>}
-    {err && <div className="authmsg err" style={{marginBottom:10}}>{err}</div>}
-    {clients!==null && clients.length===0 && !err &&
-      <div className="mcard" style={{textAlign:"center",padding:"22px 16px"}}>
-        <div style={{fontWeight:700,marginBottom:4}}>Noch keine Kunden</div>
-        <div className="muted">Lege deinen ersten Coachee an – er erscheint dann automatisch hier.</div></div>}
-    {clients && clients.map(c=>{ const nm=c.display_name||c.email||"Kunde";
-      return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
-        <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
-        <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
-          <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
-        <div className="chev">›</div></button>;
-    })}
-    <div style={{marginTop:18,display:"flex",flexDirection:"column",gap:10}}>
-      <button className="btn btn-ghost" onClick={()=>setBc(true)}>Nachricht an alle</button>
-      <button className="btn" onClick={()=>setShowCreate(true)}>+ Kunde anlegen</button>
-    </div>
-  </>;
+  else if(tab==="clients"){ const act=(clients||[]).filter(c=>c.active!==false); const inact=(clients||[]).filter(c=>c.active===false);
+    const Row=(c)=>{ const nm=c.display_name||c.email||"Kunde";
+      return <div key={c.id} className="clientrow">
+        <button className="cr-tap" onClick={()=>onOpen(c)}>
+          <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
+          <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
+            <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
+        </button>
+        <button className="cr-menu" onClick={()=>setActClient(c)} aria-label="Optionen">⋯</button>
+      </div>;
+    };
+    body=<>
+      <div className="sectlabel">Deine Kunden</div>
+      {clients===null && <div className="muted">Lädt…</div>}
+      {err && <div className="authmsg err" style={{marginBottom:10}}>{err}</div>}
+      {clients!==null && clients.length===0 && !err &&
+        <div className="mcard" style={{textAlign:"center",padding:"22px 16px"}}>
+          <div style={{fontWeight:700,marginBottom:4}}>Noch keine Kunden</div>
+          <div className="muted">Lege deinen ersten Coachee an – er erscheint dann automatisch hier.</div></div>}
+      {act.map(Row)}
+      <div style={{marginTop:18,display:"flex",flexDirection:"column",gap:10}}>
+        <button className="btn btn-ghost" onClick={()=>setBc(true)}>Nachricht an alle</button>
+        <button className="btn" onClick={()=>setShowCreate(true)}>+ Kunde anlegen</button>
+      </div>
+      {inact.length>0 && <>
+        <div className="sectlabel" style={{marginTop:24}}>Inaktiv</div>
+        {inact.map(Row)}
+      </>}
+    </>;
+  }
   else if(tab==="cloud") body=<LiveCloudTab clientId={meId} role="coach" toast={toast} mode="broadcast"/>;
-  else if(tab==="chat") body=<CoachChatList clients={clients} onOpen={onOpen}/>;
+  else if(tab==="chat") body=<CoachChatList clients={(clients||[]).filter(c=>c.active!==false)} onOpen={onOpen}/>;
   else if(tab==="account") body=<AccountSettings theme={theme} setTheme={setTheme} toast={toast} onRefresh={onRefresh}/>;
 
   return <div className="app">
@@ -3377,9 +3435,22 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{tab==="cloud" ? body : <div className="mbody">{body}</div>}</div>
-    {menu && <Drawer tabs={COACH_NAV} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName="Coach" headRole="Coach-Bereich" avatarUrl="" theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch("client")} viewerRole="coach" onSignOut={onSignOut}/>}
-    {bc && <BroadcastSheet onClose={()=>setBc(false)} onSend={(t)=>{onBroadcast(t);setBc(false);}} count={(clients||[]).length}/>}
+    {menu && <Drawer tabs={COACH_NAV} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={me.name} headRole="Coach-Bereich" avatarUrl={me.avatar} theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch("client")} viewerRole="coach" onSignOut={onSignOut}/>}
+    {bc && <BroadcastSheet onClose={()=>setBc(false)} onSend={(t)=>{onBroadcast(t);setBc(false);}} count={(clients||[]).filter(c=>c.active!==false).length}/>}
     {showCreate && <CreateClientSheet onClose={()=>setShowCreate(false)} onCreate={onCreate} onCreated={()=>{ setShowCreate(false); load(); }} toast={toast}/>}
+    {actClient && <>
+      <div className="scrim" onClick={()=>setActClient(null)}/>
+      <div className="sheet" role="dialog" aria-modal="true">
+        <div className="sheet-grab"/>
+        <div className="ds-title" style={{marginBottom:6}}>{actClient.display_name||actClient.email||"Kunde"}</div>
+        <div className="muted" style={{fontSize:13,marginBottom:14}}>{actClient.active===false?"Dieser Kunde ist deaktiviert und kann sich nicht einloggen.":"Verwalte diesen Kunden."}</div>
+        {actClient.active===false
+          ? <button className="btn" onClick={()=>setActive(actClient,true)}>Wieder aktivieren</button>
+          : <button className="btn btn-ghost" onClick={()=>setActive(actClient,false)}>Deaktivieren</button>}
+        <button className="btn" style={{marginTop:10,background:"var(--accent)"}} onClick={()=>delClient(actClient)}>Endgültig löschen</button>
+        <button className="ds-cancel" style={{width:"100%",marginTop:8}} onClick={()=>setActClient(null)}>Abbrechen</button>
+      </div>
+    </>}
   </div>;
 }
 
@@ -3768,6 +3839,13 @@ function App(){
     let routed=false;
     const route=(prof)=>{
       if(!active) return;
+      if(prof && prof.role==="client" && prof.active===false){
+        // Deaktiviertes Kundenkonto: abmelden + Hinweis
+        try{ window.supa.auth.signOut(); }catch(e){}
+        setProfile(null); setSession(null); setScreen("auth");
+        setTimeout(()=>toast("Dieses Konto wurde deaktiviert. Bitte wende dich an deinen Coach."),300);
+        return;
+      }
       setProfile(prof);
       setRole(prof && prof.role === "client" ? "client" : "coach");
       if(prof && prof.role==="client" && prof.onboarded===false){ setScreen("onboarding"); }
@@ -3810,9 +3888,9 @@ function App(){
     if(!live){ setData(p=>{ const np={...p}; CLIENT_IDS.forEach(id=>{ np[id]={...np[id],messages:[...np[id].messages,{id:nid(),from:"coach",body:text,ts:Date.now()}]}; }); return np; }); toast("An "+CLIENT_IDS.length+" Kunden gesendet"); return; }
     try{
       const me=session&&session.user?session.user.id:null; if(!me) throw new Error("Nicht eingeloggt");
-      const { data:cs, error } = await window.supa.from("profiles").select("id").eq("role","client").eq("coach_id",me); if(error) throw error;
-      const targets=(cs||[]);
-      if(targets.length===0){ toast("Keine Kunden"); return; }
+      const { data:cs, error } = await window.supa.from("profiles").select("id,active").eq("role","client").eq("coach_id",me); if(error) throw error;
+      const targets=(cs||[]).filter(c=>c.active!==false);
+      if(targets.length===0){ toast("Keine aktiven Kunden"); return; }
       const rows=targets.map(c=>({ client_id:c.id, sender_id:me, sender_role:"coach", kind:"text", body:text }));
       const { error:ie } = await window.supa.from("messages").insert(rows); if(ie) throw ie;
       toast("An "+targets.length+" Kunden gesendet");
@@ -3853,7 +3931,7 @@ function App(){
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
   else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("app"); }} onSignOut={signOut} toast={toast}/>;
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile}/>; }
-  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id}/>; }
+  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
