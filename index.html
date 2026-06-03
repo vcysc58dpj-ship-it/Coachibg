@@ -375,6 +375,8 @@
   .chathead .chav img{width:100%;height:100%;object-fit:cover;}
   .chathead .ttl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .logobtn{background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;}
+  .anq{margin-bottom:18px;}
+  .anq-label{font-size:14.5px;font-weight:600;margin-bottom:9px;color:var(--text);line-height:1.35;}
   .worknote{background:var(--bg-3);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:4px 0 10px;font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;}
   .worknote .wn-lab{display:block;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
   .done-acts{display:flex;gap:10px;margin-top:6px;}
@@ -1353,13 +1355,13 @@ function AnamneseForm({clientId,onDone,submitLabel,toast}){
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); setBusy(false); }
   };
 
-  if(questions===null) return <div className="mcard"><div className="muted">Lädt…</div></div>;
+  if(questions===null) return <div className="muted">Lädt…</div>;
   return <>
-    {questions.map(q=>(<div key={q.key} className="mcard">
-      <div className="ci-flabel">{q.label}</div>
+    {questions.map(q=>(<div key={q.key} className="anq">
+      <div className="anq-label">{q.label}</div>
       <QInput type={q.type} val={vals[q.key]||{text:"",fileName:""}} onText={(v)=>setText(q.key,v)} onFile={(f)=>setFile(q.key,f)}/>
     </div>))}
-    <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(submitLabel||"Anamnese absenden")}</button>
+    <button className="btn" style={{marginTop:6}} disabled={busy} onClick={save}>{busy?"Speichert…":(submitLabel||"Anamnese absenden")}</button>
   </>;
 }
 
@@ -1458,11 +1460,15 @@ function CoachAnamneseEditor({clientId,toast}){
 }
 
 function CoachAnamnese({clientId,toast}){
+  const [editing,setEditing]=useState(false);
   return <>
     <div className="sectlabel">Antworten des Kunden</div>
     <AnamneseAnswersCard clientId={clientId} title="Anamnese · Erstgespräch"/>
-    <div style={{height:10}}/>
-    <CoachAnamneseEditor clientId={clientId} toast={toast}/>
+    <div style={{height:14}}/>
+    {!editing
+      ? <button className="btn btn-ghost" onClick={()=>setEditing(true)}>Anamnesebogen bearbeiten</button>
+      : <><div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}><button className="link" style={{color:"var(--faint)"}} onClick={()=>setEditing(false)}>Fertig</button></div>
+         <CoachAnamneseEditor clientId={clientId} toast={toast}/></>}
   </>;
 }
 
@@ -1558,12 +1564,7 @@ function LiveCheckinTab({clientId,role,toast}){
 
     if(view==="anamnese") return <div className="mbody"><Seg/><CoachAnamnese clientId={clientId} toast={toast}/></div>;
 
-    if(view==="history") return <div className="mbody"><Seg/>
-      <div className="sectlabel">Anamnese</div>
-      <AnamneseAnswersCard clientId={clientId} title="Anamnese · Erstgespräch"/>
-      <div className="sectlabel" style={{marginTop:18}}>Check-ins</div>
-      <CheckinHistory history={history} typeLabel={typeLabel}/>
-    </div>;
+    if(view==="history") return <div className="mbody"><Seg/><CheckinHistory history={history} typeLabel={typeLabel}/></div>;
 
     return <div className="mbody"><Seg/>
       <CoachCheckinSettings clientId={clientId} questions={questions} weekday={weekday} WD={WD} TYPES={TYPES} typeLabel={typeLabel}
@@ -3583,7 +3584,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
-    {menu && <Drawer tabs={tabs} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={viewerRole==="coach"?name:cdata.name} headRole={viewerRole==="coach"?"Coach-Ansicht · Kunde":"Mein Coaching"} avatarUrl={cdata.avatarUrl} theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch(viewerRole==="coach"?"client":"coach")} viewerRole={viewerRole} onSignOut={onSignOut}/>}
+    {menu && <Drawer tabs={tabs} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={viewerRole==="coach"?(partner.name||name):cdata.name} headRole={viewerRole==="coach"?"Coach-Ansicht · Kunde":"Mein Coaching"} avatarUrl={viewerRole==="coach"?partner.avatar:cdata.avatarUrl} theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch(viewerRole==="coach"?"client":"coach")} viewerRole={viewerRole} onSignOut={onSignOut}/>}
   </div>;
 }
 
