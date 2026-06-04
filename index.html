@@ -46,7 +46,7 @@
 
   .card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:20px;}
 
-  .center{height:var(--vh,100dvh);display:flex;flex-direction:column;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:28px 22px;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
+  .center{height:var(--vh,100dvh);display:flex;flex-direction:column;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:90px;padding:28px 22px;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
   .tagline{color:var(--dim);font-size:15px;margin-top:10px;text-align:center;}
   .logo-auth{display:block;height:60px;margin:0 auto;object-fit:contain;}
 
@@ -104,7 +104,7 @@
   .tabbar svg{width:22px;height:22px;}
 
   /* modules */
-  .mbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 16px calc(26px + env(safe-area-inset-bottom));}
+  .mbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:90px;padding:16px 16px calc(26px + env(safe-area-inset-bottom));}
   .mcard{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;}
   .mcard h3{font-size:16px;margin-bottom:4px;}
   .muted{color:var(--dim);font-size:13.5px;line-height:1.5;}
@@ -383,7 +383,7 @@
   .anq-label{font-size:14.5px;font-weight:600;margin-bottom:9px;color:var(--text);line-height:1.35;}
   .anwiz{height:var(--vh,100dvh);display:flex;flex-direction:column;max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
   .anwiz-head{padding:calc(env(safe-area-inset-top) + 16px) 22px 6px;display:flex;justify-content:center;flex:none;}
-  .anwiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 22px 14px;}
+  .anwiz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:90px;padding:6px 22px 14px;}
   .anwiz-foot{flex:none;padding:14px 22px calc(env(safe-area-inset-bottom) + 16px);border-top:1px solid var(--line);background:var(--bg-2);}
   .anwiz-prog{height:7px;border-radius:99px;background:var(--bg-3);overflow:hidden;}
   .anwiz-prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .25s ease;}
@@ -4119,7 +4119,17 @@ function App(){
     window.addEventListener("orientationchange",onOrient);
     return ()=>{ if(vv){ vv.removeEventListener("resize",update); vv.removeEventListener("scroll",update); } window.removeEventListener("resize",update); window.removeEventListener("orientationchange",onOrient); };
   },[]);
-  const toast=(m)=>{ setToastMsg(m); setTimeout(()=>setToastMsg(""),1600); };
+  // Fokussiertes Feld sauber in seinen Scroll-Bereich holen (Chat-Eingabe hat eigene Logik)
+  useEffect(()=>{
+    const onFocus=(e)=>{
+      const t=e.target;
+      if(!t || (t.tagName!=="INPUT" && t.tagName!=="TEXTAREA")) return;
+      if(t.closest && t.closest(".composer")) return;
+      setTimeout(()=>{ try{ t.scrollIntoView({block:"center"}); }catch(_){ } }, 320);
+    };
+    document.addEventListener("focusin",onFocus);
+    return ()=>document.removeEventListener("focusin",onFocus);
+  },[]);
 
   // Profil laden (legt der DB-Trigger automatisch an; hier nur lesen)
   const loadProfile=async(uid)=>{
