@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>NK Coaching</title>
 <meta name="theme-color" content="#131111" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -21,7 +21,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;margin:0;}
-  body{overflow:hidden;}
+  body{position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;}
   body{font-family:"Hanken Grotesk",-apple-system,system-ui,sans-serif;color:var(--text);
     background:radial-gradient(125% 60% at 50% -12%, rgba(225,29,46,0.13), transparent 60%), var(--bg);
     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overscroll-behavior-y:none;}
@@ -386,6 +386,7 @@
   .anwiz-prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .25s ease;}
   .anwiz-prog-label{font-size:12.5px;color:var(--dim);text-align:center;margin:8px 0 12px;}
   .anwiz-btns{display:flex;gap:10px;}
+  .anwiz-btns .btn{flex:1 1 0;width:auto;min-width:0;}
   .pagepick{display:inline-flex;align-items:center;gap:8px;background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:5px 8px;}
   .pagepick button{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg-2);color:var(--text);font-size:18px;line-height:1;cursor:pointer;}
   .pagepick button:disabled{opacity:.4;}
@@ -1396,8 +1397,8 @@ function AnamneseWizard({clientId,onDone,onSignOut,toast}){
       <div className="anwiz-prog"><div className="anwiz-prog-fill" style={{width:pct+"%"}}/></div>
       <div className="anwiz-prog-label">Seite {pageIdx+1} von {total}</div>
       <div className="anwiz-btns">
-        {pageIdx>0 && <button className="btn btn-ghost" style={{flex:"0 0 auto",minWidth:110}} disabled={busy} onClick={goBack}>‹ Zurück</button>}
-        <button className="btn" style={{flex:1}} disabled={busy} onClick={goNext}>{busy?"Speichert…":(last?"Absenden":"Weiter")}</button>
+        {pageIdx>0 && <button className="btn btn-ghost" disabled={busy} onClick={goBack}>‹ Zurück</button>}
+        <button className="btn" disabled={busy} onClick={goNext}>{busy?"Speichert…":(last?"Absenden":"Weiter")}</button>
       </div>
     </div>
   </div>;
@@ -4086,11 +4087,13 @@ function App(){
   // Sichtbare Höhe an die Tastatur koppeln: Topbar bleibt oben, nur Eingabe + Tastatur rücken hoch
   useEffect(()=>{
     const vv=window.visualViewport;
-    const setH=()=>{ const h=vv?vv.height:window.innerHeight; document.documentElement.style.setProperty("--app-h", h+"px"); };
+    const setH=()=>{ const h=vv?vv.height:window.innerHeight; document.documentElement.style.setProperty("--app-h", h+"px"); window.scrollTo(0,0); };
     setH();
+    const onFocus=()=>{ window.scrollTo(0,0); setTimeout(()=>window.scrollTo(0,0),50); };
     if(vv){ vv.addEventListener("resize",setH); vv.addEventListener("scroll",setH); }
     window.addEventListener("resize",setH); window.addEventListener("orientationchange",setH);
-    return ()=>{ if(vv){ vv.removeEventListener("resize",setH); vv.removeEventListener("scroll",setH); } window.removeEventListener("resize",setH); window.removeEventListener("orientationchange",setH); };
+    document.addEventListener("focusin",onFocus); document.addEventListener("focusout",onFocus);
+    return ()=>{ if(vv){ vv.removeEventListener("resize",setH); vv.removeEventListener("scroll",setH); } window.removeEventListener("resize",setH); window.removeEventListener("orientationchange",setH); document.removeEventListener("focusin",onFocus); document.removeEventListener("focusout",onFocus); };
   },[]);
   const toast=(m)=>{ setToastMsg(m); setTimeout(()=>setToastMsg(""),1600); };
 
