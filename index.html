@@ -92,7 +92,7 @@
   .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;}
   .kb-open .anwiz-foot{padding-bottom:12px;}
   .composer textarea{flex:1;resize:none;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:16px;
-    line-height:1.4;padding:11px 13px;border-radius:16px;max-height:120px;outline:none;}
+    line-height:1.4;padding:11px 13px;border-radius:16px;max-height:120px;outline:none;overflow-y:auto;overscroll-behavior:contain;}
   .composer textarea:focus{border-color:var(--accent);}
   .send{width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:20px;flex:none;
     display:flex;align-items:center;justify-content:center;} .send:disabled{opacity:.45;}
@@ -1097,7 +1097,14 @@ function LiveDashboard({clientId,toast,go,name}){
 }
 
 function LiveChatTab({clientId,role,toast}){
-  const [text,setText]=useState(""); const endRef=useRef(null), taRef=useRef(null), listRef=useRef(null);
+  const [text,setText]=useState(""); const endRef=useRef(null), taRef=useRef(null), listRef=useRef(null), composerRef=useRef(null);
+  // Verhindert hart, dass ein Wisch auf dem Eingabefeld die Seite verschiebt. Langer Text bleibt im Feld scrollbar.
+  useEffect(()=>{
+    const el=composerRef.current; if(!el) return;
+    const onTM=(e)=>{ const ta=taRef.current; if(ta && e.target===ta && ta.scrollHeight>ta.clientHeight) return; if(e.cancelable) e.preventDefault(); };
+    el.addEventListener("touchmove",onTM,{passive:false});
+    return ()=>el.removeEventListener("touchmove",onTM);
+  },[]);
   const [msgs,setMsgs]=useState(null); // null=lädt
   const [busy,setBusy]=useState(false);
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
@@ -1259,7 +1266,7 @@ function LiveChatTab({clientId,role,toast}){
       {(msgs||[]).map(m=>(<MsgBubble key={m.id} m={m} mine={m.from===role}/>))}
       <div ref={endRef}/>
     </div>
-    <div className="composer">
+    <div className="composer" ref={composerRef}>
       {recording
         ? <>
             <button className="reccancel" onClick={cancelRec} aria-label="Aufnahme abbrechen">×</button>
