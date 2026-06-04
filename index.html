@@ -1098,7 +1098,6 @@ function LiveDashboard({clientId,toast,go,name}){
 
 function LiveChatTab({clientId,role,toast}){
   const [text,setText]=useState(""); const endRef=useRef(null), taRef=useRef(null), listRef=useRef(null);
-  const scrollEnd=(smooth)=>{ const c=listRef.current; if(c) c.scrollTo({top:c.scrollHeight, behavior: smooth?"smooth":"auto"}); };
   const [msgs,setMsgs]=useState(null); // null=lädt
   const [busy,setBusy]=useState(false);
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
@@ -1189,12 +1188,12 @@ function LiveChatTab({clientId,role,toast}){
     return ()=>{ alive=false; document.removeEventListener("visibilitychange",onVis); if(pollRef.current) clearInterval(pollRef.current); try{ window.supa.removeChannel(ch); }catch(e){} };
   },[clientId]);
 
-  useEffect(()=>{ scrollEnd(true); },[msgs && msgs.length]);
-  // Tastatur öffnet/schließt -> nur den Nachrichten-Container ans Ende scrollen (kein Durchschlagen auf die Tastatur-Ansicht)
+  useEffect(()=>{ const c=listRef.current; if(c) c.scrollTop=c.scrollHeight; },[msgs && msgs.length]);
+  // Tastatur öffnet/schließt -> sauber ans Ende (ohne Ruckeln), letzte Nachricht bleibt sichtbar
   useEffect(()=>{
     const vv=window.visualViewport; if(!vv) return;
     let raf=0;
-    const onResize=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>scrollEnd(false)); };
+    const onResize=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ if(endRef.current) endRef.current.scrollIntoView({block:"end"}); }); };
     vv.addEventListener("resize",onResize);
     return ()=>{ vv.removeEventListener("resize",onResize); cancelAnimationFrame(raf); };
   },[]);
