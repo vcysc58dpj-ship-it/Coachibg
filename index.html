@@ -4114,6 +4114,7 @@ function App(){
       root.style.setProperty("--vh", vh+"px");
       root.style.setProperty("--vvtop", vtop+"px"); // Versatz durch Tastatur-Verschiebung -> Hülle klebt am sichtbaren Fenster
       root.classList.toggle("kb-open", (maxVH - vh > 120));
+      if(maxVH - vh > 120){ window.__kbH = maxVH - vh; } // Tastaturhöhe merken
     };
     update();
     if(vv){ vv.addEventListener("resize",update); vv.addEventListener("scroll",update); }
@@ -4122,7 +4123,7 @@ function App(){
     window.addEventListener("orientationchange",onOrient);
     return ()=>{ if(vv){ vv.removeEventListener("resize",update); vv.removeEventListener("scroll",update); } window.removeEventListener("resize",update); window.removeEventListener("orientationchange",onOrient); };
   },[]);
-  // Fokussiertes Feld sichtbar machen, indem NUR der innere Bereich gescrollt wird (kein scrollIntoView -> kein Verschieben der Ansicht -> kein schwarzer Leerraum). Chat-Eingabe hat eigene Logik.
+  // Fokussiertes Feld SOFORT über die (gleich erscheinende) Tastatur heben -> iOS muss nicht verschieben -> kein Mitziehen/Ruckeln und kein schwarzer Leerraum. Nur innerer Bereich wird gescrollt. Chat hat eigene Logik.
   useEffect(()=>{
     const onFocus=(e)=>{
       const t=e.target;
@@ -4130,15 +4131,18 @@ function App(){
       if(t.closest && t.closest(".composer")) return;
       const sc=t.closest(".mbody, .anwiz-body, .center");
       if(!sc) return;
-      setTimeout(()=>{
+      const lift=(kbTopY)=>{
         try{
-          const sr=sc.getBoundingClientRect();
           const tr=t.getBoundingClientRect();
-          const pad=40;
-          if(tr.bottom > sr.bottom - pad){ sc.scrollTop += (tr.bottom - sr.bottom + pad); }
-          else if(tr.top < sr.top + pad){ sc.scrollTop -= (sr.top + pad - tr.top); }
+          const limit=kbTopY-24; // 24px Luft über der Tastatur
+          if(tr.bottom>limit){ sc.scrollTop += (tr.bottom-limit); }
         }catch(_){ }
-      }, 320);
+      };
+      // sofort: anhand zuletzt bekannter Tastaturhöhe (oder Schätzung) das Feld hochziehen, BEVOR iOS reagiert
+      const kb = window.__kbH || Math.round(window.innerHeight*0.46);
+      lift(window.innerHeight - kb);
+      // nach der Tastatur-Animation exakt nachziehen
+      setTimeout(()=>{ const h=window.visualViewport?window.visualViewport.height:window.innerHeight; lift(h); }, 300);
     };
     document.addEventListener("focusin",onFocus);
     return ()=>document.removeEventListener("focusin",onFocus);
