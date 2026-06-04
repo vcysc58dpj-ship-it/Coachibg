@@ -4130,6 +4130,7 @@ function App(){
     document.addEventListener("focusin",onFocus);
     return ()=>document.removeEventListener("focusin",onFocus);
   },[]);
+  const toast=(m)=>{ setToastMsg(m); setTimeout(()=>setToastMsg(""),1600); };
 
   // Profil laden (legt der DB-Trigger automatisch an; hier nur lesen)
   const loadProfile=async(uid)=>{
