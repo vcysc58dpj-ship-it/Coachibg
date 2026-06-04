@@ -88,6 +88,9 @@
   .mine{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:5px;}
   .theirs{align-self:flex-start;background:var(--bg-3);color:var(--text);border:1px solid var(--line);border-bottom-left-radius:5px;}
   .composer{display:flex;gap:9px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(19,17,17,0.85);backdrop-filter:blur(8px);}
+  .kb-open .composer{padding-bottom:8px;}
+  .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;}
+  .kb-open .anwiz-foot{padding-bottom:12px;}
   .composer textarea{flex:1;resize:none;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:16px;
     line-height:1.4;padding:11px 13px;border-radius:16px;max-height:120px;outline:none;}
   .composer textarea:focus{border-color:var(--accent);}
@@ -1186,6 +1189,14 @@ function LiveChatTab({clientId,role,toast}){
   },[clientId]);
 
   useEffect(()=>{ endRef.current && endRef.current.scrollIntoView({behavior:"smooth"}); },[msgs && msgs.length]);
+  // Tastatur öffnet/schließt -> sauber ans Ende (ohne Ruckeln), letzte Nachricht bleibt sichtbar
+  useEffect(()=>{
+    const vv=window.visualViewport; if(!vv) return;
+    let raf=0;
+    const onResize=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ if(endRef.current) endRef.current.scrollIntoView({block:"end"}); }); };
+    vv.addEventListener("resize",onResize);
+    return ()=>{ vv.removeEventListener("resize",onResize); cancelAnimationFrame(raf); };
+  },[]);
   useEffect(()=>()=>{ if(timerRef.current) cancelAnimationFrame(timerRef.current); if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop()); },[]);
 
   const insertMsg=async(extra)=>{
@@ -4084,16 +4095,19 @@ function App(){
   const [theme,setTheme]=useState(()=>{ try{ return localStorage.getItem("nk_theme")||"dark"; }catch(e){ return "dark"; } });
   const [shared,setShared]=useState([{id:"sf1",name:"Trainingsprinzipien.txt",mime:"text/plain",kind:"file",by:"coach",date:dstr(addDays(new Date(),-10)),url:"data:text/plain;charset=utf-8,"+encodeURIComponent("Progressive Overload. Konsistenz schlaegt Perfektion. Schlaf und Protein priorisieren. Fragen? Schreib mir jederzeit.")}]);
   useEffect(()=>{ document.documentElement.setAttribute("data-theme", theme); try{ localStorage.setItem("nk_theme",theme); }catch(e){} const mc=document.querySelector("meta[name=theme-color]"); if(mc) mc.setAttribute("content", theme==="light"?"#F4F1ED":"#131111"); },[theme]);
-  // Sichtbare Höhe an die Tastatur koppeln: Topbar bleibt oben, nur Eingabe + Tastatur rücken hoch
+  // Sichtbare Höhe an die Tastatur koppeln. Header bleibt oben; scrollbare Bereiche schieben Felder selbst ins Sichtfeld.
   useEffect(()=>{
     const vv=window.visualViewport;
-    const setH=()=>{ const h=vv?vv.height:window.innerHeight; document.documentElement.style.setProperty("--app-h", h+"px"); window.scrollTo(0,0); };
+    const setH=()=>{
+      const h=vv?vv.height:window.innerHeight;
+      document.documentElement.style.setProperty("--app-h", h+"px");
+      const open = vv ? (window.innerHeight - vv.height > 120) : false;
+      document.documentElement.classList.toggle("kb-open", open);
+    };
     setH();
-    const onFocus=()=>{ window.scrollTo(0,0); setTimeout(()=>window.scrollTo(0,0),50); };
     if(vv){ vv.addEventListener("resize",setH); vv.addEventListener("scroll",setH); }
     window.addEventListener("resize",setH); window.addEventListener("orientationchange",setH);
-    document.addEventListener("focusin",onFocus); document.addEventListener("focusout",onFocus);
-    return ()=>{ if(vv){ vv.removeEventListener("resize",setH); vv.removeEventListener("scroll",setH); } window.removeEventListener("resize",setH); window.removeEventListener("orientationchange",setH); document.removeEventListener("focusin",onFocus); document.removeEventListener("focusout",onFocus); };
+    return ()=>{ if(vv){ vv.removeEventListener("resize",setH); vv.removeEventListener("scroll",setH); } window.removeEventListener("resize",setH); window.removeEventListener("orientationchange",setH); };
   },[]);
   const toast=(m)=>{ setToastMsg(m); setTimeout(()=>setToastMsg(""),1600); };
 
