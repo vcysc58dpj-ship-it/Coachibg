@@ -1,4 +1,4 @@
-// NK Coaching Service Worker v2
+// NK Coaching Service Worker v3
 // Kein Cache-Handler -> App laed immer frisch.
 
 self.addEventListener("install", () => { self.skipWaiting(); });
