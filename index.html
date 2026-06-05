@@ -130,6 +130,27 @@
   .fc-valinput:focus{outline:none;}
   .np-bell{width:76px;height:76px;border-radius:50%;background:rgba(225,29,46,.12);border:1.5px solid rgba(225,29,46,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:var(--accent);}
   .np-bell svg{width:34px;height:34px;}
+  .call-overlay{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;}
+  .call-remote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .call-remote-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#1a1111;}
+  .call-local{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:14px;width:88px;height:156px;border-radius:14px;object-fit:cover;background:#111;border:2px solid rgba(255,255,255,.35);z-index:301;transform:scaleX(-1);}
+  .call-local.rear{transform:none;}
+  .call-info{position:absolute;top:calc(env(safe-area-inset-top) + 22px);left:50%;transform:translateX(-50%);text-align:center;color:#fff;z-index:301;pointer-events:none;}
+  .call-info .cname{font-size:22px;font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+  .call-info .cstatus{font-size:13px;opacity:.75;margin-top:4px;}
+  .call-ctrls{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 32px);left:0;right:0;display:flex;justify-content:center;gap:22px;z-index:301;}
+  .call-btn{width:66px;height:66px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;}
+  .call-btn svg{width:26px;height:26px;}
+  .call-end{background:var(--accent);}
+  .call-muted{background:rgba(255,255,255,.45);}
+  .incall{position:fixed;top:0;left:0;right:0;z-index:290;padding:calc(env(safe-area-inset-top) + 12px) 16px 16px;background:rgba(20,17,17,.93);backdrop-filter:blur(12px);display:flex;align-items:center;gap:14px;animation:sheetup .25s ease;}
+  .incall-av{width:50px;height:50px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:var(--accent);flex:none;overflow:hidden;}
+  .incall-av img{width:100%;height:100%;object-fit:cover;}
+  .incall-btns{display:flex;gap:10px;margin-left:auto;}
+  .incall-btn{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;}
+  .incall-btn svg{width:22px;height:22px;}
+  .incall-btn.accept{background:#22c55e;color:#fff;}
+  .incall-btn.reject{background:var(--accent);color:#fff;}
   .mcard h3{font-size:16px;margin-bottom:4px;}
   .muted{color:var(--dim);font-size:13.5px;line-height:1.5;}
   .sectlabel{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:6px 2px 10px;}
@@ -703,6 +724,13 @@ const lastNDays = (n)=>{ const out=[]; const t=new Date(); for(let i=n-1;i>=0;i-
 const fmtDay = (s)=>{ const p=s.split("-"); return `${p[2]}.${p[1]}.`; };
 const fmtFull = (s)=>{ const p=s.split("-"); return `${p[2]}.${p[1]}.${p[0].slice(2)}`; };
 const VAPID_PUBLIC="BO9OAaaKbAUtpkUXfdhzbYTSIbAhDvyh5b0iUKZCzvoxocasK0DYOMfVDs6PhAEo-wkjQOYXwnvQBF92l_jPZQo";
+const ICE_SERVERS=[
+  {urls:"stun:stun.l.google.com:19302"},
+  {urls:"stun:stun1.l.google.com:19302"},
+  {urls:"turn:openrelay.metered.ca:80",username:"openrelayproject",credential:"openrelayproject"},
+  {urls:"turn:openrelay.metered.ca:443",username:"openrelayproject",credential:"openrelayproject"},
+  {urls:"turn:openrelay.metered.ca:443?transport=tcp",username:"openrelayproject",credential:"openrelayproject"},
+];
 function urlB64ToUint8(base64){ const pad="=".repeat((4-base64.length%4)%4); const b=(base64+pad).replace(/-/g,"+").replace(/_/g,"/"); const raw=atob(b); const arr=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i); return arr; }
 async function enablePush(toast){
   const say=(m)=>{ try{ if(typeof toast==="function") toast(m); }catch(_){} };
@@ -837,6 +865,9 @@ function Icon({name}){
     droplet:<g {...s}><path d="M12 3.5c2.8 3.8 5 6.1 5 9.4a5 5 0 0 1-10 0c0-3.3 2.2-5.6 5-9.4z"/></g>,
     more:<g fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></g>,
     bell:<g {...s}><path d="M6 9.5a6 6 0 0 1 12 0c0 4 1.6 5.5 2 6H4c.4-.5 2-2 2-6z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></g>,
+    vidcam:<g {...s}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></g>,
+    endcall:<g fill="currentColor" stroke="none"><path d="M22.6 16.6l-3-3a2 2 0 0 0-2.2-.4l-2.3 1c-.5.2-1.1 0-1.4-.4A11.1 11.1 0 0 1 11 10c-.1-.6.2-1.1.7-1.4l2.3-1a2 2 0 0 0 .9-2.5l-2-3.5a2 2 0 0 0-2.6-.9C4.8 3.1 1 10.6 5.4 16.5c2 2.7 5.1 4.5 8.6 4.5 3.2 0 5.6-1.1 7.1-2.4a2 2 0 0 0 1.5-2z"/></g>,
+    micoff:<g {...s}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V4a3 3 0 0 0-5.9-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .4-.04.8-.1 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></g>,
   };
   return <svg viewBox="0 0 24 24">{m[name]}</svg>;
 }
@@ -3674,6 +3705,41 @@ function BroadcastSheet({onClose,onSend,count}){
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
+function VideoCallOverlay({localStream,remoteStream,partnerName,callState,muted,frontCam,onEnd,onMute,onFlipCam}){
+  const lRef=useRef(null), rRef=useRef(null);
+  useEffect(()=>{ if(lRef.current&&localStream) lRef.current.srcObject=localStream; },[localStream]);
+  useEffect(()=>{
+    if(rRef.current&&remoteStream){ rRef.current.srcObject=remoteStream; rRef.current.play().catch(()=>{}); }
+  },[remoteStream]);
+  return <div className="call-overlay">
+    {remoteStream
+      ? <video ref={rRef} className="call-remote" autoPlay playsInline/>
+      : <div className="call-remote-ph"><div style={{textAlign:"center",color:"rgba(255,255,255,.4)"}}><Icon name="vidcam"/><div style={{fontSize:13,marginTop:8}}>Warte auf Video…</div></div></div>}
+    {localStream && <video ref={lRef} className={"call-local"+(frontCam?"":" rear")} autoPlay playsInline muted/>}
+    <div className="call-info">
+      <div className="cname">{partnerName}</div>
+      <div className="cstatus">{callState==="calling"?"Rufe an…":"Verbunden"}</div>
+    </div>
+    <div className="call-ctrls">
+      <button className={"call-btn"+(muted?" call-muted":"")} onClick={onMute}><Icon name={muted?"micoff":"mic"}/></button>
+      <button className="call-btn call-end" onClick={onEnd}><Icon name="endcall"/></button>
+      <button className="call-btn" onClick={onFlipCam}><Icon name="vidcam"/></button>
+    </div>
+  </div>;
+}
+function IncomingCallBanner({from,fromAvatar,onAccept,onReject}){
+  return <div className="incall">
+    <div className="incall-av">{fromAvatar?<img src={fromAvatar} alt=""/>:initials(from)}</div>
+    <div style={{flex:1,minWidth:0}}>
+      <div style={{fontWeight:700,fontSize:16}}>{from}</div>
+      <div className="muted" style={{fontSize:12.5}}>Videoanruf</div>
+    </div>
+    <div className="incall-btns">
+      <button className="incall-btn reject" onClick={onReject}><Icon name="endcall"/></button>
+      <button className="incall-btn accept" onClick={onAccept}><Icon name="vidcam"/></button>
+    </div>
+  </div>;
+}
 function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar}){
   const [partner,setPartner]=useState({name:(viewerRole==="coach"?name:"Coach"),avatar:(viewerRole==="coach"?(partnerAvatar||""):"")});
   useEffect(()=>{
@@ -3695,6 +3761,122 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   },[live,viewerRole,clientId,name,partnerAvatar]);
   const [tab,setTab]=useState(viewerRole==="coach"?"chat":"home");
   const [menu,setMenu]=useState(false);
+  // ── Video Call ─────────────────────────────────────────────────────────
+  const [myProfile,setMyProfile]=useState({id:null,name:"",avatar:""});
+  useEffect(()=>{
+    if(!live) return;
+    (async()=>{ try{
+      const {data:u}=await window.supa.auth.getUser(); const uid=u?.user?.id; if(!uid) return;
+      const {data:p}=await window.supa.from("profiles").select("display_name,avatar_url").eq("id",uid).single();
+      if(p) setMyProfile({id:uid,name:p.display_name||"",avatar:p.avatar_url||""});
+    }catch(e){} })();
+  },[live]);
+  const [callState,setCallState]=useState("idle");
+  const [localStream,setLocalStream]=useState(null);
+  const [remoteStream,setRemoteStream]=useState(null);
+  const [callPartner,setCallPartner]=useState(null);
+  const [muted,setMuted]=useState(false);
+  const [frontCam,setFrontCam]=useState(true);
+  const pcRef=useRef(null),callChanRef=useRef(null),iceBufRef=useRef([]),rdSetRef=useRef(false),lsRef=useRef(null),csRef=useRef("idle"),myPRef=useRef({id:null,name:"",avatar:""}),frontRef=useRef(true),partnerRef=useRef({name:"",avatar:""});
+  useEffect(()=>{ csRef.current=callState; },[callState]);
+  useEffect(()=>{ myPRef.current=myProfile; },[myProfile]);
+  useEffect(()=>{ frontRef.current=frontCam; },[frontCam]);
+  useEffect(()=>{ partnerRef.current=partner; },[partner]);
+  const vcSignal=(msg)=>callChanRef.current?.send({type:"broadcast",event:"signal",payload:msg});
+  const vcStop=()=>{ lsRef.current?.getTracks().forEach(t=>t.stop()); lsRef.current=null; pcRef.current?.close(); pcRef.current=null; rdSetRef.current=false; iceBufRef.current=[]; setLocalStream(null); setRemoteStream(null); };
+  const vcCleanup=()=>{ vcStop(); setCallState("idle"); csRef.current="idle"; setCallPartner(null); setMuted(false); };
+  const vcEnd=()=>{ vcSignal({type:"call-ended",from:myPRef.current.id}); vcCleanup(); };
+  const vcGetMedia=(front)=>navigator.mediaDevices.getUserMedia({video:{facingMode:front?"user":"environment"},audio:true});
+  const vcCreatePC=(stream)=>{
+    const pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+    stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+    const rs=new MediaStream();
+    pc.ontrack=(e)=>{ rs.addTrack(e.track); setRemoteStream(new MediaStream(rs.getTracks())); };
+    pc.onicecandidate=(e)=>{ if(e.candidate) vcSignal({type:"ice-candidate",from:myPRef.current.id,candidate:e.candidate.toJSON()}); };
+    pc.onconnectionstatechange=()=>{ if(pc.connectionState==="failed"||pc.connectionState==="disconnected") vcCleanup(); };
+    pcRef.current=pc; return pc;
+  };
+  const vcStart=async()=>{
+    if(csRef.current!=="idle"||!myPRef.current.id) return;
+    const pr=partnerRef.current;
+    setCallState("calling"); csRef.current="calling";
+    setCallPartner({name:pr.name,avatar:pr.avatar});
+    vcSignal({type:"call-request",from:myPRef.current.id,fromName:myPRef.current.name||viewerRole,fromAvatar:myPRef.current.avatar});
+  };
+  const vcAccept=async()=>{
+    try{
+      const stream=await vcGetMedia(frontRef.current); lsRef.current=stream; setLocalStream(stream);
+      vcCreatePC(stream);
+      vcSignal({type:"call-accepted",from:myPRef.current.id});
+      setCallState("connected"); csRef.current="connected";
+    }catch(e){ toast("Kamera-Zugriff verweigert"); vcSignal({type:"call-rejected",from:myPRef.current.id}); setCallState("idle"); setCallPartner(null); }
+  };
+  const vcReject=()=>{ vcSignal({type:"call-rejected",from:myPRef.current.id}); setCallState("idle"); setCallPartner(null); };
+  const vcToggleMute=()=>{ lsRef.current?.getAudioTracks().forEach(t=>{t.enabled=!t.enabled;}); setMuted(m=>!m); };
+  const vcFlipCam=async()=>{
+    const newF=!frontRef.current; setFrontCam(newF); frontRef.current=newF;
+    if(!lsRef.current||!pcRef.current) return;
+    try{
+      const ns=await vcGetMedia(newF); const vt=ns.getVideoTracks()[0];
+      const sr=pcRef.current.getSenders().find(s=>s.track?.kind==="video"); await sr?.replaceTrack(vt);
+      lsRef.current.getVideoTracks().forEach(t=>t.stop());
+      const nl=new MediaStream([vt,...lsRef.current.getAudioTracks()]); lsRef.current=nl; setLocalStream(nl);
+    }catch(e){}
+  };
+  const shRef=useRef(null);
+  shRef.current=async(payload)=>{
+    const {type,from}=payload; const me=myPRef.current; if(!me.id||from===me.id) return;
+    if(type==="call-request"){
+      if(csRef.current!=="idle"){ vcSignal({type:"call-rejected",from:me.id}); return; }
+      setCallState("incoming"); csRef.current="incoming";
+      setCallPartner({name:payload.fromName||"Anruf",avatar:payload.fromAvatar||""});
+      try{navigator.vibrate?.(600);}catch(_){}
+      return;
+    }
+    if(type==="call-rejected"){ vcCleanup(); toast("Anruf abgelehnt"); return; }
+    if(type==="call-ended"){ vcCleanup(); return; }
+    if(type==="call-accepted"){
+      try{
+        const stream=await vcGetMedia(frontRef.current); lsRef.current=stream; setLocalStream(stream);
+        const pc=vcCreatePC(stream);
+        const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
+        vcSignal({type:"offer",from:me.id,sdp:{type:offer.type,sdp:offer.sdp}});
+        setCallState("connected"); csRef.current="connected";
+      }catch(e){ vcCleanup(); toast("Kamera-Fehler"); }
+      return;
+    }
+    if(type==="offer"){
+      const pc=pcRef.current; if(!pc) return;
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      rdSetRef.current=true;
+      for(const c of iceBufRef.current) await pc.addIceCandidate(new RTCIceCandidate(c));
+      iceBufRef.current=[];
+      const ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
+      vcSignal({type:"answer",from:me.id,sdp:{type:ans.type,sdp:ans.sdp}});
+      return;
+    }
+    if(type==="answer"){
+      const pc=pcRef.current; if(!pc) return;
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      rdSetRef.current=true;
+      for(const c of iceBufRef.current) await pc.addIceCandidate(new RTCIceCandidate(c));
+      iceBufRef.current=[];
+      return;
+    }
+    if(type==="ice-candidate"){
+      const c=new RTCIceCandidate(payload.candidate);
+      if(rdSetRef.current&&pcRef.current) await pcRef.current.addIceCandidate(c);
+      else iceBufRef.current.push(payload.candidate);
+    }
+  };
+  useEffect(()=>{
+    if(!live||!clientId) return;
+    const chan=window.supa.channel("call:"+clientId,{config:{broadcast:{self:false}}});
+    chan.on("broadcast",{event:"signal"},(ev)=>shRef.current?.(ev.payload));
+    chan.subscribe(); callChanRef.current=chan;
+    return ()=>{ vcStop(); chan.unsubscribe(); };
+  },[live,clientId]);
+  // ─────────────────────────────────────────────────────────────────────
   const tabs=viewerRole==="coach"?COACH_TABS:CLIENT_TABS;
   const title=viewerRole==="coach"?name:"Mein Coaching";
   let content;
@@ -3708,6 +3890,8 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   else if(tab==="cloud") content=(clientId) ? <LiveCloudTab clientId={clientId} role={viewerRole} toast={toast}/> : <CloudTab cdata={cdata} upd={upd} role={viewerRole} name={name} shared={shared} addShared={addShared} delShared={delShared} toast={toast}/>;
   else content=<SettingsTab cdata={cdata} upd={upd} theme={theme} setTheme={setTheme} toast={toast} clientId={clientId} live={live} onRefresh={onRefresh}/>;
   return <div className="app">
+    {(callState==="calling"||callState==="connected") && <VideoCallOverlay localStream={localStream} remoteStream={remoteStream} partnerName={callPartner?.name||partner.name} callState={callState} muted={muted} frontCam={frontCam} onEnd={vcEnd} onMute={vcToggleMute} onFlipCam={vcFlipCam}/>}
+    {callState==="incoming" && <IncomingCallBanner from={callPartner?.name||"Anruf"} fromAvatar={callPartner?.avatar} onAccept={vcAccept} onReject={vcReject}/>}
     <div className="topbar">
       {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" onClick={onBack || (()=>setTab("home"))}>‹</button>}
       <div className="lead">
@@ -3715,6 +3899,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
           ? <span className="chathead"><span className="chav">{partner.avatar?<img src={partner.avatar} alt=""/>:initials(partner.name)}</span><span className="ttl">{partner.name}</span></span>
           : (viewerRole==="coach" ? <span className="ttl">{title}</span> : <button className="logobtn" onClick={()=>setTab("home")} aria-label="Zum Dashboard"><img className="logo-sm" src={LOGO} alt="NK"/></button>)}
       </div>
+      {tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
