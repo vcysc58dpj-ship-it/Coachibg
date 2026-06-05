@@ -1,22 +1,13 @@
-// NK Coaching Service Worker
-// Bewusst OHNE fetch-/Cache-Handler -> die App lädt immer frisch (kein Cache-Problem).
-// Aufgabe: Push-Nachrichten empfangen und beim Antippen die App öffnen.
+// NK Coaching Service Worker v2
+// Kein Cache-Handler -> App laed immer frisch.
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
+self.addEventListener("install", () => { self.skipWaiting(); });
+self.addEventListener("activate", (event) => { event.waitUntil(self.clients.claim()); });
 
 self.addEventListener("push", (event) => {
   let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch (e) {
-    data = { body: event.data ? event.data.text() : "" };
-  }
+  try { data = event.data ? event.data.json() : {}; }
+  catch (e) { data = { body: event.data ? event.data.text() : "" }; }
   const title = data.title || "NK Coaching";
   const options = {
     body: data.body || "",
@@ -30,13 +21,18 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "/";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      // App laeuft bereits im Hintergrund -> Chat-Tab oeffnen via postMessage
       for (const c of list) {
-        if ("focus" in c) { c.focus(); return; }
+        if ("focus" in c) {
+          c.postMessage({ action: "open-chat" });
+          c.focus();
+          return;
+        }
       }
-      if (self.clients.openWindow) return self.clients.openWindow(url);
+      // App geschlossen -> mit ?open=chat oeffnen
+      if (self.clients.openWindow) return self.clients.openWindow("/?open=chat");
     })
   );
 });

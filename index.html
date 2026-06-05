@@ -3759,8 +3759,13 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
       }catch(e){}
     })();
   },[live,viewerRole,clientId,name,partnerAvatar]);
-  const [tab,setTab]=useState(viewerRole==="coach"?"chat":"home");
+  const [tab,setTab]=useState(()=>{
+    try{ const p=new URLSearchParams(window.location.search); if(p.get("open")==="chat"){ window.history.replaceState({},"","/"); return "chat"; } }catch(_){}
+    return viewerRole==="coach"?"chat":"home";
+  });
   const [menu,setMenu]=useState(false);
+  // Öffne Chat-Tab wenn via Push-Mitteilung geöffnet (postMessage vom SW)
+  useEffect(()=>{ const h=()=>setTab("chat"); window.addEventListener("nk:open-chat",h); return ()=>window.removeEventListener("nk:open-chat",h); },[]);
   // ── Video Call ─────────────────────────────────────────────────────────
   const [myProfile,setMyProfile]=useState({id:null,name:"",avatar:""});
   useEffect(()=>{
@@ -3801,7 +3806,8 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     const pr=partnerRef.current;
     setCallState("calling"); csRef.current="calling";
     setCallPartner({name:pr.name,avatar:pr.avatar});
-    vcSignal({type:"call-request",from:myPRef.current.id,fromName:myPRef.current.name||viewerRole,fromAvatar:myPRef.current.avatar});
+    vcSignal({type:"call-request",from:myPRef.current.id,fromName:myPRef.current.name||viewerRole,fromAvatar:myPRef.current.avatar,ts:Date.now()});
+    setTimeout(()=>{ if(csRef.current==="calling"){ vcSignal({type:"call-ended",from:myPRef.current.id}); vcCleanup(); toast("Keine Antwort"); } },30000);
   };
   const vcAccept=async()=>{
     try{
@@ -3825,8 +3831,10 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   };
   const shRef=useRef(null);
   shRef.current=async(payload)=>{
+    try{
     const {type,from}=payload; const me=myPRef.current; if(!me.id||from===me.id) return;
     if(type==="call-request"){
+      if(payload.ts&&Date.now()-payload.ts>30000) return; // veraltetes Signal ignorieren
       if(csRef.current!=="idle"){ vcSignal({type:"call-rejected",from:me.id}); return; }
       setCallState("incoming"); csRef.current="incoming";
       setCallPartner({name:payload.fromName||"Anruf",avatar:payload.fromAvatar||""});
@@ -3868,6 +3876,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
       if(rdSetRef.current&&pcRef.current) await pcRef.current.addIceCandidate(c);
       else iceBufRef.current.push(payload.candidate);
     }
+    }catch(e){console.warn("[VC signal error]",e);}
   };
   useEffect(()=>{
     if(!live||!clientId) return;
@@ -3876,6 +3885,13 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     chan.subscribe(); callChanRef.current=chan;
     return ()=>{ vcStop(); chan.unsubscribe(); };
   },[live,clientId]);
+  // Kamera-Berechtigung vorab anfragen (einmalig, wenn Chat geöffnet wird)
+  useEffect(()=>{
+    if(!live||tab!=="chat") return;
+    navigator.mediaDevices?.getUserMedia({video:true,audio:true})
+      .then(s=>s.getTracks().forEach(t=>t.stop()))
+      .catch(()=>{});
+  },[live,tab]);
   // ─────────────────────────────────────────────────────────────────────
   const tabs=viewerRole==="coach"?COACH_TABS:CLIENT_TABS;
   const title=viewerRole==="coach"?name:"Mein Coaching";
@@ -4008,7 +4024,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
           ? <button className="btn" onClick={()=>setActive(actClient,true)}>Wieder aktivieren</button>
           : <button className="btn btn-ghost" onClick={()=>setActive(actClient,false)}>Deaktivieren</button>}
         <button className="btn" style={{marginTop:10,background:"var(--accent)"}} onClick={()=>delClient(actClient)}>Endgültig löschen</button>
-        <button className="ds-cancel" style={{width:"100%",marginTop:8}} onClick={()=>setActClient(null)}>Abbrechen</button>
+        <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setActClient(null)}>Abbrechen</button>
       </div>
     </>}
   </div>;
@@ -4395,6 +4411,12 @@ function App(){
   const [shared,setShared]=useState([{id:"sf1",name:"Trainingsprinzipien.txt",mime:"text/plain",kind:"file",by:"coach",date:dstr(addDays(new Date(),-10)),url:"data:text/plain;charset=utf-8,"+encodeURIComponent("Progressive Overload. Konsistenz schlaegt Perfektion. Schlaf und Protein priorisieren. Fragen? Schreib mir jederzeit.")}]);
   useEffect(()=>{ document.documentElement.setAttribute("data-theme", theme); try{ localStorage.setItem("nk_theme",theme); }catch(e){} const mc=document.querySelector("meta[name=theme-color]"); if(mc) mc.setAttribute("content", theme==="light"?"#F4F1ED":"#131111"); },[theme]);
   useEffect(()=>{ if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(()=>{}); } },[]);
+  useEffect(()=>{
+    if(!("serviceWorker" in navigator)) return;
+    const h=(ev)=>{ if(ev.data?.action==="open-chat") window.dispatchEvent(new CustomEvent("nk:open-chat")); };
+    navigator.serviceWorker.addEventListener("message",h);
+    return ()=>navigator.serviceWorker.removeEventListener("message",h);
+  },[]);
   // Gesamtes Layout exakt auf die sichtbare Höhe schrumpfen -> nichts hinter der Tastatur -> kein Verschieben möglich. Header bleibt oben, Eingabefeld an der Tastatur.
   useEffect(()=>{
     const vv=window.visualViewport; const root=document.documentElement;
