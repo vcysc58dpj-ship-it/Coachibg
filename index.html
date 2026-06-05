@@ -89,8 +89,9 @@
   .mine{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:5px;}
   .theirs{align-self:flex-start;background:var(--bg-3);color:var(--text);border:1px solid var(--line);border-bottom-left-radius:5px;}
   .composer{display:flex;gap:9px;align-items:flex-end;padding:10px 12px max(10px, env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(19,17,17,0.85);backdrop-filter:blur(8px);}
-  .kb-open .composer{padding-bottom:8px;}
-  .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;}
+  .kb-open .composer{padding-bottom:8px;margin-bottom:var(--kb,0px);}
+  .kb-open .mbody,.kb-open .anwiz-body{padding-bottom:calc(var(--kb,0px) + 28px);}
+  .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;padding-bottom:calc(var(--kb,0px) + 20px);}
   .kb-open .anwiz-foot{padding-bottom:12px;}
   .composer textarea{flex:1;resize:none;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:16px;
     line-height:1.4;padding:11px 13px;border-radius:16px;max-height:120px;outline:none;overflow-y:auto;overscroll-behavior:contain;}
@@ -123,6 +124,8 @@
   .fc-valrow{display:flex;align-items:baseline;gap:6px;}
   .fc-val{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1;}
   .fc-unit{font-size:13px;color:var(--dim);}
+  .fc-valinput{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1;background:transparent;border:none;border-bottom:2px solid var(--accent);color:var(--text);width:110px;max-width:52vw;padding:0 0 3px;font-family:inherit;}
+  .fc-valinput:focus{outline:none;}
   .mcard h3{font-size:16px;margin-bottom:4px;}
   .muted{color:var(--dim);font-size:13.5px;line-height:1.5;}
   .sectlabel{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:6px 2px 10px;}
@@ -2878,7 +2881,7 @@ function MacroWeek({settings,weekDates,logs,t,onSave,openDate,setOpenDate}){
   const MO=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
   const dO=new Date(openDate+"T00:00:00");
   const dateLong=WD[dO.getDay()]+", "+String(dO.getDate()).padStart(2,"0")+". "+MO[dO.getMonth()]+" "+dO.getFullYear();
-  const rows=[["Kalorien","flame",v("kcal"),"kcal"],["Protein","muscle",v("protein"),"g"],["Kohlenhydrate","wheat",v("carbs"),"g"],["Fett","droplet",v("fat"),"g"]];
+  const rows=[["Kalorien","flame",v("kcal"),"kcal",k,setK],["Protein","muscle",v("protein"),"g",p,setP],["Kohlenhydrate","wheat",v("carbs"),"g",cb,setCb],["Fett","droplet",v("fat"),"g",f,setF]];
   return <div className="foodcard">
     <div className="fc-head">
       <div className="fc-mealicon"><Icon name="food"/></div>
@@ -2888,27 +2891,26 @@ function MacroWeek({settings,weekDates,logs,t,onSave,openDate,setOpenDate}){
       </div>
       {editable && <button className="fc-more" onClick={()=>setEditing(x=>!x)} aria-label="Bearbeiten"><Icon name="more"/></button>}
     </div>
-    {rows.map(([lab,ic,val,unit])=>(
+    {rows.map(([lab,ic,val,unit,state,setState])=>(
       <div key={lab} className="fc-row">
         <div className="fc-tile"><Icon name={ic}/></div>
         <div style={{flex:1,minWidth:0}}>
           <div className="fc-lbl">{lab}</div>
-          <div className="fc-valrow"><span className="fc-val">{fmtN(val)}</span><span className="fc-unit">{unit}</span></div>
+          <div className="fc-valrow">
+            {editing
+              ? <input className="fc-valinput" inputMode="numeric" value={state} placeholder="0" onChange={(ev)=>setState(ev.target.value)}/>
+              : <span className="fc-val">{fmtN(val)}</span>}
+            <span className="fc-unit">{unit}</span>
+          </div>
         </div>
       </div>
     ))}
     {!editable ? <div className="muted" style={{marginTop:14,fontSize:13}}>Zukünftiger Tag – Eintragen ab heute möglich.</div>
-      : editing ? <div style={{marginTop:14}}>
-        <div className="muted" style={{marginBottom:10,fontSize:13}}>Ziele: {fmtN(m.kcal)} kcal · {m.protein}P / {m.carbs}K / {m.fat}F</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          <LabeledNum label="Kalorien" unit="kcal" value={k} onChange={setK}/>
-          <LabeledNum label="Protein" unit="g" value={p} onChange={setP}/>
-          <LabeledNum label="Kohlenhydr." unit="g" value={cb} onChange={setCb}/>
-          <LabeledNum label="Fett" unit="g" value={f} onChange={setF}/>
-        </div>
+      : editing ? <>
+        <div className="muted" style={{margin:"15px 0 0",fontSize:12.5}}>Ziele: {fmtN(m.kcal)} kcal · {m.protein}P / {m.carbs}K / {m.fat}F</div>
         <button className="btn" style={{marginTop:12}} onClick={()=>{ onSave(openDate,{kcal:+k||0,protein:+p||0,carbs:+cb||0,fat:+f||0}); setEditing(false); }}>Speichern</button>
         <button className="link" style={{display:"block",margin:"10px auto 0",color:"var(--dim)"}} onClick={()=>setEditing(false)}>Abbrechen</button>
-      </div>
+      </>
       : <button className="btn" style={{marginTop:16}} onClick={()=>setEditing(true)}>Eintragen / Bearbeiten</button>}
   </div>;
 }
@@ -4153,12 +4155,12 @@ function App(){
     let maxVH=0;
     const update=()=>{
       const vh=vv?vv.height:window.innerHeight;
-      const vtop=vv?vv.offsetTop:0;
       maxVH=Math.max(maxVH, vh); // volle sichtbare Höhe (Tastatur zu) = größter Wert
-      root.style.setProperty("--vh", vh+"px");
-      root.style.setProperty("--vvtop", vtop+"px"); // Versatz durch Tastatur-Verschiebung -> Hülle klebt am sichtbaren Fenster
-      root.classList.toggle("kb-open", (maxVH - vh > 120));
-      if(maxVH - vh > 120){ window.__kbH = maxVH - vh; } // Tastaturhöhe merken
+      const kbOpen=(maxVH - vh > 120);
+      root.style.setProperty("--vh", maxVH+"px"); // volle Höhe -> Body deckt immer den Schirm -> keine schwarze Lücke
+      root.style.setProperty("--kb", (kbOpen?(maxVH-vh):0)+"px"); // Tastaturhöhe
+      root.classList.toggle("kb-open", kbOpen);
+      if(kbOpen){ window.__kbH = maxVH - vh; } // Tastaturhöhe merken
     };
     update();
     if(vv){ vv.addEventListener("resize",update); vv.addEventListener("scroll",update); }
