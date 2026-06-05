@@ -1131,6 +1131,21 @@ function LiveChatTab({clientId,role,toast}){
     el.addEventListener("touchmove",onTM,{passive:false});
     return ()=>el.removeEventListener("touchmove",onTM);
   },[]);
+  // Verhindert, dass ein Überscroll am Listenanfang/-ende das ganze Layout (inkl. Eingabefeld) verschiebt.
+  useEffect(()=>{
+    const el=listRef.current; if(!el) return;
+    let lastY=0;
+    const onTS=(e)=>{ lastY=e.touches[0].clientY; };
+    const onTM=(e)=>{
+      const y=e.touches[0].clientY; const dy=y-lastY; lastY=y;
+      const atTop=el.scrollTop<=0;
+      const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-1;
+      if(((atTop && dy>0) || (atBottom && dy<0)) && e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchstart",onTS,{passive:true});
+    el.addEventListener("touchmove",onTM,{passive:false});
+    return ()=>{ el.removeEventListener("touchstart",onTS); el.removeEventListener("touchmove",onTM); };
+  },[]);
   const [msgs,setMsgs]=useState(null); // null=lädt
   const [busy,setBusy]=useState(false);
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
