@@ -1,0 +1,12 @@
+{
+  "name": "NK Coaching",
+  "short_name": "NK Coaching",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#131111",
+  "theme_color": "#131111",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
