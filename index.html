@@ -3906,13 +3906,13 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   const [callPartner,setCallPartner]=useState(null);
   const [muted,setMuted]=useState(false);
   const [frontCam,setFrontCam]=useState(true);
-  const pcRef=useRef(null),callChanRef=useRef(null),iceBufRef=useRef([]),rdSetRef=useRef(false),lsRef=useRef(null),csRef=useRef("idle"),myPRef=useRef({id:null,name:"",avatar:""}),frontRef=useRef(true),partnerRef=useRef({name:"",avatar:""});
+  const pcRef=useRef(null),callChanRef=useRef(null),iceBufRef=useRef([]),rdSetRef=useRef(false),lsRef=useRef(null),csRef=useRef("idle"),myPRef=useRef({id:null,name:"",avatar:""}),frontRef=useRef(true),partnerRef=useRef({name:"",avatar:""}),ringRef=useRef(null);
   useEffect(()=>{ csRef.current=callState; },[callState]);
   useEffect(()=>{ myPRef.current=myProfile; },[myProfile]);
   useEffect(()=>{ frontRef.current=frontCam; },[frontCam]);
   useEffect(()=>{ partnerRef.current=partner; },[partner]);
   const vcSignal=(msg)=>callChanRef.current?.send({type:"broadcast",event:"signal",payload:msg});
-  const vcStop=()=>{ lsRef.current?.getTracks().forEach(t=>t.stop()); lsRef.current=null; pcRef.current?.close(); pcRef.current=null; rdSetRef.current=false; iceBufRef.current=[]; setLocalStream(null); setRemoteStream(null); };
+  const vcStop=()=>{ if(ringRef.current){clearInterval(ringRef.current);ringRef.current=null;} lsRef.current?.getTracks().forEach(t=>t.stop()); lsRef.current=null; pcRef.current?.close(); pcRef.current=null; rdSetRef.current=false; iceBufRef.current=[]; setLocalStream(null); setRemoteStream(null); };
   const vcCleanup=()=>{ vcStop(); setCallState("idle"); csRef.current="idle"; setCallPartner(null); setMuted(false); };
   const vcEnd=()=>{ vcSignal({type:"call-ended",from:myPRef.current.id}); vcCleanup(); };
   const vcGetMedia=(front)=>navigator.mediaDevices.getUserMedia({video:{facingMode:front?"user":"environment"},audio:true});
@@ -3930,8 +3930,14 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     const pr=partnerRef.current;
     setCallState("calling"); csRef.current="calling";
     setCallPartner({name:pr.name,avatar:pr.avatar});
-    vcSignal({type:"call-request",from:myPRef.current.id,fromName:myPRef.current.name||viewerRole,fromAvatar:myPRef.current.avatar,ts:Date.now()});
-    setTimeout(()=>{ if(csRef.current==="calling"){ vcSignal({type:"call-ended",from:myPRef.current.id}); vcCleanup(); toast("Keine Antwort"); } },30000);
+    const sendReq=()=>vcSignal({type:"call-request",from:myPRef.current.id,fromName:myPRef.current.name||viewerRole,fromAvatar:myPRef.current.avatar,ts:Date.now()});
+    sendReq();
+    // Push, damit es beim Kunden klingelt, auch wenn die App zu ist
+    try{ window.supa.functions.invoke("notify-call",{body:{clientId,callerName:myPRef.current.name||"Dein Coach"}}); }catch(_){}
+    // Anruf-Signal wiederholen, damit der Kunde es nach App-Start noch faengt
+    if(ringRef.current) clearInterval(ringRef.current);
+    ringRef.current=setInterval(()=>{ if(csRef.current==="calling") sendReq(); else { clearInterval(ringRef.current); ringRef.current=null; } },2500);
+    setTimeout(()=>{ if(csRef.current==="calling"){ vcSignal({type:"call-ended",from:myPRef.current.id}); vcCleanup(); toast("Keine Antwort"); } },45000);
   };
   const vcAccept=async()=>{
     try{
@@ -3959,6 +3965,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     const {type,from}=payload; const me=myPRef.current; if(!me.id||from===me.id) return;
     if(type==="call-request"){
       if(payload.ts&&Date.now()-payload.ts>30000) return; // veraltetes Signal ignorieren
+      if(csRef.current==="incoming") return; // Re-Broadcast desselben Anrufs ignorieren
       if(csRef.current!=="idle"){ vcSignal({type:"call-rejected",from:me.id}); return; }
       setCallState("incoming"); csRef.current="incoming";
       setCallPartner({name:payload.fromName||"Anruf",avatar:payload.fromAvatar||""});
@@ -4043,7 +4050,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
         <button className={!selfEdit?"on":""} onClick={()=>{ if(selfEdit) onToggleSelfEdit(); }}>Ansicht</button>
         <button className={selfEdit?"on":""} onClick={()=>{ if(!selfEdit) onToggleSelfEdit(); }}>Bearbeiten</button>
       </div>}
-      {!selfMode && tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
+      {!selfMode && viewerRole==="coach" && tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
