@@ -4744,9 +4744,10 @@ function App(){
   const [shared,setShared]=useState([{id:"sf1",name:"Trainingsprinzipien.txt",mime:"text/plain",kind:"file",by:"coach",date:dstr(addDays(new Date(),-10)),url:"data:text/plain;charset=utf-8,"+encodeURIComponent("Progressive Overload. Konsistenz schlaegt Perfektion. Schlaf und Protein priorisieren. Fragen? Schreib mir jederzeit.")}]);
   useEffect(()=>{ document.documentElement.setAttribute("data-theme", theme); try{ localStorage.setItem("nk_theme",theme); }catch(e){} const mc=document.querySelector("meta[name=theme-color]"); if(mc) mc.setAttribute("content", theme==="light"?"#F4F1ED":"#131111"); },[theme]);
   useEffect(()=>{ if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(()=>{}); } },[]);
+  const [pendingChat,setPendingChat]=useState(null); // {conv} bis App bereit ist
   useEffect(()=>{
     if(!("serviceWorker" in navigator)) return;
-    const h=(ev)=>{ if(ev.data?.action==="open-chat") openChatFromIntent(ev.data.conv); };
+    const h=(ev)=>{ if(ev.data?.action==="open-chat") setPendingChat({conv:ev.data.conv||null}); };
     navigator.serviceWorker.addEventListener("message",h);
     return ()=>navigator.serviceWorker.removeEventListener("message",h);
   },[]);
@@ -4757,14 +4758,15 @@ function App(){
       const r=await c.match("/__nk_intent");
       if(!r) return;
       const j=await r.json(); await c.delete("/__nk_intent");
-      if(j&&j.action==="open-chat"&&Date.now()-(j.ts||0)<120000){ openChatFromIntent(j.conv); }
+      if(j&&j.action==="open-chat"&&Date.now()-(j.ts||0)<120000){ setPendingChat({conv:j.conv||null}); }
     }catch(e){}
   };
   useEffect(()=>{
     checkIntent();
+    const t1=setTimeout(checkIntent,700), t2=setTimeout(checkIntent,1800);
     const onVis=()=>{ if(document.visibilityState==="visible") checkIntent(); };
     document.addEventListener("visibilitychange",onVis);
-    return ()=>document.removeEventListener("visibilitychange",onVis);
+    return ()=>{ clearTimeout(t1); clearTimeout(t2); document.removeEventListener("visibilitychange",onVis); };
   },[]);
   // ── Ungelesene Nachrichten + In-App-Banner ───────────────────────────
   const [unread,setUnread]=useState(0);
@@ -4786,11 +4788,17 @@ function App(){
   };
   const openChatFromIntent=async(conv)=>{
     if(isCoachLike && conv){
-      try{ const {data}=await window.supa.from("profiles").select("id,display_name,email,avatar_url,tools,active,coach_id").eq("id",conv).maybeSingle(); if(data){ setRole("coach"); setOpenCid(data); return; } }catch(_){}
+      try{ const {data}=await window.supa.from("profiles").select("id,display_name,email,avatar_url,tools,active,coach_id").eq("id",conv).maybeSingle(); if(data){ setRole("coach"); setOpenCid(data); setTimeout(()=>window.dispatchEvent(new CustomEvent("nk:open-chat")),300); return; } }catch(_){}
     }
-    setTimeout(()=>window.dispatchEvent(new CustomEvent("nk:open-chat")),120);
+    setTimeout(()=>window.dispatchEvent(new CustomEvent("nk:open-chat")),200);
   };
   const openChatFromBanner=(b)=>{ setBanner(null); openChatFromIntent(b.clientId); };
+  // Pending-Chat ausführen, sobald die App bereit ist (loest Kaltstart-Timing)
+  useEffect(()=>{
+    if(!pendingChat||screen!=="app"||!profile) return;
+    const conv=pendingChat.conv; setPendingChat(null);
+    openChatFromIntent(conv);
+  },[pendingChat,screen,profile && profile.id]);
   useEffect(()=>{
     if(!live||!profile) return;
     fetchUnread();
