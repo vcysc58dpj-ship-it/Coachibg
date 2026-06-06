@@ -58,6 +58,7 @@
   .ttl{font-family:"Bricolage Grotesque";font-weight:800;font-size:19px;letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .iconbtn{width:36px;height:36px;border-radius:10px;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--dim);flex:none;}
   .iconbtn[aria-label="Menü"]{background:transparent;color:var(--text);}
+  .iconbtn[aria-label="Videoanruf"]{background:transparent;}
   .back{font-size:24px;color:var(--text);padding:2px 6px;margin-left:-4px;}
   .seg{display:inline-flex;background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex:none;}
   .seg button{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:8px;color:var(--dim);}
@@ -4050,7 +4051,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
         <button className={!selfEdit?"on":""} onClick={()=>{ if(selfEdit) onToggleSelfEdit(); }}>Ansicht</button>
         <button className={selfEdit?"on":""} onClick={()=>{ if(!selfEdit) onToggleSelfEdit(); }}>Bearbeiten</button>
       </div>}
-      {!selfMode && viewerRole==="coach" && tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
+      {!selfMode && viewerRole==="coach" && tab==="chat" && live && clientId && tt.call!==false && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
@@ -4545,9 +4546,9 @@ function AdminEditSheet({user,coaches,onClose,onSave,onDelete}){
   const [coachId,setCoachId]=useState(user.coach_id||"");
   const [selfCoach,setSelfCoach]=useState(!!user.self_coach);
   const [active,setActive]=useState(user.active!==false);
-  const [tools,setTools]=useState(user.tools||{plan:true,food:true,habits:true,checkin:true,chat:true,cloud:true});
+  const [tools,setTools]=useState({...{plan:true,food:true,habits:true,checkin:true,chat:true,cloud:true,call:true},...(user.tools||{})});
   const [busy,setBusy]=useState(false);
-  const toolList=[["plan","Training"],["food","Ernährung"],["habits","Habits"],["checkin","Check-in"],["chat","Chat"],["cloud","Cloud"]];
+  const toolList=[["plan","Training"],["food","Ernährung"],["habits","Habits"],["checkin","Check-in"],["chat","Chat"],["call","Videoanruf"],["cloud","Cloud"]];
   const toggleTool=(k)=>setTools(t=>({...t,[k]:!t[k]}));
   const submit=async()=>{
     setBusy(true);
