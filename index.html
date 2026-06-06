@@ -3599,14 +3599,6 @@ function PermissionToggles({toast}){
         <div><div className="en">Mitteilungen</div><div className="enote">{notifOn?"Aktiv – du erhältst Nachrichten-Benachrichtigungen":"Benachrichtigungen bei neuen Nachrichten"}</div></div>
         <Toggle on={notifOn} onClick={wrap(toggleNotif)}/>
       </div>
-      <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}>
-        <div><div className="en">Kamera</div><div className="enote">{camOn?"Zugriff gewährt":"Zugriff erforderlich für Videoanrufe"}</div></div>
-        <Toggle on={camOn} onClick={wrap(toggleCam)}/>
-      </div>
-      <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}>
-        <div><div className="en">Mikrofon</div><div className="enote">{micOn?"Zugriff gewährt":"Zugriff erforderlich für Anrufe"}</div></div>
-        <Toggle on={micOn} onClick={wrap(toggleMic)}/>
-      </div>
     </div>
   </>;
 }
@@ -3864,7 +3856,7 @@ function IncomingCallBanner({from,fromAvatar,onAccept,onReject}){
     </div>
   </div>;
 }
-function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,modes,mode,onMode,selfMode,selfEdit,onToggleSelfEdit,tools,unread}){
+function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,modes,mode,onMode,selfMode,selfEdit,onToggleSelfEdit,tools,unread,canCall=true}){
   const [partner,setPartner]=useState({name:(viewerRole==="coach"?name:"Coach"),avatar:(viewerRole==="coach"?(partnerAvatar||""):"")});
   useEffect(()=>{
     if(!live){ return; }
@@ -4051,7 +4043,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
         <button className={!selfEdit?"on":""} onClick={()=>{ if(selfEdit) onToggleSelfEdit(); }}>Ansicht</button>
         <button className={selfEdit?"on":""} onClick={()=>{ if(!selfEdit) onToggleSelfEdit(); }}>Bearbeiten</button>
       </div>}
-      {!selfMode && viewerRole==="coach" && tab==="chat" && live && clientId && tt.call!==false && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
+      {!selfMode && viewerRole==="coach" && tab==="chat" && live && clientId && canCall && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
@@ -4594,7 +4586,7 @@ function AdminEditSheet({user,coaches,onClose,onSave,onDelete}){
 
       <div className="sectlabel" style={{marginTop:16}}>Tools</div>
       <div className="mcard" style={{padding:"4px 16px",marginBottom:16}}>
-        {toolList.map(([k,l],i)=>(
+        {toolList.filter(([k])=>k!=="call"||type==="coach").map(([k,l],i)=>(
           <div key={k} className="tglrow" style={i>0?{borderTop:"1px solid var(--line)"}:{}}>
             <span className="lab">{l}</span><Toggle on={!!tools[k]} onClick={()=>toggleTool(k)}/>
           </div>
@@ -5010,7 +5002,7 @@ function App(){
   else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
   else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={profile&&profile.tools}/>; }
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools} unread={unread}/>; }
-  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools}/>; }
+  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools} canCall={!(profile&&profile.tools&&profile.tools.call===false)}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole} unread={unread} unreadByClient={unreadByClient}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
