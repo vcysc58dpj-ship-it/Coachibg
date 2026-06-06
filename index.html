@@ -581,7 +581,7 @@
   .dfoot .tglrow .lab{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:14.5px;font-weight:600;}
   .dfoot .tglrow .lab svg{width:20px;height:20px;}
 
-  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--bg-2);border-top:1px solid var(--line-2);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;transform:translateY(100%);animation:sheetup .26s cubic-bezier(.2,.8,.2,1) forwards;box-shadow:0 -20px 50px rgba(0,0,0,.4);}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--bg-2);border-top:1px solid var(--line-2);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;transform:translateY(100%);animation:sheetup .26s cubic-bezier(.2,.8,.2,1) forwards;box-shadow:0 -20px 50px rgba(0,0,0,.4);max-height:calc(100vh - env(safe-area-inset-top) - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;}
   @keyframes sheetup{to{transform:translateY(0);}}
   /* Bestätigungs-Dialog */
   .cdlg{position:fixed;left:20px;right:20px;top:50%;z-index:80;max-width:380px;margin:0 auto;transform:translateY(-50%) scale(.94);opacity:0;background:var(--bg-2);border:1px solid var(--line-2);border-radius:20px;padding:22px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:cdlgIn .2s cubic-bezier(.2,.8,.2,1) forwards;}
@@ -3745,7 +3745,7 @@ function PlanHistory({workoutLog,plan}){
     </div>;
   })}</>;
 }
-function Drawer({tabs,tab,setTab,onClose,headName,headRole,avatarUrl,theme,setTheme,onSwitch,viewerRole,onSignOut,toast,isAdmin,onAdmin}){
+function Drawer({tabs,tab,setTab,onClose,headName,headRole,avatarUrl,theme,setTheme,onSignOut,toast,modes,mode,onMode}){
   return <>
     <div className="scrim" onClick={onClose}/>
     <div className="drawer">
@@ -3757,7 +3757,7 @@ function Drawer({tabs,tab,setTab,onClose,headName,headRole,avatarUrl,theme,setTh
         {tabs.map(t=>(<button key={t.k} className={tab===t.k?"on":""} onClick={()=>{setTab(t.k);onClose();}}><Icon name={t.i}/>{t.l}</button>))}
       </div>
       <div className="dfoot">
-        {isAdmin && <button className="drow" onClick={()=>{onClose();onAdmin&&onAdmin();}}><Icon name="settings"/>Admin-Bereich</button>}
+        <ModeSwitchRows modes={modes} mode={mode} onMode={onMode} onClose={onClose}/>
         <div className="tglrow"><span className="lab"><Icon name="sun"/>Helles Design</span><Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
         <button className="drow" onClick={()=>enablePush(toast)}><Icon name="bell"/>Mitteilungen aktivieren</button>
         <button className="drow" onClick={onSignOut}><Icon name="logout"/>Abmelden</button>
@@ -3800,6 +3800,15 @@ function BroadcastSheet({onClose,onSend,count}){
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
+const SELF_TABS=[{k:"home",l:"Start",i:"home"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"habits",l:"Habits",i:"habits"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
+const MODE_LABEL={admin:"Admin-Bereich",coach:"Coach-Bereich",self_coach:"Self-Coaching",client:"Kunden-Ansicht"};
+const MODE_ICON={admin:"settings",coach:"home",self_coach:"chest",client:"home"};
+function ModeSwitchRows({modes,mode,onMode,onClose}){
+  if(!modes||modes.length<2) return null;
+  return modes.filter(m=>m!==mode).map(m=>(
+    <button key={m} className="drow" onClick={()=>{onClose&&onClose();onMode&&onMode(m);}}><Icon name={MODE_ICON[m]||"home"}/>{MODE_LABEL[m]||m}</button>
+  ));
+}
 function VideoCallOverlay({localStream,remoteStream,partnerName,callState,muted,frontCam,onEnd,onMute,onFlipCam}){
   const lRef=useRef(null), rRef=useRef(null);
   useEffect(()=>{ if(lRef.current&&localStream) lRef.current.srcObject=localStream; },[localStream]);
@@ -3835,7 +3844,7 @@ function IncomingCallBanner({from,fromAvatar,onAccept,onReject}){
     </div>
   </div>;
 }
-function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,isAdmin,onAdmin}){
+function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,modes,mode,onMode,selfMode,selfEdit,onToggleSelfEdit}){
   const [partner,setPartner]=useState({name:(viewerRole==="coach"?name:"Coach"),avatar:(viewerRole==="coach"?(partnerAvatar||""):"")});
   useEffect(()=>{
     if(!live){ return; }
@@ -3856,6 +3865,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   },[live,viewerRole,clientId,name,partnerAvatar]);
   const [tab,setTab]=useState(()=>{
     try{ const p=new URLSearchParams(window.location.search); if(p.get("open")==="chat"){ window.history.replaceState({},"","/"); return "chat"; } }catch(_){}
+    if(selfMode) return "home";
     return viewerRole==="coach"?"chat":"home";
   });
   const [menu,setMenu]=useState(false);
@@ -3974,15 +3984,15 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     }catch(e){console.warn("[VC signal error]",e);}
   };
   useEffect(()=>{
-    if(!live||!clientId) return;
+    if(!live||!clientId||selfMode) return;
     const chan=window.supa.channel("call:"+clientId,{config:{broadcast:{self:false}}});
     chan.on("broadcast",{event:"signal"},(ev)=>shRef.current?.(ev.payload));
     chan.subscribe(); callChanRef.current=chan;
     return ()=>{ vcStop(); chan.unsubscribe(); };
   },[live,clientId]);
   // ─────────────────────────────────────────────────────────────────────
-  const tabs=viewerRole==="coach"?COACH_TABS:CLIENT_TABS;
-  const title=viewerRole==="coach"?name:"Mein Coaching";
+  const tabs=selfMode?SELF_TABS:(viewerRole==="coach"?COACH_TABS:CLIENT_TABS);
+  const title=selfMode?"Self-Coaching":(viewerRole==="coach"?name:"Mein Coaching");
   let content;
   if(tab==="home") content=(live && clientId) ? <LiveDashboard clientId={clientId} toast={toast} go={setTab} name={viewerRole==="coach"?name:cdata.name}/> : <div className="mbody"><div className="muted">Dashboard</div></div>;
   else if(tab==="chat") content=(live && clientId) ? <LiveChatTab clientId={clientId} role={viewerRole} toast={toast}/> : <ChatTab cdata={cdata} upd={upd} role={viewerRole}/>;
@@ -3999,20 +4009,26 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     <div className="topbar">
       {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" onClick={onBack || (()=>setTab("home"))}>‹</button>}
       <div className="lead">
-        {tab==="chat"
-          ? <span className="chathead"><span className="chav">{partner.avatar?<img src={partner.avatar} alt=""/>:initials(partner.name)}</span><span className="ttl">{partner.name}</span></span>
-          : (viewerRole==="coach" ? <span className="ttl">{title}</span> : <button className="logobtn" onClick={()=>setTab("home")} aria-label="Zum Dashboard"><img className="logo-sm" src={LOGO} alt="NK"/></button>)}
+        {selfMode
+          ? <span className="ttl">Self-Coaching</span>
+          : (tab==="chat"
+            ? <span className="chathead"><span className="chav">{partner.avatar?<img src={partner.avatar} alt=""/>:initials(partner.name)}</span><span className="ttl">{partner.name}</span></span>
+            : (viewerRole==="coach" ? <span className="ttl">{title}</span> : <button className="logobtn" onClick={()=>setTab("home")} aria-label="Zum Dashboard"><img className="logo-sm" src={LOGO} alt="NK"/></button>))}
       </div>
-      {tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
+      {selfMode && <div className="seg" style={{marginRight:6}}>
+        <button className={!selfEdit?"on":""} onClick={()=>{ if(selfEdit) onToggleSelfEdit(); }}>Ansicht</button>
+        <button className={selfEdit?"on":""} onClick={()=>{ if(!selfEdit) onToggleSelfEdit(); }}>Bearbeiten</button>
+      </div>}
+      {!selfMode && tab==="chat" && live && clientId && <button className="iconbtn" onClick={vcStart} aria-label="Videoanruf" style={{color:callState==="idle"?"var(--dim)":"var(--accent)"}}><Icon name="vidcam"/></button>}
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{content}</div>
-    {menu && <Drawer tabs={tabs} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={viewerRole==="coach"?(partner.name||name):cdata.name} headRole={viewerRole==="coach"?"Coach-Ansicht · Kunde":"Mein Coaching"} avatarUrl={viewerRole==="coach"?partner.avatar:cdata.avatarUrl} theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch(viewerRole==="coach"?"client":"coach")} viewerRole={viewerRole} onSignOut={onSignOut} toast={toast} isAdmin={isAdmin} onAdmin={onAdmin}/>}
+    {menu && <Drawer tabs={tabs} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={selfMode?"Self-Coaching":(viewerRole==="coach"?(partner.name||name):cdata.name)} headRole={selfMode?"Eigenes Training":(viewerRole==="coach"?"Coach-Ansicht · Kunde":"Mein Coaching")} avatarUrl={selfMode?null:(viewerRole==="coach"?partner.avatar:cdata.avatarUrl)} theme={theme} setTheme={setTheme} onSignOut={onSignOut} toast={toast} modes={modes} mode={mode} onMode={onMode}/>}
   </div>;
 }
 
 /* ---------- COACH HOME ---------- */
-function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast,onRefresh,isAdmin,onAdmin}){
+function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast,onRefresh,modes,mode,onMode}){
   const [tab,setTab]=useState("home"); // home | clients | cloud | chat
   const [menu,setMenu]=useState(false);
   const [bc,setBc]=useState(false);
@@ -4099,7 +4115,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work">{tab==="cloud" ? body : <div className="mbody">{body}</div>}</div>
-    {menu && <Drawer tabs={COACH_NAV} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={me.name} headRole="Coach-Bereich" avatarUrl={me.avatar} theme={theme} setTheme={setTheme} onSwitch={()=>onSwitch("client")} viewerRole="coach" onSignOut={onSignOut} toast={toast} isAdmin={isAdmin} onAdmin={onAdmin}/>}
+    {menu && <Drawer tabs={COACH_NAV} tab={tab} setTab={setTab} onClose={()=>setMenu(false)} headName={me.name} headRole="Coach-Bereich" avatarUrl={me.avatar} theme={theme} setTheme={setTheme} onSignOut={onSignOut} toast={toast} modes={modes} mode={mode} onMode={onMode}/>}
     {bc && <BroadcastSheet onClose={()=>setBc(false)} onSend={(t)=>{onBroadcast(t);setBc(false);}} count={(clients||[]).filter(c=>c.active!==false).length}/>}
     {showCreate && <CreateClientSheet onClose={()=>setShowCreate(false)} onCreate={onCreate} onCreated={()=>{ setShowCreate(false); load(); }} toast={toast}/>}
     {actClient && <>
@@ -4486,10 +4502,11 @@ function NotifyPrompt({onDone,toast}){
     </div>
   </div>;
 }
-function AdminEditSheet({user,coaches,onClose,onSave}){
+function AdminEditSheet({user,coaches,onClose,onSave,onDelete}){
   const [type,setType]=useState(user.account_type||"client");
   const [coachId,setCoachId]=useState(user.coach_id||"");
   const [selfCoach,setSelfCoach]=useState(!!user.self_coach);
+  const [active,setActive]=useState(user.active!==false);
   const [tools,setTools]=useState(user.tools||{plan:true,food:true,habits:true,checkin:true,chat:true,cloud:true});
   const [busy,setBusy]=useState(false);
   const toolList=[["plan","Training"],["food","Ernährung"],["habits","Habits"],["checkin","Check-in"],["chat","Chat"],["cloud","Cloud"]];
@@ -4500,11 +4517,16 @@ function AdminEditSheet({user,coaches,onClose,onSave}){
       account_type:type,
       self_coach: type==="coach"?selfCoach:false,
       tools,
-      coach_id: type==="client" ? (coachId||null) : null,
+      active,
+      coach_id: type==="self_coach" ? user.id : (type==="client" ? (coachId||null) : null),
       role: type==="coach" ? "coach" : "client"
     };
     await onSave(user.id,patch);
     setBusy(false);
+  };
+  const del=async()=>{
+    if(!await askConfirm({title:"Account löschen?",message:"„"+(user.display_name||user.email)+"\" wird mit allen Daten endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",confirmText:"Endgültig löschen",danger:true})) return;
+    setBusy(true); await onDelete(user.id); setBusy(false);
   };
   return <>
     <div className="scrim" onClick={onClose}/>
@@ -4532,7 +4554,7 @@ function AdminEditSheet({user,coaches,onClose,onSave}){
       </div>}
 
       <div className="sectlabel" style={{marginTop:16}}>Tools</div>
-      <div className="mcard" style={{padding:"4px 16px",marginBottom:18}}>
+      <div className="mcard" style={{padding:"4px 16px",marginBottom:16}}>
         {toolList.map(([k,l],i)=>(
           <div key={k} className="tglrow" style={i>0?{borderTop:"1px solid var(--line)"}:{}}>
             <span className="lab">{l}</span><Toggle on={!!tools[k]} onClick={()=>toggleTool(k)}/>
@@ -4540,7 +4562,52 @@ function AdminEditSheet({user,coaches,onClose,onSave}){
         ))}
       </div>
 
+      <div className="sectlabel">Status</div>
+      <div className="mcard" style={{padding:"4px 16px",marginBottom:18}}>
+        <div className="tglrow"><span className="lab">{active?"Aktiv":"Deaktiviert"}</span><Toggle on={active} onClick={()=>setActive(!active)}/></div>
+      </div>
+
       <button className="btn" disabled={busy} onClick={submit}>{busy?"Speichert…":"Speichern"}</button>
+      {!user.is_admin && <button className="btn btn-ghost" disabled={busy} style={{width:"100%",marginTop:8,color:"var(--accent)"}} onClick={del}>Account löschen</button>}
+      <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={onClose}>Abbrechen</button>
+    </div>
+  </>;
+}
+function AdminCreateSheet({coaches,onClose,onCreate}){
+  const [email,setEmail]=useState("");
+  const [pw,setPw]=useState("");
+  const [nm,setNm]=useState("");
+  const [type,setType]=useState("client");
+  const [coachId,setCoachId]=useState("");
+  const [busy,setBusy]=useState(false);
+  const submit=async()=>{
+    if(!email.trim()||pw.length<8) return;
+    setBusy(true);
+    await onCreate({email:email.trim(),password:pw,display_name:nm.trim(),account_type:type,coach_id:type==="client"?(coachId||null):null});
+    setBusy(false);
+  };
+  return <>
+    <div className="scrim" onClick={onClose}/>
+    <div className="sheet">
+      <h3>Account anlegen</h3>
+      <div className="muted" style={{fontSize:12.5,marginBottom:14}}>Der Account wird sofort aktiviert. Bei „Kunde" durchläuft er beim ersten Login das Onboarding.</div>
+      <Field label="E-Mail"><input className="inp" type="email" autoCapitalize="none" autoCorrect="off" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@mail.de"/></Field>
+      <Field label="Name (optional)"><input className="inp" value={nm} onChange={e=>setNm(e.target.value)} placeholder="Vorname Nachname"/></Field>
+      <Field label="Start-Passwort (min. 8 Zeichen)"><input className="inp" value={pw} onChange={e=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/></Field>
+      <div className="sectlabel">Account-Typ</div>
+      <div className="seg seg3" style={{marginBottom:14}}>
+        <button className={type==="coach"?"on":""} onClick={()=>setType("coach")}>Coach</button>
+        <button className={type==="self_coach"?"on":""} onClick={()=>setType("self_coach")}>Self-Coach</button>
+        <button className={type==="client"?"on":""} onClick={()=>setType("client")}>Kunde</button>
+      </div>
+      {type==="client" && <>
+        <div className="sectlabel">Coach zuordnen</div>
+        <select className="adm-select" value={coachId} onChange={e=>setCoachId(e.target.value)}>
+          <option value="">— Kein Coach —</option>
+          {coaches.map(c=><option key={c.id} value={c.id}>{c.display_name||c.email}</option>)}
+        </select>
+      </>}
+      <button className="btn" disabled={busy||!email.trim()||pw.length<8} style={{marginTop:14}} onClick={submit}>{busy?"Legt an…":"Anlegen"}</button>
       <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={onClose}>Abbrechen</button>
     </div>
   </>;
@@ -4551,8 +4618,7 @@ function AdminMenu({modes,onSwitch,onClose,theme,setTheme,onSignOut}){
     <div className="drawer">
       <div className="dhead"><div className="dav"><Icon name="settings"/></div><div style={{minWidth:0}}><div className="dname">Admin</div><div className="drole">Verwaltung</div></div></div>
       <div className="dnav">
-        {modes.includes("coach") && <button onClick={()=>{onSwitch("coach");onClose();}}><Icon name="home"/>Coach-Bereich</button>}
-        {modes.includes("self_coach") && <button onClick={()=>{onSwitch("self_coach");onClose();}}><Icon name="chest"/>Self-Coaching</button>}
+        <ModeSwitchRows modes={modes} mode="admin" onMode={onSwitch} onClose={onClose}/>
       </div>
       <div className="dfoot">
         <div className="tglrow"><span className="lab"><Icon name="sun"/>Helles Design</span><Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
@@ -4565,6 +4631,7 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
   const [users,setUsers]=useState(null);
   const [loading,setLoading]=useState(true);
   const [edit,setEdit]=useState(null);
+  const [creating,setCreating]=useState(false);
   const [menu,setMenu]=useState(false);
   const [err,setErr]=useState(null);
   const load=async()=>{
@@ -4590,27 +4657,45 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
       toast("Gespeichert"); setEdit(null); await load();
     }catch(e){ toast("Fehler: "+(e.message||"")); }
   };
+  const del=async(id)=>{
+    try{
+      const {data,error}=await window.supa.functions.invoke("admin-users",{body:{action:"delete",id}});
+      if(error) throw error;
+      if(data&&data.error) throw new Error(data.error);
+      toast("Account gelöscht"); setEdit(null); await load();
+    }catch(e){ toast("Fehler: "+(e.message||"")); }
+  };
+  const create=async(fields)=>{
+    try{
+      const {data,error}=await window.supa.functions.invoke("admin-users",{body:{action:"create",...fields}});
+      if(error){ let m=error.message||"Fehler"; try{const ctx=error.context; if(ctx&&typeof ctx.json==="function"){const j=await ctx.json(); if(j&&j.error)m=j.error;}}catch(_){} throw new Error(m); }
+      if(data&&data.error) throw new Error(data.error);
+      toast("Account angelegt"); setCreating(false); await load();
+    }catch(e){ toast("Fehler: "+(e.message||"")); }
+  };
   return <div className="app">
     <div className="topbar">
       <div className="lead"><span className="ttl">Admin</span></div>
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work"><div className="mbody">
+      <button className="btn" style={{marginBottom:16}} onClick={()=>setCreating(true)}>+ Account anlegen</button>
       <div className="sectlabel">Accounts{users?" ("+users.length+")":""}</div>
       {loading && <div className="muted" style={{padding:24,textAlign:"center"}}>Lädt…</div>}
       {err && <div className="mcard" style={{color:"var(--accent)",fontSize:13.5}}>{err}</div>}
       {users && users.map(u=>(
-        <button key={u.id} className="planrow" onClick={()=>setEdit(u)}>
+        <button key={u.id} className="planrow" onClick={()=>setEdit(u)} style={u.active===false?{opacity:.5}:{}}>
           <span className="adm-av">{u.avatar_url?<img src={u.avatar_url} alt=""/>:initials(u.display_name||u.email)}</span>
           <span className="pi">
-            <span style={{fontWeight:700,display:"block"}}>{u.display_name||u.email}{u.is_admin?" · Admin":""}</span>
+            <span style={{fontWeight:700,display:"block"}}>{u.display_name||u.email}{u.is_admin?" · Admin":""}{u.active===false?" · deaktiviert":""}</span>
             <span className="muted" style={{fontSize:12.5}}>{typeLabel(u.account_type)}{u.account_type==="client"&&u.coach_id?" · "+coachName(u.coach_id):""}{u.self_coach&&u.account_type==="coach"?" + Self-Coaching":""}</span>
           </span>
           <span style={{color:"var(--dim)",fontSize:20}}>›</span>
         </button>
       ))}
     </div></div>
-    {edit && <AdminEditSheet user={edit} coaches={coaches} onClose={()=>setEdit(null)} onSave={save}/>}
+    {edit && <AdminEditSheet user={edit} coaches={coaches} onClose={()=>setEdit(null)} onSave={save} onDelete={del}/>}
+    {creating && <AdminCreateSheet coaches={coaches} onClose={()=>setCreating(false)} onCreate={create}/>}
     {menu && <AdminMenu modes={modes} onSwitch={onSwitch} onClose={()=>setMenu(false)} theme={theme} setTheme={setTheme} onSignOut={onSignOut}/>}
   </div>;
 }
@@ -4620,6 +4705,7 @@ function App(){
   const [session,setSession]=useState(null);
   const [profile,setProfile]=useState(null); // {id,email,role,coach_id,display_name}
   const [role,setRole]=useState("coach");     // aktive Ansicht (coach kann zu client wechseln)
+  const [selfEdit,setSelfEdit]=useState(false); // Self-Coaching: false=Ansicht, true=Bearbeiten
   const [data,setData]=useState(SEED);
   const [openCid,setOpenCid]=useState(null);
   const [toastMsg,setToastMsg]=useState("");
@@ -4789,17 +4875,22 @@ function App(){
 
   let view;
   const isAdmin=!!(profile&&(profile.is_admin===true||profile.role==="admin"));
-  const adminModes=["coach"]; // Phase 1: Self-Coaching folgt in Phase 2
+  const modes=[];
+  if(isAdmin) modes.push("admin");
+  if(profile&&(profile.account_type==="coach"||profile.role==="coach"||profile.role==="admin")) modes.push("coach");
+  if(profile&&(profile.self_coach||profile.account_type==="self_coach")) modes.push("self_coach");
+  if(profile&&profile.account_type==="client"&&profile.role==="client"&&!profile.self_coach) modes.push("client");
   if(screen==="loading") return <Splash/>;
   else if(screen==="auth") view=<Auth/>;
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
   else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("anamnese"); }} onSignOut={signOut} toast={toast}/>;
   else if(screen==="anamnese") view=<AnamneseWizard clientId={profile&&profile.id} toast={toast} onSignOut={signOut} onDone={async()=>{ setRole("client"); setScreen("notify"); }}/>;
   else if(screen==="notify") view=<NotifyPrompt onDone={()=>setScreen("app")} toast={toast}/>;
-  else if(role==="admin") view=<AdminPanel modes={adminModes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
-  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} isAdmin={isAdmin} onAdmin={()=>switchRole("admin")}/>; }
-  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} isAdmin={isAdmin} onAdmin={()=>switchRole("admin")}/>; }
-  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} isAdmin={isAdmin} onAdmin={()=>switchRole("admin")}/>;
+  else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
+  else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole}/>; }
+  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole}/>; }
+  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole}/>; }
+  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
   return <>{view}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
