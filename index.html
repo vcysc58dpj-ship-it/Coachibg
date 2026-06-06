@@ -156,6 +156,14 @@
   .incall-btn svg{width:22px;height:22px;}
   .incall-btn.accept{background:#22c55e;color:#fff;}
   .incall-btn.reject{background:var(--accent);color:#fff;}
+  .msg-banner{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:10px;right:10px;z-index:295;background:var(--bg-2);border:1px solid var(--line-2);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);animation:bannerdown .3s cubic-bezier(.2,.8,.2,1);max-width:540px;margin:0 auto;}
+  @keyframes bannerdown{from{transform:translateY(-140%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .mb-av{width:42px;height:42px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);flex:none;font-size:15px;}
+  .mb-body{flex:1;min-width:0;}
+  .mb-name{font-weight:700;font-size:14.5px;}
+  .mb-text{font-size:13px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mb-x{flex:none;width:28px;height:28px;border-radius:50%;color:var(--dim);font-size:20px;line-height:1;}
+  .unread-badge{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
   .mcard h3{font-size:16px;margin-bottom:4px;}
   .muted{color:var(--dim);font-size:13.5px;line-height:1.5;}
   .sectlabel{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:6px 2px 10px;}
@@ -1021,7 +1029,7 @@ function WeekCalendar({weekDates,selDate,setSelDate,weekOffset,changeWeek,dots,t
     })}</div>
   </div>;
 }
-function LiveDashboard({clientId,toast,go,name}){
+function LiveDashboard({clientId,toast,go,name,unread}){
   const t=today();
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
 
@@ -1128,6 +1136,10 @@ function LiveDashboard({clientId,toast,go,name}){
 
     {/* Kalender */}
     <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={trainDates} t={t}/>
+    <div className="card cardtap" onClick={()=>go("chat")}>
+      <div className="card-h"><span className="ch-l"><Icon name="chat"/>Nachrichten</span>{unread>0 && <span className="unread-badge">{unread}</span>}</div>
+      <div className="muted" style={{fontSize:13}}>{unread>0?(unread===1?"1 ungelesene Nachricht":unread+" ungelesene Nachrichten"):"Zum Chat"}</div>
+    </div>
 
     {/* Habits (für gewählten Tag, direkt abhakbar) */}
     {habits.length>0 && <div className="card">
@@ -1279,6 +1291,13 @@ function LiveChatTab({clientId,role,toast}){
   };
 
   useEffect(()=>{ if(clientId){ setMsgs(null); msgsRef.current=[]; lastTsRef.current=null; load(); } },[clientId]);
+  const markRead=async()=>{
+    if(!clientId) return;
+    const other=role==="coach"?"client":"coach";
+    try{ await window.supa.from("messages").update({read_at:new Date().toISOString()}).eq("client_id",clientId).eq("sender_role",other).is("read_at",null); window.dispatchEvent(new CustomEvent("nk:unread-changed")); }catch(e){}
+  };
+  useEffect(()=>{ window.__activeChat=clientId; markRead(); return ()=>{ if(window.__activeChat===clientId) window.__activeChat=null; }; },[clientId]);
+  useEffect(()=>{ if(msgs&&msgs.length) markRead(); },[msgs&&msgs.length]);
 
   // Realtime mit Reconnect + Polling-Fallback
   useEffect(()=>{
@@ -3759,8 +3778,6 @@ function Drawer({tabs,tab,setTab,onClose,headName,headRole,avatarUrl,theme,setTh
       </div>
       <div className="dfoot">
         <ModeSwitchRows modes={modes} mode={mode} onMode={onMode} onClose={onClose}/>
-        <div className="tglrow"><span className="lab"><Icon name="sun"/>Helles Design</span><Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
-        <button className="drow" onClick={()=>enablePush(toast)}><Icon name="bell"/>Mitteilungen aktivieren</button>
         <button className="drow" onClick={onSignOut}><Icon name="logout"/>Abmelden</button>
       </div>
     </div>
@@ -3845,7 +3862,7 @@ function IncomingCallBanner({from,fromAvatar,onAccept,onReject}){
     </div>
   </div>;
 }
-function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,modes,mode,onMode,selfMode,selfEdit,onToggleSelfEdit,tools}){
+function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOut,toast,theme,setTheme,shared,addShared,delShared,live,clientId,onRefresh,partnerAvatar,modes,mode,onMode,selfMode,selfEdit,onToggleSelfEdit,tools,unread}){
   const [partner,setPartner]=useState({name:(viewerRole==="coach"?name:"Coach"),avatar:(viewerRole==="coach"?(partnerAvatar||""):"")});
   useEffect(()=>{
     if(!live){ return; }
@@ -4000,7 +4017,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   useEffect(()=>{ if(tabs.length && !tabs.some(t=>t.k===tab)) setTab(tabs[0].k); },[tabKeys,tab]);
   const title=selfMode?"Self-Coaching":(viewerRole==="coach"?name:"Mein Coaching");
   let content;
-  if(tab==="home") content=(live && clientId) ? <LiveDashboard clientId={clientId} toast={toast} go={setTab} name={viewerRole==="coach"?name:cdata.name}/> : <div className="mbody"><div className="muted">Dashboard</div></div>;
+  if(tab==="home") content=(live && clientId) ? <LiveDashboard clientId={clientId} toast={toast} go={setTab} name={viewerRole==="coach"?name:cdata.name} unread={(!selfMode && viewerRole==="client")?(unread||0):0}/> : <div className="mbody"><div className="muted">Dashboard</div></div>;
   else if(tab==="chat") content=(live && clientId) ? <LiveChatTab clientId={clientId} role={viewerRole} toast={toast}/> : <ChatTab cdata={cdata} upd={upd} role={viewerRole}/>;
   else if(tab==="checkin") content=(live && clientId) ? <LiveCheckinTab clientId={clientId} role={viewerRole} toast={toast}/> : <CheckinTab cdata={cdata} upd={upd} role={viewerRole} name={name} toast={toast}/>;
   else if(tab==="habits") content=(live && clientId) ? <LiveHabitsTab clientId={clientId} role={viewerRole} toast={toast}/> : <HabitsTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
@@ -4034,8 +4051,9 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
 }
 
 /* ---------- COACH HOME ---------- */
-function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast,onRefresh,modes,mode,onMode}){
+function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcast,toast,onRefresh,modes,mode,onMode,unread}){
   const [tab,setTab]=useState("home"); // home | clients | cloud | chat
+  useEffect(()=>{ const h=()=>setTab("chat"); window.addEventListener("nk:open-chat",h); return ()=>window.removeEventListener("nk:open-chat",h); },[]);
   const [menu,setMenu]=useState(false);
   const [bc,setBc]=useState(false);
   const [showCreate,setShowCreate]=useState(false);
@@ -4079,7 +4097,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",anamnese:"Anamnese-Vorlage",account:"Konto"};
 
   let body;
-  if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast}/>;
+  if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast} unread={unread} onChat={()=>setTab("chat")}/>;
   else if(tab==="clients"){ const act=(clients||[]).filter(c=>c.active!==false); const inact=(clients||[]).filter(c=>c.active===false);
     const Row=(c)=>{ const nm=c.display_name||c.email||"Kunde";
       return <div key={c.id} className="clientrow">
@@ -4140,7 +4158,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   </div>;
 }
 
-function CoachDashboard({clients,onOpen,toast}){
+function CoachDashboard({clients,onOpen,toast,unread,onChat}){
   const t=today();
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
   const [weekOffset,setWeekOffset]=useState(0);
@@ -4168,6 +4186,11 @@ function CoachDashboard({clients,onOpen,toast}){
           <div className="cdot"/>
         </button>;
       })}</div>
+    </div>
+
+    <div className="card cardtap" onClick={()=>onChat&&onChat()}>
+      <div className="card-h"><span className="ch-l"><Icon name="chat"/>Nachrichten</span>{unread>0 && <span className="unread-badge">{unread}</span>}</div>
+      <div className="muted" style={{fontSize:13}}>{unread>0?(unread===1?"1 ungelesene Nachricht":unread+" ungelesene Nachrichten"):"Zum Chat"}</div>
     </div>
 
     <div className="sectlabel">Check-in {selDate===t?"heute":"am "+weekdayShort(selDate)+", "+fmtDay(selDate)}</div>
@@ -4721,10 +4744,68 @@ function App(){
   useEffect(()=>{ if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(()=>{}); } },[]);
   useEffect(()=>{
     if(!("serviceWorker" in navigator)) return;
-    const h=(ev)=>{ if(ev.data?.action==="open-chat") window.dispatchEvent(new CustomEvent("nk:open-chat")); };
+    const h=(ev)=>{ if(ev.data?.action==="open-chat") openChatFromIntent(ev.data.conv); };
     navigator.serviceWorker.addEventListener("message",h);
     return ()=>navigator.serviceWorker.removeEventListener("message",h);
   },[]);
+  // Cache-Intent vom SW lesen (Kalt-Start + wenn App wieder sichtbar wird)
+  const checkIntent=async()=>{
+    try{
+      const c=await caches.open("nk-intent");
+      const r=await c.match("/__nk_intent");
+      if(!r) return;
+      const j=await r.json(); await c.delete("/__nk_intent");
+      if(j&&j.action==="open-chat"&&Date.now()-(j.ts||0)<120000){ openChatFromIntent(j.conv); }
+    }catch(e){}
+  };
+  useEffect(()=>{
+    checkIntent();
+    const onVis=()=>{ if(document.visibilityState==="visible") checkIntent(); };
+    document.addEventListener("visibilitychange",onVis);
+    return ()=>document.removeEventListener("visibilitychange",onVis);
+  },[]);
+  // ── Ungelesene Nachrichten + In-App-Banner ───────────────────────────
+  const [unread,setUnread]=useState(0);
+  const [banner,setBanner]=useState(null);
+  const isCoachLike=!!(profile&&(profile.account_type==="coach"||profile.role==="coach"||profile.role==="admin"));
+  const fetchUnread=async()=>{
+    if(!live||!profile) return;
+    try{
+      let q=window.supa.from("messages").select("id",{count:"exact",head:true}).is("read_at",null);
+      if(isCoachLike) q=q.eq("sender_role","client");
+      else q=q.eq("sender_role","coach").eq("client_id",profile.id);
+      const {count}=await q; setUnread(count||0);
+    }catch(e){}
+  };
+  const openChatFromIntent=async(conv)=>{
+    if(isCoachLike && conv){
+      try{ const {data}=await window.supa.from("profiles").select("id,display_name,email,avatar_url,tools,active,coach_id").eq("id",conv).maybeSingle(); if(data){ setRole("coach"); setOpenCid(data); return; } }catch(_){}
+    }
+    setTimeout(()=>window.dispatchEvent(new CustomEvent("nk:open-chat")),120);
+  };
+  const openChatFromBanner=(b)=>{ setBanner(null); openChatFromIntent(b.clientId); };
+  useEffect(()=>{
+    if(!live||!profile) return;
+    fetchUnread();
+    const relevant=isCoachLike?"client":"coach";
+    const ch=window.supa.channel("msg-global-"+Math.random().toString(36).slice(2,7))
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},async(payload)=>{
+        const m=payload.new; if(!m||m.sender_role!==relevant) return;
+        if(!isCoachLike && m.client_id!==profile.id) return;
+        fetchUnread();
+        if(window.__activeChat===m.client_id) return;
+        let nm=isCoachLike?"Kunde":"Coach";
+        try{ if(isCoachLike){ const {data}=await window.supa.from("profiles").select("display_name").eq("id",m.client_id).maybeSingle(); if(data&&data.display_name) nm=data.display_name; } }catch(_){}
+        const preview=m.kind==="text"?(m.body||""):(m.kind==="image"?"Foto":m.kind==="video"?"Video":m.kind==="audio"?"Sprachnachricht":"Neue Nachricht");
+        setBanner({clientId:m.client_id,name:nm,text:preview});
+        setTimeout(()=>setBanner(b=>(b&&b.clientId===m.client_id)?null:b),5000);
+      })
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages"},()=>{ fetchUnread(); })
+      .subscribe();
+    const onChg=()=>fetchUnread();
+    window.addEventListener("nk:unread-changed",onChg);
+    return ()=>{ try{ch.unsubscribe();}catch(_){} window.removeEventListener("nk:unread-changed",onChg); };
+  },[live, profile && profile.id, isCoachLike]);
   // Gesamtes Layout exakt auf die sichtbare Höhe schrumpfen -> nichts hinter der Tastatur -> kein Verschieben möglich. Header bleibt oben, Eingabefeld an der Tastatur.
   useEffect(()=>{
     const vv=window.visualViewport; const root=document.documentElement;
@@ -4894,12 +4975,16 @@ function App(){
   else if(screen==="notify") view=<NotifyPrompt onDone={()=>setScreen("app")} toast={toast}/>;
   else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
   else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={profile&&profile.tools}/>; }
-  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools}/>; }
+  else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools} unread={unread}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools}/>; }
-  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole}/>;
+  else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole} unread={unread}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
-  return <>{view}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
+  return <>{view}{banner && <div className="msg-banner" onClick={()=>openChatFromBanner(banner)}>
+    <div className="mb-av">{initials(banner.name)}</div>
+    <div className="mb-body"><div className="mb-name">{banner.name}</div><div className="mb-text">{banner.text}</div></div>
+    <button className="mb-x" onClick={(e)=>{e.stopPropagation();setBanner(null);}} aria-label="Schließen">×</button>
+  </div>}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
