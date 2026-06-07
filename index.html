@@ -1592,24 +1592,29 @@ function QuestionEditor({table,idCol,idVal,seedFn,toast,introText}){
   const [busy,setBusy]=useState(false);
   const seededRef=useRef(false);
   const fetchRows=async()=>{ const { data,error } = await window.supa.from(table).select(sel).eq(idCol,idVal).order("page",{ascending:true}).order("position",{ascending:true}).order("created_at",{ascending:true}); if(error) throw error; return (data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position,page:q.page||1})); };
+  const seedKey="nk_qe_seeded_"+table+"_"+idVal;
+  const wasSeeded=()=>{ try{ return localStorage.getItem(seedKey)==="1"; }catch(e){ return false; } };
+  const markSeeded=()=>{ try{ localStorage.setItem(seedKey,"1"); }catch(e){} };
   const load=async()=>{
     try{
       let rows=await fetchRows();
-      if(rows.length===0 && !seededRef.current){
+      if(rows.length===0 && !seededRef.current && !wasSeeded()){
         seededRef.current=true;
         let seed=[]; try{ seed=await seedFn(); }catch(e){ seed=DEFAULT_ANAMNESE; }
         if(!seed||!seed.length) seed=DEFAULT_ANAMNESE;
         const ins=seed.map((q,i)=>{ const r={label:q.label,type:q.type,position:i,page:q.page||1}; r[idCol]=idVal; return r; });
         const { error:ie } = await window.supa.from(table).insert(ins);
-        if(!ie){ rows=await fetchRows(); }
+        if(!ie){ markSeeded(); rows=await fetchRows(); }
       }
+      seededRef.current=true;            // nach erstem Laden nie wieder auto-seeden (Session)
+      if(rows.length>0) markSeeded();    // Coach hat ein Template -> dauerhaft nie wieder seeden
       setQuestions(rows);
     }catch(e){ toast("Fragen konnten nicht geladen werden"); setQuestions([]); }
   };
   useEffect(()=>{ if(idVal) load(); },[idVal]);
 
   const addQ=async()=>{ if(!newLabel.trim()||busy) return; setBusy(true); try{ const maxPos=questions.reduce((m,q)=>Math.max(m,q.position),-1); const row={label:newLabel.trim(),type:newType,position:maxPos+1,page:Math.max(1,newPage||1)}; row[idCol]=idVal; const { error } = await window.supa.from(table).insert(row); if(error) throw error; setNewLabel(""); setNewType("text"); await load(); }catch(e){ toast("Hinzufügen fehlgeschlagen: "+(e.message||"")); }finally{ setBusy(false); } };
-  const delQ=async(id)=>{ if(!await askConfirm({title:"Frage entfernen?",message:"Bereits gegebene Antworten bleiben im Verlauf erhalten.",confirmText:"Entfernen",danger:true})) return; try{ const { error } = await window.supa.from(table).delete().eq("id",id); if(error) throw error; await load(); }catch(e){ toast("Entfernen fehlgeschlagen"); } };
+  const delQ=async(id)=>{ if(busy) return; if(!await askConfirm({title:"Frage entfernen?",message:"Bereits gegebene Antworten bleiben im Verlauf erhalten.",confirmText:"Entfernen",danger:true})) return; setBusy(true); const prev=questions; setQuestions(qs=>qs.filter(q=>q.id!==id)); try{ const { error } = await window.supa.from(table).delete().eq("id",id); if(error) throw error; }catch(e){ setQuestions(prev); toast("Entfernen fehlgeschlagen"); }finally{ setBusy(false); } };
   const swap=async(a,b)=>{ try{ await window.supa.from(table).update({position:b.position}).eq("id",a.id); await window.supa.from(table).update({position:a.position}).eq("id",b.id); await load(); }catch(e){ toast("Reihenfolge konnte nicht geändert werden"); } };
   const movePage=async(q,dir)=>{ const np=Math.max(1,q.page+dir); if(np===q.page) return; const maxPos=questions.reduce((m,x)=>Math.max(m,x.position),-1); try{ const { error } = await window.supa.from(table).update({page:np,position:maxPos+1}).eq("id",q.id); if(error) throw error; await load(); }catch(e){ toast("Seite konnte nicht geändert werden"); } };
 
