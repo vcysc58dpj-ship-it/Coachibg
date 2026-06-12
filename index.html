@@ -1543,14 +1543,15 @@ function AnamneseWizard({clientId,onDone,onSignOut,toast}){
   const pageQs=questions.filter(q=>q.page===curPage);
   const last=pageIdx>=total-1;
   const pct=Math.round(((pageIdx+1)/total)*100);
-  const goNext=()=>{ if(last){ save(); } else { setPageIdx(i=>i+1); if(bodyRef.current) bodyRef.current.scrollTop=0; } };
+  const pageComplete=()=>pageQs.every(q=>{ const v=vals[q.key]||{}; return q.type==="photo" ? !!v.file : (v.text||"").trim().length>0; });
+  const goNext=()=>{ if(!pageComplete()){ toast("Bitte beantworte alle Felder auf dieser Seite – sie sind alle Pflicht."); return; } if(last){ save(); } else { setPageIdx(i=>i+1); if(bodyRef.current) bodyRef.current.scrollTop=0; } };
   const goBack=()=>{ if(pageIdx>0){ setPageIdx(i=>i-1); if(bodyRef.current) bodyRef.current.scrollTop=0; } };
 
   return <div className="anwiz">
     <div className="anwiz-head"><img className="logo-auth" src={LOGO} alt="NK"/></div>
     <div className="anwiz-body" ref={bodyRef}>
       {pageIdx===0 && <><h2 style={{fontSize:21,margin:"4px 2px 4px"}}>Kurze Anamnese</h2>
-        <div className="muted" style={{margin:"0 2px 16px",fontSize:13.5}}>Damit dich dein Coach von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus.</div></>}
+        <div className="muted" style={{margin:"0 2px 16px",fontSize:13.5}}>Damit dich dein Coach von Anfang an optimal betreuen kann, fülle einmalig diesen kurzen Fragebogen aus. Alle Felder sind Pflicht.</div></>}
       {pageQs.map(q=>(<div key={q.key} className="anq">
         <div className="anq-label">{q.label}</div>
         <QInput type={q.type} val={vals[q.key]||{text:"",fileName:""}} onText={(v)=>setText(q.key,v)} onFile={(f)=>setFile(q.key,f)}/>
@@ -4768,8 +4769,8 @@ function Onboarding({session,profile,onDone,onSignOut,toast}){
   const uid = session && session.user && session.user.id;
 
   const submit=async()=>{
-    const nm=name.trim(); const mail=email.trim().toLowerCase();
-    if(!nm){ setMsg({type:"err",text:"Bitte gib deinen Namen ein."}); return; }
+    const nm=name.trim().replace(/\s+/g," "); const mail=email.trim().toLowerCase();
+    if(!nm || !/\s/.test(nm) || nm.split(" ").some(p=>p.length<2)){ setMsg({type:"err",text:"Bitte gib deinen vollständigen Vor- und Nachnamen ein (kein Benutzername)."}); return; }
     if(!mail || mail.indexOf("@")<1){ setMsg({type:"err",text:"Bitte gib eine gültige E-Mail ein."}); return; }
     if(pw.length<8){ setMsg({type:"err",text:"Das neue Passwort muss mindestens 8 Zeichen haben."}); return; }
     if(pw!==pw2){ setMsg({type:"err",text:"Die Passwörter stimmen nicht überein."}); return; }
@@ -4854,7 +4855,8 @@ function AdminEditSheet({user,coaches,onClose,onSave,onDelete}){
   const [coachId,setCoachId]=useState(user.coach_id||"");
   const [selfCoach,setSelfCoach]=useState(!!user.self_coach);
   const [active,setActive]=useState(user.active!==false);
-  const [tools,setTools]=useState({...{plan:true,food:true,habits:true,checkin:true,chat:true,cloud:true,call:true},...(user.tools||{})});
+  const _selfDef=(user.account_type==="self_coach");
+  const [tools,setTools]=useState({...{plan:true,food:true,habits:true,checkin:true,chat:!_selfDef,cloud:!_selfDef,call:!_selfDef},...(user.tools||{})});
   const [busy,setBusy]=useState(false);
   const toolList=[["plan","Training"],["food","Ernährung"],["habits","Habits"],["checkin","Check-in"],["chat","Chat"],["call","Videoanruf"],["cloud","Cloud"]];
   const toggleTool=(k)=>setTools(t=>({...t,[k]:!t[k]}));
@@ -5226,8 +5228,13 @@ function App(){
         return;
       }
       setProfile(prof);
-      setRole(prof && prof.role === "client" ? "client" : "coach");
-      if(prof && prof.role==="client" && prof.onboarded===false){ setScreen("onboarding"); }
+      const acct = prof ? (prof.account_type==="self_coach" ? "self_coach" : (prof.role==="client" ? "client" : "coach")) : "coach";
+      setRole(acct);
+      const needsSetup = prof && (prof.onboarded===false || (prof.email||"").endsWith(LOGIN_DOMAIN));
+      if(acct==="self_coach"){
+        setScreen(needsSetup ? "onboarding" : "app");   // Self-Coach: Profil-Setup ja, aber KEIN Anamnese-Gate
+      }
+      else if(prof && prof.role==="client" && needsSetup){ setScreen("onboarding"); }
       else if(prof && prof.role==="client"){
         // Anamnese-Gate: erst in die App, wenn die Anamnese abgeschickt wurde
         let sub=null; try{ const { data } = await window.supa.from("anamnese").select("id").eq("client_id",prof.id).maybeSingle(); sub=data; }catch(e){ sub={__skip:true}; }
@@ -5320,11 +5327,11 @@ function App(){
   if(screen==="loading") return <Splash/>;
   else if(screen==="auth") view=<Auth/>;
   else if(screen==="recovery") view=<RecoveryScreen toast={toast} onDone={async()=>{ const p=await refreshProfile(); setRole(p&&p.role==="client"?"client":"coach"); if(p&&p.role==="client"&&p.onboarded===false){ setScreen("onboarding"); } else { setScreen("app"); } }}/>;
-  else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ await refreshProfile(); setRole("client"); setScreen("anamnese"); }} onSignOut={signOut} toast={toast}/>;
+  else if(screen==="onboarding") view=<Onboarding session={session} profile={profile} onDone={async()=>{ const p=await refreshProfile(); if(p&&p.account_type==="self_coach"){ setRole("self_coach"); setScreen("app"); } else { setRole("client"); setScreen("anamnese"); } }} onSignOut={signOut} toast={toast}/>;
   else if(screen==="anamnese") view=<AnamneseWizard clientId={profile&&profile.id} toast={toast} onSignOut={signOut} onDone={async()=>{ setRole("client"); setScreen("notify"); }}/>;
   else if(screen==="notify") view=<NotifyPrompt onDone={()=>setScreen("app")} toast={toast}/>;
   else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
-  else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={profile&&profile.tools}/>; }
+  else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const selfTools={plan:true,food:true,habits:true,checkin:true,weight:true,chat:false,cloud:false,call:false,...((profile&&profile.tools)||{})}; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={selfTools}/>; }
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools} unread={unread}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools} canCall={!(profile&&profile.tools&&profile.tools.call===false)}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole} unread={unread} unreadByClient={unreadByClient}/>;
