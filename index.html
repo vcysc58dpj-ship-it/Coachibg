@@ -2563,6 +2563,13 @@ function LivePlanTab({clientId,role,toast}){
   const [editing,setEditing]=useState(false);
   const [imgLib,setImgLib]=useState([]);     // [{id,label,path,url}]
   const [pickDayId,setPickDayId]=useState(null); // Tag, für den gerade ein Bild gewählt wird
+  // Templates
+  const [myId,setMyId]=useState(null);
+  const [templates,setTemplates]=useState(null);  // null = noch nicht geladen
+  const [planMenu,setPlanMenu]=useState(null);     // Plan-Objekt für ⋯-Menü
+  const [tmplMode,setTmplMode]=useState(null);     // null | "save" | "load"
+  const [tmplName,setTmplName]=useState("");
+  const [tmplBusy,setTmplBusy]=useState(false);
 
   // Bild-Bibliothek laden (öffentlicher Bucket workout-images)
   const loadImgLib=async()=>{
@@ -2573,6 +2580,82 @@ function LivePlanTab({clientId,role,toast}){
     }catch(e){ setImgLib([]); }
   };
   useEffect(()=>{ loadImgLib(); },[]);
+
+  // Coach-ID laden (für Template-RLS)
+  useEffect(()=>{ if(role==="coach"){ (async()=>{ try{ const {data}=await window.supa.auth.getUser(); setMyId(data&&data.user?data.user.id:null); }catch(e){} })(); } },[role]);
+
+  // Templates laden (nur für Coach)
+  const loadTemplates=async()=>{
+    setTemplates(null);
+    try{
+      const { data:tmpl } = await window.supa.from("plan_templates").select("id,title,created_at").order("created_at",{ascending:false});
+      const ids=(tmpl||[]).map(t=>t.id);
+      let tdays=[], texs=[];
+      if(ids.length){
+        const { data:d } = await window.supa.from("template_days").select("id,template_id,name,position,image_path").in("template_id",ids).order("position",{ascending:true});
+        tdays=d||[];
+        const dayIds=tdays.map(d=>d.id);
+        if(dayIds.length){
+          const { data:e } = await window.supa.from("template_exercises").select("id,template_day_id,name,sets,reps,note,position").in("template_day_id",dayIds).order("position",{ascending:true});
+          texs=e||[];
+        }
+      }
+      setTemplates((tmpl||[]).map(t=>({
+        id:t.id, title:t.title,
+        days:tdays.filter(d=>d.template_id===t.id).map(d=>({
+          id:d.id, name:d.name, imagePath:d.image_path||"",
+          exercises:texs.filter(e=>e.template_day_id===d.id).map(e=>({name:e.name,sets:e.sets,reps:e.reps,note:e.note||""}))
+        }))
+      })));
+    }catch(e){ setTemplates([]); }
+  };
+
+  // Plan als Template speichern
+  const doSaveTemplate=async(plan,name)=>{
+    if(!myId){ toast("Eigene ID nicht geladen"); return; }
+    setTmplBusy(true);
+    try{
+      const { data:t, error:te } = await window.supa.from("plan_templates").insert({ coach_id:myId, title:name }).select("id").single();
+      if(te) throw te;
+      for(let i=0;i<plan.days.length;i++){
+        const day=plan.days[i];
+        const { data:td, error:de } = await window.supa.from("template_days")
+          .insert({ template_id:t.id, name:day.name, position:i, image_path:day.imagePath||null }).select("id").single();
+        if(de) throw de;
+        if(day.exercises.length){
+          const rows=day.exercises.map((e,idx)=>({ template_day_id:td.id, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx }));
+          const { error:ee } = await window.supa.from("template_exercises").insert(rows);
+          if(ee) throw ee;
+        }
+      }
+      toast("Template gespeichert"); setPlanMenu(null); setTmplMode(null); setTmplName("");
+    }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); }
+    finally{ setTmplBusy(false); }
+  };
+
+  // Template auf Plan anwenden (überschreibt Tage)
+  const doApplyTemplate=async(template,targetPlan)=>{
+    if(!await askConfirm({ title:"Template laden?", message:"\""+targetPlan.title+"\" wird mit dem Template \""+template.title+"\" überschrieben. Vorhandene Trainingstage und Übungen werden ersetzt.", confirmText:"Laden", danger:false })) return;
+    setTmplBusy(true);
+    try{
+      const planId=targetPlan.id;
+      await window.supa.from("plan_days").delete().eq("plan_id",planId);
+      for(let i=0;i<template.days.length;i++){
+        const day=template.days[i];
+        const { data:nd, error:de } = await window.supa.from("plan_days")
+          .insert({ plan_id:planId, client_id:clientId, name:day.name, position:i, image_path:day.imagePath||null }).select("id").single();
+        if(de) throw de;
+        if(day.exercises.length){
+          const rows=day.exercises.map((e,idx)=>({ day_id:nd.id, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx }));
+          const { error:ee } = await window.supa.from("exercises").insert(rows);
+          if(ee) throw ee;
+        }
+      }
+      toast("Template geladen"); setPlanMenu(null); setTmplMode(null); await load();
+    }catch(e){ toast("Laden fehlgeschlagen: "+(e.message||"")); }
+    finally{ setTmplBusy(false); }
+  };
+
   const imgUrl=(path)=>{ if(!path) return ""; const hit=imgLib.find(i=>i.path===path); if(hit) return hit.url; const { data:pub } = window.supa.storage.from("workout-images").getPublicUrl(path); return (pub&&pub.publicUrl)||""; };
 
   // Pläne (mit Tagen + Übungen) laden
@@ -2705,14 +2788,47 @@ function LivePlanTab({clientId,role,toast}){
       {err && <div className="authmsg err" style={{marginBottom:10}}>{err}</div>}
       {plans.length===0 && <div className="muted">Noch kein Plan angelegt.</div>}
       {plans.map(p=>(
-        <button key={p.id} className="planrow" onClick={()=>openForEdit(p)}>
-          <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
-            <div className="ps">{p.days.length} Tage{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
-          {p.id===activeId && <span className="badge">Aktuell</span>}
-          <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
-        </button>
+        <div key={p.id} style={{display:"flex",alignItems:"stretch",gap:0,marginBottom:2}}>
+          <button className="planrow" style={{flex:1,borderRadius:role==="coach"?"12px 0 0 12px":"12px"}} onClick={()=>openForEdit(p)}>
+            <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
+              <div className="ps">{p.days.length} Tage{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
+            {p.id===activeId && <span className="badge">Aktuell</span>}
+            <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+          </button>
+          {role==="coach" && <button className="cr-menu" style={{borderRadius:"0 12px 12px 0",borderLeft:"1px solid var(--line)"}} onClick={(e)=>{ e.stopPropagation(); setTmplMode(null); setTmplName(p.title||""); setTemplates(null); setPlanMenu(p); }}> ⋯</button>}
+        </div>
       ))}
       {role==="coach" && <button className="btn btn-ghost" style={{marginTop:8}} onClick={newPlan}>+ Neuer Trainingsplan</button>}
+      {/* Template-Aktionsblatt */}
+      {planMenu && <>
+        <div className="scrim" onClick={()=>{ setPlanMenu(null); setTmplMode(null); }}/>
+        <div className="sheet">
+          <div className="ds-title" style={{marginBottom:6}}>{planMenu.title||"Trainingsplan"}</div>
+          {!tmplMode && <>
+            <button className="btn" onClick={()=>{ setTmplName(planMenu.title||""); setTmplMode("save"); }}>Als Template speichern</button>
+            <button className="btn btn-ghost" style={{marginTop:10}} onClick={()=>{ loadTemplates(); setTmplMode("load"); }}>Von Template laden</button>
+            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setPlanMenu(null)}>Abbrechen</button>
+          </>}
+          {tmplMode==="save" && <>
+            <div className="muted" style={{fontSize:13,marginBottom:10}}>Struktur (Tage + Übungen) von „{planMenu.title}" als Template speichern:</div>
+            <Field label="Template-Name" value={tmplName} onChange={setTmplName} placeholder={planMenu.title||"Template"}/>
+            <button className="btn" disabled={tmplBusy||!tmplName.trim()} onClick={()=>doSaveTemplate(planMenu,tmplName.trim())}>{tmplBusy?"Speichert…":"Speichern"}</button>
+            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setTmplMode(null)}>‹ Zurück</button>
+          </>}
+          {tmplMode==="load" && <>
+            <div className="muted" style={{fontSize:13,marginBottom:10}}>Template auswählen – überschreibt Tage & Übungen von „{planMenu.title}":</div>
+            {templates===null && <div className="muted">Lädt…</div>}
+            {templates!==null && templates.length===0 && <div className="muted">Noch keine Templates gespeichert.</div>}
+            {(templates||[]).map(t=>(
+              <button key={t.id} className="planrow" style={{marginBottom:4}} onClick={()=>doApplyTemplate(t,planMenu)}>
+                <div className="pi"><div className="pt">{t.title}</div><div className="ps">{t.days.length} Tage</div></div>
+                <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+              </button>
+            ))}
+            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setTmplMode(null)}>‹ Zurück</button>
+          </>}
+        </div>
+      </>}
     </div>;
   }
 
@@ -2989,8 +3105,9 @@ function LiveFoodTab({clientId,role,toast}){
   const [selDate,setSelDate]=useState(today());
   const [logs,setLogs]=useState({});      // logs[date]={kcal,protein,carbs,fat}
   const [checks,setChecks]=useState({});   // checks[date][item_id]=true
+  const [meals,setMeals]=useState({});    // meals[date]=[{id,name,content,position}]
 
-  const DEF={macros_enabled:false,checks_enabled:false,kcal:2000,protein:160,carbs:180,fat:65};
+  const DEF={macros_enabled:false,checks_enabled:false,meals_enabled:false,kcal:2000,protein:160,carbs:180,fat:65};
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
   const weekStart=addDays(mondayOf(new Date()), weekOffset*7);
   const weekDates=Array.from({length:7}).map((_,i)=>dstr(addDays(weekStart,i)));
@@ -3000,7 +3117,7 @@ function LiveFoodTab({clientId,role,toast}){
   const loadBase=async()=>{
     try{
       const { data:st } = await window.supa.from("nutrition_settings").select("*").eq("client_id",clientId).maybeSingle();
-      setSettings(st?{macros_enabled:st.macros_enabled,checks_enabled:st.checks_enabled,kcal:st.kcal,protein:st.protein,carbs:st.carbs,fat:st.fat}:{...DEF});
+      setSettings(st?{macros_enabled:st.macros_enabled,checks_enabled:st.checks_enabled,meals_enabled:!!st.meals_enabled,kcal:st.kcal,protein:st.protein,carbs:st.carbs,fat:st.fat}:{...DEF});
       const { data:cl } = await window.supa.from("nutrition_checklist").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
       setChecklist((cl||[]).map(i=>({id:i.id,name:i.name})));
     }catch(e){ toast("Ernährung konnte nicht geladen werden"); setSettings({...DEF}); }
@@ -3014,6 +3131,9 @@ function LiveFoodTab({clientId,role,toast}){
         const { data:cs } = await window.supa.from("nutrition_check_logs").select("item_id,date,done").in("item_id",ids).gte("date",weekDates[0]).lte("date",weekDates[6]);
         const cm={}; (cs||[]).forEach(r=>{ if(r.done){ (cm[r.date]=cm[r.date]||{})[r.item_id]=true; } }); setChecks(cm);
       } else setChecks({});
+      // Mahlzeiten für die Woche laden
+      const { data:ml } = await window.supa.from("meal_logs").select("id,date,name,content,position").eq("client_id",clientId).gte("date",weekDates[0]).lte("date",weekDates[6]).order("position",{ascending:true}).order("created_at",{ascending:true});
+      const mm={}; (ml||[]).forEach(r=>{ (mm[r.date]=mm[r.date]||[]).push({id:r.id,name:r.name,content:r.content||"",position:r.position}); }); setMeals(mm);
     }catch(e){ /* still */ }
   };
   useEffect(()=>{ if(clientId) loadBase(); },[clientId]);
@@ -3025,11 +3145,27 @@ function LiveFoodTab({clientId,role,toast}){
     catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); loadBase(); }
   };
 
-  if(settings===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
-  const macrosOn=settings.macros_enabled, checksOn=settings.checks_enabled;
+  const addMeal=async(date,name,content)=>{
+    try{
+      const pos=(meals[date]||[]).length;
+      const { error } = await window.supa.from("meal_logs").insert({ client_id:clientId, date, name, content:content||"", position:pos });
+      if(error) throw error;
+      await loadWeek();
+    }catch(e){ toast("Mahlzeit konnte nicht gespeichert werden"); }
+  };
+  const delMeal=async(id)=>{
+    try{
+      const { error } = await window.supa.from("meal_logs").delete().eq("id",id);
+      if(error) throw error;
+      await loadWeek();
+    }catch(e){ toast("Löschen fehlgeschlagen"); }
+  };
 
-  // Punkte unter Tagen: Tag hat Makro-Eintrag oder gesetztes Häkchen
-  const dots={}; weekDates.forEach(d=>{ const hasM=logs[d]&&logs[d].kcal!=null; const hasC=checks[d]&&Object.keys(checks[d]).length; if(hasM||hasC) dots[d]=true; });
+  if(settings===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
+  const macrosOn=settings.macros_enabled, checksOn=settings.checks_enabled, mealsOn=settings.meals_enabled;
+
+  // Punkte unter Tagen: Tag hat Makro-Eintrag, gesetztes Häkchen oder Mahlzeit
+  const dots={}; weekDates.forEach(d=>{ const hasM=logs[d]&&logs[d].kcal!=null; const hasC=checks[d]&&Object.keys(checks[d]).length; const hasMl=(meals[d]||[]).length>0; if(hasM||hasC||hasMl) dots[d]=true; });
 
   // ---------- COACH: Konfiguration + Wochen-Einsicht ----------
   if(role==="coach"){
@@ -3040,10 +3176,12 @@ function LiveFoodTab({clientId,role,toast}){
           <Toggle on={macrosOn} onClick={()=>saveSettings({macros_enabled:!macrosOn})}/></div>
         <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}><div><div className="en">Häkchen</div><div className="enote">Einfache Ja/Nein-Punkte zum Abhaken</div></div>
           <Toggle on={checksOn} onClick={()=>saveSettings({checks_enabled:!checksOn})}/></div>
+        <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}><div><div className="en">Mahlzeiten</div><div className="enote">Kunde pflegt seinen typischen Ernährungstag ein</div></div>
+          <Toggle on={mealsOn} onClick={()=>saveSettings({meals_enabled:!mealsOn})}/></div>
       </div>
       {macrosOn && <LiveMacroEditor settings={settings} onSave={(m)=>saveSettings(m)}/>}
       {checksOn && <LiveChecklistEditor clientId={clientId} items={checklist} reload={loadBase} toast={toast}/>}
-      {(macrosOn||checksOn) && <>
+      {(macrosOn||checksOn||mealsOn) && <>
         <div className="sectlabel" style={{marginTop:18}}>Einträge des Kunden</div>
         <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
         {macrosOn && <div className="mcard">
@@ -3065,13 +3203,24 @@ function LiveFoodTab({clientId,role,toast}){
             </div>;
           })}
         </div>}
+        {mealsOn && <div className="mcard">
+          <div style={{fontWeight:700,marginBottom:10}}>Mahlzeiten · {weekdayShort(selDate)} {fmtDay(selDate)}</div>
+          {(meals[selDate]||[]).length===0 && <div className="muted" style={{fontSize:13}}>Kein Eintrag für diesen Tag.</div>}
+          {(meals[selDate]||[]).map(m=>(
+            <div key={m.id} style={{marginBottom:10}}>
+              <div style={{fontWeight:600,fontSize:14}}>{m.name}</div>
+              {m.content && <div className="enote" style={{marginTop:3,whiteSpace:"pre-wrap"}}>{m.content}</div>}
+            </div>
+          ))}
+          {(meals[selDate]||[]).length===0 && <div className="muted" style={{fontSize:12,marginTop:6}}>Tipp: Klicke einen anderen Tag im Kalender an, um dessen Einträge zu sehen.</div>}
+        </div>}
       </>}
-      {!macrosOn && !checksOn && <div className="mcard muted">Beides aus – der Kunde sieht im Ernährungs-Tab nur einen kurzen Hinweis und konzentriert sich auf Training & Gewohnheiten.</div>}
+      {!macrosOn && !checksOn && !mealsOn && <div className="mcard muted">Alles aus – der Kunde sieht im Ernährungs-Tab nur einen kurzen Hinweis und konzentriert sich auf Training & Gewohnheiten.</div>}
     </div>;
   }
 
   // ---------- KUNDE ----------
-  if(!macrosOn && !checksOn) return <div className="mbody"><div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
+  if(!macrosOn && !checksOn && !mealsOn) return <div className="mbody"><div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
 
   const saveMacros=async(d,vals)=>{
     try{ const { error } = await window.supa.from("nutrition_logs").upsert({ client_id:clientId, date:d, ...vals },{onConflict:"client_id,date"}); if(error) throw error; toast("Makros gespeichert"); await loadWeek(); }
@@ -3102,6 +3251,23 @@ function LiveFoodTab({clientId,role,toast}){
               <div className="dnum">{d.split("-")[2]}</div></div>; })}</div>
         </div>;
       })}
+    </>}
+    {mealsOn && <>
+      <div className="sectlabel" style={{marginTop:(macrosOn||checksOn)?16:0}}>Mahlzeiten · {weekdayShort(selDate)} {fmtDay(selDate)}</div>
+      {(meals[selDate]||[]).length===0 && selDate<=t && <div className="muted" style={{marginBottom:8}}>Noch keine Mahlzeiten für diesen Tag. Trage deinen typischen Ernährungstag ein.</div>}
+      {(meals[selDate]||[]).map(m=>(
+        <div key={m.id} className="mcard" style={{padding:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+            <div style={{minWidth:0,flex:1}}>
+              <div className="en">{m.name}</div>
+              {m.content && <div className="enote" style={{marginTop:4,whiteSpace:"pre-wrap"}}>{m.content}</div>}
+            </div>
+            {selDate<=t && <button className="delx" style={{flexShrink:0}} onClick={()=>delMeal(m.id)}>×</button>}
+          </div>
+        </div>
+      ))}
+      {selDate<=t && <MealAdder onAdd={(n,c)=>addMeal(selDate,n,c)} toast={toast}/>}
+      {selDate>t && <div className="muted">Zukünftige Tage können nicht bearbeitet werden.</div>}
     </>}
   </div>;
 }
@@ -3162,6 +3328,31 @@ function LiveMacroEditor({settings,onSave}){
     <button className="btn" style={{marginTop:6}} onClick={()=>onSave({kcal:+k||0,protein:+p||0,carbs:+cb||0,fat:+f||0})}>Ziele speichern</button>
   </div>;
 }
+// Mahlzeit-Eingabe-Formular (Client)
+function MealAdder({onAdd,toast}){
+  const [open,setOpen]=useState(false);
+  const [name,setName]=useState("");
+  const [content,setContent]=useState("");
+  const [busy,setBusy]=useState(false);
+  if(!open) return <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>setOpen(true)}>+ Mahlzeit hinzufügen</button>;
+  const add=async()=>{
+    if(!name.trim()){ toast("Bitte einen Namen eingeben (z.B. Frühstück)"); return; }
+    setBusy(true);
+    await onAdd(name.trim(),content.trim());
+    setName(""); setContent(""); setBusy(false); setOpen(false);
+  };
+  return <div className="mcard" style={{padding:14}}>
+    <Field label="Mahlzeit" value={name} onChange={setName} placeholder="z.B. Frühstück, Mittagessen"/>
+    <div className="field"><label>Was hast du gegessen? (optional)</label>
+      <textarea value={content} onChange={(e)=>setContent(e.target.value)} placeholder="z.B. Haferflocken mit Beeren und Joghurt" rows={3} style={{width:"100%",boxSizing:"border-box",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:15,padding:"10px 12px",borderRadius:10,outline:"none",resize:"vertical",fontFamily:"inherit"}}/>
+    </div>
+    <div style={{display:"flex",gap:10,marginTop:4}}>
+      <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{ setOpen(false); setName(""); setContent(""); }}>Abbrechen</button>
+      <button className="btn" style={{flex:1}} disabled={busy||!name.trim()} onClick={add}>{busy?"…":"Hinzufügen"}</button>
+    </div>
+  </div>;
+}
+
 function LiveChecklistEditor({clientId,items,reload,toast}){
   const [n,setN]=useState("");
   const add=async()=>{ if(!n.trim())return; try{ const { error } = await window.supa.from("nutrition_checklist").insert({ client_id:clientId, name:n.trim(), position:items.length }); if(error) throw error; setN(""); await reload(); }catch(e){ toast("Hinzufügen fehlgeschlagen"); } };
