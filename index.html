@@ -2359,10 +2359,13 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
     const o={};
     day.exercises.forEach(ex=>{
       const saved=(initialSaved&&initialSaved[ex.id])||[];
-      const target=Math.max(1, parseInt(ex.sets)||1);
-      const rows=[];
-      saved.forEach(s=>rows.push({key:nid(),reps:s.reps||"",kg:s.kg||"",done:true}));
-      while(rows.length<target) rows.push({key:nid(),reps:"",kg:"",done:false});
+      const rows=saved.map(s=>({key:nid(),reps:s.reps||"",kg:s.kg||"",rir:s.rir||"",pct:s.pct||"",done:true}));
+      if((ex.scheme||"standard")==="rep_goal"){
+        if(!rows.length) rows.push({key:nid(),reps:"",kg:"",rir:"",pct:"",done:false});
+      } else {
+        const target=Math.max(1, parseInt(ex.sets)||1);
+        while(rows.length<target) rows.push({key:nid(),reps:"",kg:"",rir:"",pct:"",done:false});
+      }
       o[ex.id]=rows;
     });
     return o;
@@ -2371,11 +2374,11 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
   const [date,setDate]=useState(initialDate||today());
   const [note,setNote]=useState("");
   const [tab,setTab]=useState("sets");
-  const doneRowsOf=(arr)=>arr.filter(r=>r.done).map(r=>({reps:r.reps,kg:r.kg}));
+  const doneRowsOf=(arr)=>arr.filter(r=>r.done).map(r=>({reps:r.reps,kg:r.kg,rir:r.rir,pct:r.pct}));
   const commit=(exId,arr)=>{ const ex=day.exercises.find(e=>e.id===exId); onCommitExercise(ex, doneRowsOf(arr)); };
   const toggle=(exId,i)=>setSets(s=>{ const arr=s[exId].map((r,idx)=>idx===i?{...r,done:!r.done}:r); commit(exId,arr); return {...s,[exId]:arr}; });
   const edit=(exId,i,field,val)=>setSets(s=>{ const arr=s[exId].map((r,idx)=>idx===i?{...r,[field]:val}:r); if(arr[i].done) commit(exId,arr); return {...s,[exId]:arr}; });
-  const addSet=(exId)=>setSets(s=>({...s,[exId]:[...s[exId],{key:nid(),reps:"",kg:"",done:false}]}));
+  const addSet=(exId)=>setSets(s=>({...s,[exId]:[...s[exId],{key:nid(),reps:"",kg:"",rir:"",pct:"",done:false}]}));
   const delSet=(exId)=>setSets(s=>{ const arr=s[exId].slice(0,-1); commit(exId,arr); return {...s,[exId]:arr}; });
   const totalDone=day.exercises.reduce((n,ex)=>n+(sets[ex.id]||[]).filter(r=>r.done).length,0);
   const coachNotes=day.exercises.filter(ex=>ex.note&&ex.note.trim());
@@ -2399,18 +2402,26 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
     </div>
     {tab==="sets" ? <>
       {day.exercises.map(ex=>{ const perf=lastPerf(ex.id);
+        const isGoal=(ex.scheme||"standard")==="rep_goal"; const tr=!!ex.track_rir, tp=!!ex.track_pct;
+        const ncol=2+(tr?1:0)+(tp?1:0); const gtc="28px "+("1fr ".repeat(ncol))+"38px";
+        const rows=sets[ex.id]||[]; const goalTarget=parseInt(ex.goal)||0;
+        const goalDone=isGoal?rows.filter(r=>r.done).reduce((n,r)=>n+(parseInt(r.reps)||0),0):0;
         return <div key={ex.id} className="exblock">
-          <div className="exb-head"><div className="exb-name">{ex.name}</div><div className="exb-goal">Ziel: {ex.sets}×{ex.reps}</div></div>
+          <div className="exb-head"><div className="exb-name">{ex.name}</div><div className="exb-goal">{isGoal?("Ziel: "+(goalTarget||"?")+" Wdh"):("Ziel: "+ex.sets+"×"+ex.reps)}</div></div>
+          {isGoal && <div className="muted" style={{fontSize:12,marginTop:-2,marginBottom:6}}>So wenig Sätze wie möglich · erledigt: <b style={{color:goalTarget&&goalDone>=goalTarget?"var(--accent)":"var(--text)"}}>{goalDone}</b>{goalTarget?(" / "+goalTarget):""}</div>}
           {perf && <div className="exb-last">Letztes Mal<br/><b>{perf}</b></div>}
-          <div className="setgrid sethead" style={{gridTemplateColumns:"30px 1fr 1fr 42px"}}><span>Satz</span><span>Wiederh.</span><span>kg</span><span></span></div>
-          {(sets[ex.id]||[]).map((row,i)=>(
-            <div key={row.key} className="setgrid" style={{gridTemplateColumns:"30px 1fr 1fr 42px"}}>
+          <div className="setgrid sethead" style={{gridTemplateColumns:gtc}}><span>Satz</span><span>Wdh.</span><span>kg</span>{tr&&<span>RIR</span>}{tp&&<span>%</span>}<span></span></div>
+          {rows.map((row,i)=>(
+            <div key={row.key} className="setgrid" style={{gridTemplateColumns:gtc}}>
               <span className="setno">{i+1}</span>
               <input className="setin" inputMode="numeric" value={row.reps} placeholder="–" onChange={(e)=>edit(ex.id,i,"reps",e.target.value)}/>
               <input className="setin" inputMode="decimal" value={row.kg} placeholder="–" onChange={(e)=>edit(ex.id,i,"kg",e.target.value)}/>
+              {tr&&<input className="setin" inputMode="numeric" value={row.rir} placeholder="–" onChange={(e)=>edit(ex.id,i,"rir",e.target.value)}/>}
+              {tp&&<input className="setin" inputMode="numeric" value={row.pct} placeholder="–" onChange={(e)=>edit(ex.id,i,"pct",e.target.value)}/>}
               <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" style={{width:34,height:34,borderRadius:9,border:"1px solid var(--line)",background:row.done?"var(--accent)":"transparent",color:row.done?"#fff":"var(--faint)",fontSize:17,lineHeight:1,cursor:"pointer",justifySelf:"center",padding:0}}>{row.done?"✓":""}</button>
             </div>
           ))}
+          {isGoal && <button className="addbtn" style={{marginTop:6}} onClick={()=>addSet(ex.id)}>+ Satz</button>}
         </div>;
       })}
     </> : <>
@@ -2447,7 +2458,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
       let sets=[];
       if(ids.length){
         const { data:ss } = await window.supa.from("workout_sets")
-          .select("workout_id,exercise_id,exercise_name,set_index,reps,kg").in("workout_id",ids).order("set_index",{ascending:true});
+          .select("workout_id,exercise_id,exercise_name,set_index,reps,kg,rir,pct").in("workout_id",ids).order("set_index",{ascending:true});
         sets=ss||[];
       }
       const assembled=(ws||[]).map(w=>{
@@ -2455,7 +2466,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
         sets.filter(s=>s.workout_id===w.id).forEach(s=>{
           const key=s.exercise_id||s.exercise_name;
           if(!by[key]) by[key]=[];
-          by[key].push({reps:s.reps,kg:s.kg,name:s.exercise_name});
+          by[key].push({reps:s.reps,kg:s.kg,rir:s.rir,pct:s.pct,name:s.exercise_name});
         });
         return { id:w.id, planId:w.plan_id, dayId:w.day_id, date:w.date, note:w.note||"", sets:by };
       });
@@ -2521,7 +2532,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
     let wid=null, wdate=today(); const saved={};
     try{
       const { data:ws } = await window.supa.from("workouts").select("id,date").eq("client_id",clientId).eq("plan_id",plan.id).eq("day_id",day.id).eq("date",today()).order("id",{ascending:false}).limit(1);
-      if(ws&&ws.length){ wid=ws[0].id; wdate=ws[0].date||today(); const { data:ss } = await window.supa.from("workout_sets").select("exercise_id,set_index,reps,kg").eq("workout_id",wid).order("set_index",{ascending:true}); (ss||[]).forEach(s=>{ (saved[s.exercise_id]=saved[s.exercise_id]||[]).push({reps:s.reps,kg:s.kg}); }); }
+      if(ws&&ws.length){ wid=ws[0].id; wdate=ws[0].date||today(); const { data:ss } = await window.supa.from("workout_sets").select("exercise_id,set_index,reps,kg,rir,pct").eq("workout_id",wid).order("set_index",{ascending:true}); (ss||[]).forEach(s=>{ (saved[s.exercise_id]=saved[s.exercise_id]||[]).push({reps:s.reps,kg:s.kg,rir:s.rir,pct:s.pct}); }); }
     }catch(e){}
     widRef.current=wid; dateRef.current=wdate; setSessionSaved(saved); setSessionDate(wdate); setOpenDayId(day.id);
   };
@@ -2536,7 +2547,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
       const wid=await ensureWorkout();
       await window.supa.from("workout_sets").delete().eq("workout_id",wid).eq("exercise_id",ex.id);
       if(doneRows.length){
-        const rows=doneRows.map((r,idx)=>({ workout_id:wid, client_id:clientId, exercise_id:ex.id, exercise_name:ex.name, set_index:idx, reps:String(r.reps||""), kg:String(r.kg||"") }));
+        const rows=doneRows.map((r,idx)=>({ workout_id:wid, client_id:clientId, exercise_id:ex.id, exercise_name:ex.name, set_index:idx, reps:String(r.reps||""), kg:String(r.kg||""), rir:String(r.rir||""), pct:String(r.pct||"") }));
         const { error } = await window.supa.from("workout_sets").insert(rows); if(error) throw error;
       }
     }catch(e){ toast("Satz konnte nicht gespeichert werden: "+(e.message||"")); }
@@ -2554,10 +2565,12 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
     return keys.map(k=>{
       const rows=w.sets[k]; const nm=(rows[0]&&rows[0].name)|| (plan.days.flatMap(d=>d.exercises).find(e=>e.id===k)||{}).name || "Übung";
       const anyKg=rows.some(r=>r.kg&&r.kg!=="-"&&r.kg!=="");
+      const anyRir=rows.some(r=>r.rir&&r.rir!=="-"&&r.rir!=="");
+      const anyPct=rows.some(r=>r.pct&&r.pct!=="-"&&r.pct!=="");
       return <div key={k} style={{marginBottom:14}}>
         <div className="en" style={{marginBottom:2}}>{nm}</div>
-        <table className="settbl"><thead><tr><th>Satz</th><th>Wdh</th>{anyKg&&<th>Gewicht</th>}</tr></thead>
-        <tbody>{rows.map((r,i)=>(<tr key={i}><td>{i+1}</td><td>{r.reps||"–"}</td>{anyKg&&<td>{(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+" kg"):"–"}</td>}</tr>))}</tbody></table>
+        <table className="settbl"><thead><tr><th>Satz</th><th>Wdh</th>{anyKg&&<th>Gewicht</th>}{anyRir&&<th>RIR</th>}{anyPct&&<th>%</th>}</tr></thead>
+        <tbody>{rows.map((r,i)=>(<tr key={i}><td>{i+1}</td><td>{r.reps||"–"}</td>{anyKg&&<td>{(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+" kg"):"–"}</td>}{anyRir&&<td>{r.rir||"–"}</td>}{anyPct&&<td>{r.pct?(r.pct+"%"):"–"}</td>}</tr>))}</tbody></table>
       </div>;
     });
   };
@@ -2709,7 +2722,7 @@ function LivePlanTab({clientId,role,toast}){
         tdays=d||[];
         const dayIds=tdays.map(d=>d.id);
         if(dayIds.length){
-          const { data:e } = await window.supa.from("template_exercises").select("id,template_day_id,name,sets,reps,note,position").in("template_day_id",dayIds).order("position",{ascending:true});
+          const { data:e } = await window.supa.from("template_exercises").select("id,template_day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("template_day_id",dayIds).order("position",{ascending:true});
           texs=e||[];
         }
       }
@@ -2717,7 +2730,7 @@ function LivePlanTab({clientId,role,toast}){
         id:t.id, title:t.title,
         days:tdays.filter(d=>d.template_id===t.id).map(d=>({
           id:d.id, name:d.name, imagePath:d.image_path||"",
-          exercises:texs.filter(e=>e.template_day_id===d.id).map(e=>({name:e.name,sets:e.sets,reps:e.reps,note:e.note||""}))
+          exercises:texs.filter(e=>e.template_day_id===d.id).map(e=>({name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,track_rir:!!e.track_rir,track_pct:!!e.track_pct}))
         }))
       })));
     }catch(e){ setTemplates([]); }
@@ -2736,7 +2749,7 @@ function LivePlanTab({clientId,role,toast}){
           .insert({ template_id:t.id, name:day.name, position:i, image_path:day.imagePath||null }).select("id").single();
         if(de) throw de;
         if(day.exercises.length){
-          const rows=day.exercises.map((e,idx)=>({ template_day_id:td.id, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx }));
+          const rows=day.exercises.map((e,idx)=>({ template_day_id:td.id, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), track_rir:!!e.track_rir, track_pct:!!e.track_pct }));
           const { error:ee } = await window.supa.from("template_exercises").insert(rows);
           if(ee) throw ee;
         }
@@ -2748,7 +2761,7 @@ function LivePlanTab({clientId,role,toast}){
 
   // Neuen Plan-Entwurf aus Template befüllen (öffnet im Bearbeiten-Modus, noch nicht gespeichert)
   const newFromTemplate=(t)=>{
-    const d={ id:null, title:t.title, days:(t.days||[]).map(day=>({ id:"tmp"+nid(), name:day.name, imagePath:day.imagePath||"", exercises:(day.exercises||[]).map(e=>({ id:"tmp"+nid(), name:e.name, sets:e.sets, reps:e.reps, note:e.note||"" })) })) };
+    const d={ id:null, title:t.title, days:(t.days||[]).map(day=>({ id:"tmp"+nid(), name:day.name, imagePath:day.imagePath||"", exercises:(day.exercises||[]).map(e=>({ id:"tmp"+nid(), name:e.name, sets:e.sets, reps:e.reps, note:e.note||"", scheme:e.scheme||"standard", goal:e.goal, track_rir:!!e.track_rir, track_pct:!!e.track_pct })) })) };
     setDraft(d); setOpenPlanId("__new__"); setDirty(true); setOpenDayId(null); setEditing(true);
     setNewMenu(false); setTmplMode(null);
   };
@@ -2770,7 +2783,7 @@ function LivePlanTab({clientId,role,toast}){
         days=d||[];
         const dayIds=days.map(d=>d.id);
         if(dayIds.length){
-          const { data:ex } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position").in("day_id",dayIds).order("position",{ascending:true});
+          const { data:ex } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("day_id",dayIds).order("position",{ascending:true});
           exs=ex||[];
         }
       }
@@ -2778,7 +2791,7 @@ function LivePlanTab({clientId,role,toast}){
         id:p.id, title:p.title, createdAt:p.created_at, is_active:p.is_active,
         days: days.filter(d=>d.plan_id===p.id).map(d=>({
           id:d.id, name:d.name, imagePath:d.image_path||"",
-          exercises: exs.filter(e=>e.day_id===d.id).map(e=>({id:e.id,name:e.name,sets:e.sets,reps:e.reps,note:e.note||""})),
+          exercises: exs.filter(e=>e.day_id===d.id).map(e=>({id:e.id,name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,track_rir:!!e.track_rir,track_pct:!!e.track_pct})),
         })),
       }));
       setPlans(assembled);
@@ -2800,7 +2813,7 @@ function LivePlanTab({clientId,role,toast}){
   const delDay=(dayId)=>dUpd(d=>({...d,days:d.days.filter(x=>x.id!==dayId)}));
   const renameDay=(dayId,name)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,name}:x)}));
   const setDayImage=(dayId,path)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,imagePath:path}:x)}));
-  const addEx=(dayId,nm,st,rp)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:[...x.exercises,{id:"tmp"+nid(),name:nm,sets:st,reps:rp,note:""}]}:x)}));
+  const addEx=(dayId,nm,st,rp)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:[...x.exercises,{id:"tmp"+nid(),name:nm,sets:st,reps:rp,note:"",scheme:"standard",goal:null,track_rir:false,track_pct:false}]}:x)}));
   const setEx=(dayId,exId,field,val)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:x.exercises.map(e=>e.id===exId?{...e,[field]:val}:e)}:x)}));
   const delEx=(dayId,exId)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:x.exercises.filter(e=>e.id!==exId)}:x)}));
 
@@ -2840,7 +2853,7 @@ function LivePlanTab({clientId,role,toast}){
         // Übungen dieses Tags neu schreiben: einfacher Ansatz – alte löschen, neue einfügen
         if(!isNew) await window.supa.from("exercises").delete().eq("day_id",dayId);
         if(day.exercises.length){
-          const rows=day.exercises.map((e,idx)=>({ day_id:dayId, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx }));
+          const rows=day.exercises.map((e,idx)=>({ day_id:dayId, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), track_rir:!!e.track_rir, track_pct:!!e.track_pct }));
           const { error } = await window.supa.from("exercises").insert(rows);
           if(error) throw error;
         }
@@ -2857,8 +2870,8 @@ function LivePlanTab({clientId,role,toast}){
         const { data:fresh } = await window.supa.from("plans").select("id,title,is_active,created_at").eq("id",planId).maybeSingle();
         const { data:fd } = await window.supa.from("plan_days").select("id,plan_id,name,position,image_path").eq("plan_id",planId).order("position",{ascending:true});
         const dayIds=(fd||[]).map(d=>d.id);
-        let fe=[]; if(dayIds.length){ const { data:e } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position").in("day_id",dayIds).order("position",{ascending:true}); fe=e||[]; }
-        const rebuilt={ id:planId, title:(fresh&&fresh.title)||draft.title, createdAt:fresh&&fresh.created_at, days:(fd||[]).map(d=>({id:d.id,name:d.name,imagePath:d.image_path||"",exercises:fe.filter(x=>x.day_id===d.id).map(x=>({id:x.id,name:x.name,sets:x.sets,reps:x.reps,note:x.note||""}))})) };
+        let fe=[]; if(dayIds.length){ const { data:e } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("day_id",dayIds).order("position",{ascending:true}); fe=e||[]; }
+        const rebuilt={ id:planId, title:(fresh&&fresh.title)||draft.title, createdAt:fresh&&fresh.created_at, days:(fd||[]).map(d=>({id:d.id,name:d.name,imagePath:d.image_path||"",exercises:fe.filter(x=>x.day_id===d.id).map(x=>({id:x.id,name:x.name,sets:x.sets,reps:x.reps,note:x.note||"",scheme:x.scheme||"standard",goal:x.goal,track_rir:!!x.track_rir,track_pct:!!x.track_pct}))})) };
         setDraft(rebuilt); setOpenPlanId(planId); setEditing(false);
       }catch(_e){ setOpenPlanId(null); setDraft(null); }
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); }
@@ -2977,8 +2990,20 @@ function LivePlanTab({clientId,role,toast}){
           <button className="delx" onClick={()=>delEx(day.id,ex.id)}>×</button>
         </div>
         <div style={{display:"flex",gap:8,marginTop:7,alignItems:"center"}}>
-          <SetsStepper value={ex.sets} onChange={(v)=>setEx(day.id,ex.id,"sets",v)}/>
-          <div className="mini" style={{flex:1,gap:6}}><span className="unit">Wdh.</span><input className="setin" style={{flex:1}} value={ex.reps} onChange={(e)=>setEx(day.id,ex.id,"reps",e.target.value)} placeholder="8"/></div>
+          {ex.scheme==="rep_goal" ? (
+            <div className="mini" style={{flex:1,gap:6}}><span className="unit">Ziel-Wdh</span><input className="setin" style={{width:72}} inputMode="numeric" value={ex.goal||""} onChange={(e)=>setEx(day.id,ex.id,"goal",e.target.value)} placeholder="50"/><span className="unit" style={{fontSize:11}}>in so wenig Sätzen wie möglich</span></div>
+          ) : (<>
+            <SetsStepper value={ex.sets} onChange={(v)=>setEx(day.id,ex.id,"sets",v)}/>
+            <div className="mini" style={{flex:1,gap:6}}><span className="unit">Wdh.</span><input className="setin" style={{flex:1}} value={ex.reps} onChange={(e)=>setEx(day.id,ex.id,"reps",e.target.value)} placeholder="8"/></div>
+          </>)}
+        </div>
+        <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
+          <button className={"chip"+((ex.scheme||"standard")==="standard"?" on":"")} onClick={()=>setEx(day.id,ex.id,"scheme","standard")}>Standard</button>
+          <button className={"chip"+(ex.scheme==="rep_goal"?" on":"")} onClick={()=>setEx(day.id,ex.id,"scheme","rep_goal")}>Rep Goal</button>
+          <span style={{width:1,height:18,background:"var(--line)",margin:"0 4px"}}/>
+          <span className="unit" style={{marginRight:2}}>tracken:</span>
+          <button className={"chip"+(ex.track_rir?" on":"")} onClick={()=>setEx(day.id,ex.id,"track_rir",!ex.track_rir)}>RIR</button>
+          <button className={"chip"+(ex.track_pct?" on":"")} onClick={()=>setEx(day.id,ex.id,"track_pct",!ex.track_pct)}>%</button>
         </div>
         <input className="notein" value={ex.note} onChange={(e)=>setEx(day.id,ex.id,"note",e.target.value)} placeholder="Hinweis (optional)"/>
       </div>))}
@@ -3011,17 +3036,19 @@ function CoachWorkoutHistory({plan,clientId,toast}){
         .select("id,plan_id,day_id,date,note").eq("client_id",clientId).eq("plan_id",plan.id).order("date",{ascending:false});
       if(error) throw error;
       const ids=(ws||[]).map(w=>w.id); let sets=[];
-      if(ids.length){ const { data:ss } = await window.supa.from("workout_sets").select("workout_id,exercise_id,exercise_name,set_index,reps,kg").in("workout_id",ids).order("set_index",{ascending:true}); sets=ss||[]; }
-      setWorkouts((ws||[]).map(w=>{ const by={}; sets.filter(s=>s.workout_id===w.id).forEach(s=>{ const k=s.exercise_id||s.exercise_name; (by[k]=by[k]||[]).push({reps:s.reps,kg:s.kg,name:s.exercise_name}); }); return {id:w.id,dayId:w.day_id,date:w.date,note:w.note||"",sets:by}; }));
+      if(ids.length){ const { data:ss } = await window.supa.from("workout_sets").select("workout_id,exercise_id,exercise_name,set_index,reps,kg,rir,pct").in("workout_id",ids).order("set_index",{ascending:true}); sets=ss||[]; }
+      setWorkouts((ws||[]).map(w=>{ const by={}; sets.filter(s=>s.workout_id===w.id).forEach(s=>{ const k=s.exercise_id||s.exercise_name; (by[k]=by[k]||[]).push({reps:s.reps,kg:s.kg,rir:s.rir,pct:s.pct,name:s.exercise_name}); }); return {id:w.id,dayId:w.day_id,date:w.date,note:w.note||"",sets:by}; }));
     }catch(e){ setWorkouts([]); }
   };
   useEffect(()=>{ if(clientId&&plan&&plan.id) load(); },[clientId, plan && plan.id]);
   const renderSession=(w)=>{ const keys=Object.keys(w.sets); if(!keys.length) return <div className="muted">Keine Sätze erfasst.</div>;
     return keys.map(k=>{ const rows=w.sets[k]; const nm=(rows[0]&&rows[0].name)||(plan.days.flatMap(d=>d.exercises).find(e=>e.id===k)||{}).name||"Übung";
       const anyKg=rows.some(r=>r.kg&&r.kg!=="-"&&r.kg!=="");
+      const anyRir=rows.some(r=>r.rir&&r.rir!=="-"&&r.rir!=="");
+      const anyPct=rows.some(r=>r.pct&&r.pct!=="-"&&r.pct!=="");
       return <div key={k} style={{marginBottom:14}}><div className="en" style={{marginBottom:2}}>{nm}</div>
-        <table className="settbl"><thead><tr><th>Satz</th><th>Wdh</th>{anyKg&&<th>Gewicht</th>}</tr></thead>
-        <tbody>{rows.map((r,i)=>(<tr key={i}><td>{i+1}</td><td>{r.reps||"–"}</td>{anyKg&&<td>{(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+" kg"):"–"}</td>}</tr>))}</tbody></table></div>; });
+        <table className="settbl"><thead><tr><th>Satz</th><th>Wdh</th>{anyKg&&<th>Gewicht</th>}{anyRir&&<th>RIR</th>}{anyPct&&<th>%</th>}</tr></thead>
+        <tbody>{rows.map((r,i)=>(<tr key={i}><td>{i+1}</td><td>{r.reps||"–"}</td>{anyKg&&<td>{(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+" kg"):"–"}</td>}{anyRir&&<td>{r.rir||"–"}</td>}{anyPct&&<td>{r.pct?(r.pct+"%"):"–"}</td>}</tr>))}</tbody></table></div>; });
   };
   return <div style={{marginTop:20}}>
     <div className="sectlabel">Absolvierte Einheiten</div>
