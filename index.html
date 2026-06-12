@@ -738,7 +738,7 @@ const today = ()=>dstr(new Date());
 const addDays = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 const lastNDays = (n)=>{ const out=[]; const t=new Date(); for(let i=n-1;i>=0;i--) out.push(dstr(addDays(t,-i))); return out; };
 const fmtDay = (s)=>{ const p=s.split("-"); return `${p[2]}.${p[1]}.`; };
-const fmtFull = (s)=>{ const p=s.split("-"); return `${p[2]}.${p[1]}.${p[0].slice(2)}`; };
+const fmtFull = (s)=>{ const p=String(s).slice(0,10).split("-"); return `${p[2]}.${p[1]}.${p[0].slice(2)}`; };
 const VAPID_PUBLIC="BO9OAaaKbAUtpkUXfdhzbYTSIbAhDvyh5b0iUKZCzvoxocasK0DYOMfVDs6PhAEo-wkjQOYXwnvQBF92l_jPZQo";
 const ICE_SERVERS=[
   {urls:"stun:stun.l.google.com:19302"},
@@ -2566,8 +2566,9 @@ function LivePlanTab({clientId,role,toast}){
   // Templates
   const [myId,setMyId]=useState(null);
   const [templates,setTemplates]=useState(null);  // null = noch nicht geladen
-  const [planMenu,setPlanMenu]=useState(null);     // Plan-Objekt für ⋯-Menü
-  const [tmplMode,setTmplMode]=useState(null);     // null | "save" | "load"
+  const [newMenu,setNewMenu]=useState(false);      // "Neuer Plan"-Auswahl (leer | aus Template)
+  const [saveTmplOpen,setSaveTmplOpen]=useState(false); // "Als Template speichern"-Blatt im Editor
+  const [tmplMode,setTmplMode]=useState(null);     // null | "load"
   const [tmplName,setTmplName]=useState("");
   const [tmplBusy,setTmplBusy]=useState(false);
 
@@ -2628,32 +2629,16 @@ function LivePlanTab({clientId,role,toast}){
           if(ee) throw ee;
         }
       }
-      toast("Template gespeichert"); setPlanMenu(null); setTmplMode(null); setTmplName("");
+      toast("Template gespeichert"); setSaveTmplOpen(false); setTmplName("");
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); }
     finally{ setTmplBusy(false); }
   };
 
-  // Template auf Plan anwenden (überschreibt Tage)
-  const doApplyTemplate=async(template,targetPlan)=>{
-    if(!await askConfirm({ title:"Template laden?", message:"\""+targetPlan.title+"\" wird mit dem Template \""+template.title+"\" überschrieben. Vorhandene Trainingstage und Übungen werden ersetzt.", confirmText:"Laden", danger:false })) return;
-    setTmplBusy(true);
-    try{
-      const planId=targetPlan.id;
-      await window.supa.from("plan_days").delete().eq("plan_id",planId);
-      for(let i=0;i<template.days.length;i++){
-        const day=template.days[i];
-        const { data:nd, error:de } = await window.supa.from("plan_days")
-          .insert({ plan_id:planId, client_id:clientId, name:day.name, position:i, image_path:day.imagePath||null }).select("id").single();
-        if(de) throw de;
-        if(day.exercises.length){
-          const rows=day.exercises.map((e,idx)=>({ day_id:nd.id, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx }));
-          const { error:ee } = await window.supa.from("exercises").insert(rows);
-          if(ee) throw ee;
-        }
-      }
-      toast("Template geladen"); setPlanMenu(null); setTmplMode(null); await load();
-    }catch(e){ toast("Laden fehlgeschlagen: "+(e.message||"")); }
-    finally{ setTmplBusy(false); }
+  // Neuen Plan-Entwurf aus Template befüllen (öffnet im Bearbeiten-Modus, noch nicht gespeichert)
+  const newFromTemplate=(t)=>{
+    const d={ id:null, title:t.title, days:(t.days||[]).map(day=>({ id:"tmp"+nid(), name:day.name, imagePath:day.imagePath||"", exercises:(day.exercises||[]).map(e=>({ id:"tmp"+nid(), name:e.name, sets:e.sets, reps:e.reps, note:e.note||"" })) })) };
+    setDraft(d); setOpenPlanId("__new__"); setDirty(true); setOpenDayId(null); setEditing(true);
+    setNewMenu(false); setTmplMode(null);
   };
 
   const imgUrl=(path)=>{ if(!path) return ""; const hit=imgLib.find(i=>i.path===path); if(hit) return hit.url; const { data:pub } = window.supa.storage.from("workout-images").getPublicUrl(path); return (pub&&pub.publicUrl)||""; };
@@ -2788,39 +2773,30 @@ function LivePlanTab({clientId,role,toast}){
       {err && <div className="authmsg err" style={{marginBottom:10}}>{err}</div>}
       {plans.length===0 && <div className="muted">Noch kein Plan angelegt.</div>}
       {plans.map(p=>(
-        <div key={p.id} style={{display:"flex",alignItems:"stretch",gap:0,marginBottom:2}}>
-          <button className="planrow" style={{flex:1,borderRadius:role==="coach"?"12px 0 0 12px":"12px"}} onClick={()=>openForEdit(p)}>
-            <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
-              <div className="ps">{p.days.length} Tage{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
-            {p.id===activeId && <span className="badge">Aktuell</span>}
-            <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
-          </button>
-          {role==="coach" && <button className="cr-menu" style={{borderRadius:"0 12px 12px 0",borderLeft:"1px solid var(--line)"}} onClick={(e)=>{ e.stopPropagation(); setTmplMode(null); setTmplName(p.title||""); setTemplates(null); setPlanMenu(p); }}> ⋯</button>}
-        </div>
+        <button key={p.id} className="planrow" onClick={()=>openForEdit(p)}>
+          <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
+            <div className="ps">{p.days.length} Tage{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
+          {p.id===activeId && <span className="badge">Aktuell</span>}
+          <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+        </button>
       ))}
-      {role==="coach" && <button className="btn btn-ghost" style={{marginTop:8}} onClick={newPlan}>+ Neuer Trainingsplan</button>}
-      {/* Template-Aktionsblatt */}
-      {planMenu && <>
-        <div className="scrim" onClick={()=>{ setPlanMenu(null); setTmplMode(null); }}/>
+      {role==="coach" && <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>{ setTmplMode(null); setNewMenu(true); }}>+ Neuer Trainingsplan</button>}
+      {/* Neuer-Plan-Auswahl: leer oder aus Template */}
+      {newMenu && <>
+        <div className="scrim" onClick={()=>{ setNewMenu(false); setTmplMode(null); }}/>
         <div className="sheet">
-          <div className="ds-title" style={{marginBottom:6}}>{planMenu.title||"Trainingsplan"}</div>
+          <div className="ds-title" style={{marginBottom:10}}>Neuer Trainingsplan</div>
           {!tmplMode && <>
-            <button className="btn" onClick={()=>{ setTmplName(planMenu.title||""); setTmplMode("save"); }}>Als Template speichern</button>
-            <button className="btn btn-ghost" style={{marginTop:10}} onClick={()=>{ loadTemplates(); setTmplMode("load"); }}>Von Template laden</button>
-            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setPlanMenu(null)}>Abbrechen</button>
-          </>}
-          {tmplMode==="save" && <>
-            <div className="muted" style={{fontSize:13,marginBottom:10}}>Struktur (Tage + Übungen) von „{planMenu.title}" als Template speichern:</div>
-            <Field label="Template-Name" value={tmplName} onChange={setTmplName} placeholder={planMenu.title||"Template"}/>
-            <button className="btn" disabled={tmplBusy||!tmplName.trim()} onClick={()=>doSaveTemplate(planMenu,tmplName.trim())}>{tmplBusy?"Speichert…":"Speichern"}</button>
-            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setTmplMode(null)}>‹ Zurück</button>
+            <button className="btn" onClick={()=>{ setNewMenu(false); newPlan(); }}>Leerer Plan</button>
+            <button className="btn btn-ghost" style={{marginTop:10}} onClick={()=>{ loadTemplates(); setTmplMode("load"); }}>Aus Template auswählen</button>
+            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setNewMenu(false)}>Abbrechen</button>
           </>}
           {tmplMode==="load" && <>
-            <div className="muted" style={{fontSize:13,marginBottom:10}}>Template auswählen – überschreibt Tage & Übungen von „{planMenu.title}":</div>
+            <div className="muted" style={{fontSize:13,marginBottom:10}}>Template wählen – der neue Plan wird damit befüllt und öffnet im Bearbeiten-Modus:</div>
             {templates===null && <div className="muted">Lädt…</div>}
-            {templates!==null && templates.length===0 && <div className="muted">Noch keine Templates gespeichert.</div>}
+            {templates!==null && templates.length===0 && <div className="muted">Noch keine Templates. Speichere zuerst einen Plan im Bearbeiten-Modus als Template.</div>}
             {(templates||[]).map(t=>(
-              <button key={t.id} className="planrow" style={{marginBottom:4}} onClick={()=>doApplyTemplate(t,planMenu)}>
+              <button key={t.id} className="planrow" style={{marginBottom:4}} onClick={()=>newFromTemplate(t)}>
                 <div className="pi"><div className="pt">{t.title}</div><div className="ps">{t.days.length} Tage</div></div>
                 <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
               </button>
@@ -2899,7 +2875,18 @@ function LivePlanTab({clientId,role,toast}){
     {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(p)=>{ setDayImage(pickDayId,p); setPickDayId(null); }}/>}
     <button className="btn btn-ghost" onClick={addDay}>+ Trainingstag</button>
     <button className="btn" style={{marginTop:12}} disabled={saving||!dirty} onClick={save}>{saving?"Speichert…":(dirty?"Plan speichern":"Gespeichert ✓")}</button>
-    {draft.id && <button className="link" style={{display:"block",margin:"16px auto 0",color:"var(--faint)"}} onClick={()=>deletePlan(draft.id)}>Plan löschen</button>}
+    <button className="link" style={{display:"block",margin:"16px auto 0"}} disabled={!draft.days.length} onClick={()=>{ setTmplName(draft.title||""); setSaveTmplOpen(true); }}>Als Template speichern</button>
+    {draft.id && <button className="link" style={{display:"block",margin:"12px auto 0",color:"var(--faint)"}} onClick={()=>deletePlan(draft.id)}>Plan löschen</button>}
+    {saveTmplOpen && <>
+      <div className="scrim" onClick={()=>setSaveTmplOpen(false)}/>
+      <div className="sheet">
+        <div className="ds-title" style={{marginBottom:8}}>Als Template speichern</div>
+        <div className="muted" style={{fontSize:13,marginBottom:10}}>Speichert Tage & Übungen dieses Plans als wiederverwendbares Template – nur für dich sichtbar.</div>
+        <Field label="Template-Name" value={tmplName} onChange={setTmplName} placeholder={draft.title||"Template"}/>
+        <button className="btn" disabled={tmplBusy||!tmplName.trim()} onClick={()=>doSaveTemplate(draft,tmplName.trim())}>{tmplBusy?"Speichert…":"Speichern"}</button>
+        <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setSaveTmplOpen(false)}>Abbrechen</button>
+      </div>
+    </>}
   </div>;
 }
 
