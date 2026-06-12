@@ -385,6 +385,14 @@
 
   .exrow{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);}
   .exrow:last-child{border-bottom:none;}
+  .exf-row{display:flex;align-items:center;gap:8px;}
+  .exf-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:11px 0 9px;}
+  .exf{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .exf-full{grid-column:1 / -1;}
+  .exf-l{font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;}
+  .exin{background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:15px;padding:10px 12px;border-radius:10px;outline:none;width:100%;box-sizing:border-box;}
+  .exin:focus{border-color:var(--accent);}
+  select.exin{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),linear-gradient(135deg,var(--faint) 50%,transparent 50%);background-position:calc(100% - 16px) 17px,calc(100% - 11px) 17px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px;}
 
   /* per-set logging */
   .setgrid{display:grid;grid-template-columns:36px 1fr 1fr 30px;gap:8px;align-items:center;margin-bottom:7px;}
@@ -2402,22 +2410,24 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
     </div>
     {tab==="sets" ? <>
       {day.exercises.map(ex=>{ const perf=lastPerf(ex.id);
-        const isGoal=(ex.scheme||"standard")==="rep_goal"; const tr=!!ex.track_rir, tp=!!ex.track_pct;
-        const ncol=2+(tr?1:0)+(tp?1:0); const gtc="28px "+("1fr ".repeat(ncol))+"38px";
+        const isGoal=(ex.scheme||"standard")==="rep_goal";
+        const it=ex.intensity||(ex.track_rir?"rir":(ex.track_pct?"pct":"none"));
+        const hasIt=it!=="none"; const itLabel=it==="pct"?"%":"RIR"; const itField=it==="pct"?"pct":"rir";
+        const ncol=2+(hasIt?1:0); const gtc="28px "+("1fr ".repeat(ncol))+"38px";
         const rows=sets[ex.id]||[]; const goalTarget=parseInt(ex.goal)||0;
         const goalDone=isGoal?rows.filter(r=>r.done).reduce((n,r)=>n+(parseInt(r.reps)||0),0):0;
         return <div key={ex.id} className="exblock">
           <div className="exb-head"><div className="exb-name">{ex.name}</div><div className="exb-goal">{isGoal?("Ziel: "+(goalTarget||"?")+" Wdh"):("Ziel: "+ex.sets+"×"+ex.reps)}</div></div>
           {isGoal && <div className="muted" style={{fontSize:12,marginTop:-2,marginBottom:6}}>So wenig Sätze wie möglich · erledigt: <b style={{color:goalTarget&&goalDone>=goalTarget?"var(--accent)":"var(--text)"}}>{goalDone}</b>{goalTarget?(" / "+goalTarget):""}</div>}
+          {hasIt && ex.intensity_target && <div className="muted" style={{fontSize:12,marginBottom:6}}>Vorgabe: <b>{it==="pct"?(ex.intensity_target+"%"):("RIR "+ex.intensity_target)}</b></div>}
           {perf && <div className="exb-last">Letztes Mal<br/><b>{perf}</b></div>}
-          <div className="setgrid sethead" style={{gridTemplateColumns:gtc}}><span>Satz</span><span>Wdh.</span><span>kg</span>{tr&&<span>RIR</span>}{tp&&<span>%</span>}<span></span></div>
+          <div className="setgrid sethead" style={{gridTemplateColumns:gtc}}><span>Satz</span><span>Wdh.</span><span>kg</span>{hasIt&&<span>{itLabel}</span>}<span></span></div>
           {rows.map((row,i)=>(
             <div key={row.key} className="setgrid" style={{gridTemplateColumns:gtc}}>
               <span className="setno">{i+1}</span>
               <input className="setin" inputMode="numeric" value={row.reps} placeholder="–" onChange={(e)=>edit(ex.id,i,"reps",e.target.value)}/>
               <input className="setin" inputMode="decimal" value={row.kg} placeholder="–" onChange={(e)=>edit(ex.id,i,"kg",e.target.value)}/>
-              {tr&&<input className="setin" inputMode="numeric" value={row.rir} placeholder="–" onChange={(e)=>edit(ex.id,i,"rir",e.target.value)}/>}
-              {tp&&<input className="setin" inputMode="numeric" value={row.pct} placeholder="–" onChange={(e)=>edit(ex.id,i,"pct",e.target.value)}/>}
+              {hasIt&&<input className="setin" inputMode="numeric" value={row[itField]} placeholder={ex.intensity_target||"–"} onChange={(e)=>edit(ex.id,i,itField,e.target.value)}/>}
               <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" style={{width:34,height:34,borderRadius:9,border:"1px solid var(--line)",background:row.done?"var(--accent)":"transparent",color:row.done?"#fff":"var(--faint)",fontSize:17,lineHeight:1,cursor:"pointer",justifySelf:"center",padding:0}}>{row.done?"✓":""}</button>
             </div>
           ))}
@@ -2722,7 +2732,7 @@ function LivePlanTab({clientId,role,toast}){
         tdays=d||[];
         const dayIds=tdays.map(d=>d.id);
         if(dayIds.length){
-          const { data:e } = await window.supa.from("template_exercises").select("id,template_day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("template_day_id",dayIds).order("position",{ascending:true});
+          const { data:e } = await window.supa.from("template_exercises").select("id,template_day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct,intensity,intensity_target").in("template_day_id",dayIds).order("position",{ascending:true});
           texs=e||[];
         }
       }
@@ -2730,7 +2740,7 @@ function LivePlanTab({clientId,role,toast}){
         id:t.id, title:t.title,
         days:tdays.filter(d=>d.template_id===t.id).map(d=>({
           id:d.id, name:d.name, imagePath:d.image_path||"",
-          exercises:texs.filter(e=>e.template_day_id===d.id).map(e=>({name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,track_rir:!!e.track_rir,track_pct:!!e.track_pct}))
+          exercises:texs.filter(e=>e.template_day_id===d.id).map(e=>({name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,intensity:e.intensity||(e.track_rir?"rir":(e.track_pct?"pct":"none")),intensity_target:e.intensity_target||""}))
         }))
       })));
     }catch(e){ setTemplates([]); }
@@ -2749,7 +2759,7 @@ function LivePlanTab({clientId,role,toast}){
           .insert({ template_id:t.id, name:day.name, position:i, image_path:day.imagePath||null }).select("id").single();
         if(de) throw de;
         if(day.exercises.length){
-          const rows=day.exercises.map((e,idx)=>({ template_day_id:td.id, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), track_rir:!!e.track_rir, track_pct:!!e.track_pct }));
+          const rows=day.exercises.map((e,idx)=>{ const it=e.intensity||(e.track_rir?"rir":(e.track_pct?"pct":"none")); return { template_day_id:td.id, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), intensity:it, intensity_target:(it==="none"?null:((e.intensity_target||"").trim()||null)), track_rir:it==="rir", track_pct:it==="pct" }; });
           const { error:ee } = await window.supa.from("template_exercises").insert(rows);
           if(ee) throw ee;
         }
@@ -2761,7 +2771,7 @@ function LivePlanTab({clientId,role,toast}){
 
   // Neuen Plan-Entwurf aus Template befüllen (öffnet im Bearbeiten-Modus, noch nicht gespeichert)
   const newFromTemplate=(t)=>{
-    const d={ id:null, title:t.title, days:(t.days||[]).map(day=>({ id:"tmp"+nid(), name:day.name, imagePath:day.imagePath||"", exercises:(day.exercises||[]).map(e=>({ id:"tmp"+nid(), name:e.name, sets:e.sets, reps:e.reps, note:e.note||"", scheme:e.scheme||"standard", goal:e.goal, track_rir:!!e.track_rir, track_pct:!!e.track_pct })) })) };
+    const d={ id:null, title:t.title, days:(t.days||[]).map(day=>({ id:"tmp"+nid(), name:day.name, imagePath:day.imagePath||"", exercises:(day.exercises||[]).map(e=>({ id:"tmp"+nid(), name:e.name, sets:e.sets, reps:e.reps, note:e.note||"", scheme:e.scheme||"standard", goal:e.goal, intensity:e.intensity||"none", intensity_target:e.intensity_target||"" })) })) };
     setDraft(d); setOpenPlanId("__new__"); setDirty(true); setOpenDayId(null); setEditing(true);
     setNewMenu(false); setTmplMode(null);
   };
@@ -2783,7 +2793,7 @@ function LivePlanTab({clientId,role,toast}){
         days=d||[];
         const dayIds=days.map(d=>d.id);
         if(dayIds.length){
-          const { data:ex } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("day_id",dayIds).order("position",{ascending:true});
+          const { data:ex } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct,intensity,intensity_target").in("day_id",dayIds).order("position",{ascending:true});
           exs=ex||[];
         }
       }
@@ -2791,7 +2801,7 @@ function LivePlanTab({clientId,role,toast}){
         id:p.id, title:p.title, createdAt:p.created_at, is_active:p.is_active,
         days: days.filter(d=>d.plan_id===p.id).map(d=>({
           id:d.id, name:d.name, imagePath:d.image_path||"",
-          exercises: exs.filter(e=>e.day_id===d.id).map(e=>({id:e.id,name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,track_rir:!!e.track_rir,track_pct:!!e.track_pct})),
+          exercises: exs.filter(e=>e.day_id===d.id).map(e=>({id:e.id,name:e.name,sets:e.sets,reps:e.reps,note:e.note||"",scheme:e.scheme||"standard",goal:e.goal,intensity:e.intensity||(e.track_rir?"rir":(e.track_pct?"pct":"none")),intensity_target:e.intensity_target||""})),
         })),
       }));
       setPlans(assembled);
@@ -2813,7 +2823,7 @@ function LivePlanTab({clientId,role,toast}){
   const delDay=(dayId)=>dUpd(d=>({...d,days:d.days.filter(x=>x.id!==dayId)}));
   const renameDay=(dayId,name)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,name}:x)}));
   const setDayImage=(dayId,path)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,imagePath:path}:x)}));
-  const addEx=(dayId,nm,st,rp)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:[...x.exercises,{id:"tmp"+nid(),name:nm,sets:st,reps:rp,note:"",scheme:"standard",goal:null,track_rir:false,track_pct:false}]}:x)}));
+  const addEx=(dayId,nm,st,rp)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:[...x.exercises,{id:"tmp"+nid(),name:nm,sets:st,reps:rp,note:"",scheme:"standard",goal:null,intensity:"none",intensity_target:""}]}:x)}));
   const setEx=(dayId,exId,field,val)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:x.exercises.map(e=>e.id===exId?{...e,[field]:val}:e)}:x)}));
   const delEx=(dayId,exId)=>dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:x.exercises.filter(e=>e.id!==exId)}:x)}));
 
@@ -2853,7 +2863,7 @@ function LivePlanTab({clientId,role,toast}){
         // Übungen dieses Tags neu schreiben: einfacher Ansatz – alte löschen, neue einfügen
         if(!isNew) await window.supa.from("exercises").delete().eq("day_id",dayId);
         if(day.exercises.length){
-          const rows=day.exercises.map((e,idx)=>({ day_id:dayId, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), track_rir:!!e.track_rir, track_pct:!!e.track_pct }));
+          const rows=day.exercises.map((e,idx)=>{ const it=e.intensity||(e.track_rir?"rir":(e.track_pct?"pct":"none")); return { day_id:dayId, client_id:clientId, name:e.name, sets:parseInt(e.sets)||3, reps:String(e.reps||"8"), note:e.note||"", position:idx, scheme:e.scheme||"standard", goal:(e.scheme==="rep_goal"?(parseInt(e.goal)||null):null), intensity:it, intensity_target:(it==="none"?null:((e.intensity_target||"").trim()||null)), track_rir:it==="rir", track_pct:it==="pct" }; });
           const { error } = await window.supa.from("exercises").insert(rows);
           if(error) throw error;
         }
@@ -2870,8 +2880,8 @@ function LivePlanTab({clientId,role,toast}){
         const { data:fresh } = await window.supa.from("plans").select("id,title,is_active,created_at").eq("id",planId).maybeSingle();
         const { data:fd } = await window.supa.from("plan_days").select("id,plan_id,name,position,image_path").eq("plan_id",planId).order("position",{ascending:true});
         const dayIds=(fd||[]).map(d=>d.id);
-        let fe=[]; if(dayIds.length){ const { data:e } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct").in("day_id",dayIds).order("position",{ascending:true}); fe=e||[]; }
-        const rebuilt={ id:planId, title:(fresh&&fresh.title)||draft.title, createdAt:fresh&&fresh.created_at, days:(fd||[]).map(d=>({id:d.id,name:d.name,imagePath:d.image_path||"",exercises:fe.filter(x=>x.day_id===d.id).map(x=>({id:x.id,name:x.name,sets:x.sets,reps:x.reps,note:x.note||"",scheme:x.scheme||"standard",goal:x.goal,track_rir:!!x.track_rir,track_pct:!!x.track_pct}))})) };
+        let fe=[]; if(dayIds.length){ const { data:e } = await window.supa.from("exercises").select("id,day_id,name,sets,reps,note,position,scheme,goal,track_rir,track_pct,intensity,intensity_target").in("day_id",dayIds).order("position",{ascending:true}); fe=e||[]; }
+        const rebuilt={ id:planId, title:(fresh&&fresh.title)||draft.title, createdAt:fresh&&fresh.created_at, days:(fd||[]).map(d=>({id:d.id,name:d.name,imagePath:d.image_path||"",exercises:fe.filter(x=>x.day_id===d.id).map(x=>({id:x.id,name:x.name,sets:x.sets,reps:x.reps,note:x.note||"",scheme:x.scheme||"standard",goal:x.goal,intensity:x.intensity||(x.track_rir?"rir":(x.track_pct?"pct":"none")),intensity_target:x.intensity_target||""}))})) };
         setDraft(rebuilt); setOpenPlanId(planId); setEditing(false);
       }catch(_e){ setOpenPlanId(null); setDraft(null); }
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); }
@@ -2984,29 +2994,36 @@ function LivePlanTab({clientId,role,toast}){
         <span className="imgpick-lab">{day.imagePath ? (imgLib.find(i=>i.path===day.imagePath)||{}).label || "Bild gewählt" : "Bild wählen"}</span>
         <span className="imgpick-chev">›</span>
       </button>
-      {day.exercises.map(ex=>(<div key={ex.id} className="exedit">
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <input className="exname" value={ex.name} onChange={(e)=>setEx(day.id,ex.id,"name",e.target.value)} placeholder="Übung"/>
+      {day.exercises.map(ex=>{ const sch=ex.scheme||"standard"; const intens=ex.intensity||(ex.track_rir?"rir":(ex.track_pct?"pct":"none"));
+        return <div key={ex.id} className="exedit">
+        <div className="exf-row">
+          <input className="exname" value={ex.name} onChange={(e)=>setEx(day.id,ex.id,"name",e.target.value)} placeholder="Übungsname"/>
           <button className="delx" onClick={()=>delEx(day.id,ex.id)}>×</button>
         </div>
-        <div style={{display:"flex",gap:8,marginTop:7,alignItems:"center"}}>
-          {ex.scheme==="rep_goal" ? (
-            <div className="mini" style={{flex:1,gap:6}}><span className="unit">Ziel-Wdh</span><input className="setin" style={{width:72}} inputMode="numeric" value={ex.goal||""} onChange={(e)=>setEx(day.id,ex.id,"goal",e.target.value)} placeholder="50"/><span className="unit" style={{fontSize:11}}>in so wenig Sätzen wie möglich</span></div>
+        <div className="exf-grid">
+          <label className="exf exf-full"><span className="exf-l">Schema</span>
+            <select className="exin" value={sch} onChange={(e)=>setEx(day.id,ex.id,"scheme",e.target.value)}>
+              <option value="standard">Sätze × Wiederholungen</option>
+              <option value="rep_goal">Rep Goal (so wenig Sätze wie möglich)</option>
+            </select>
+          </label>
+          {sch==="rep_goal" ? (
+            <label className="exf exf-full"><span className="exf-l">Ziel-Wiederholungen</span><input className="exin" inputMode="numeric" value={ex.goal||""} onChange={(e)=>setEx(day.id,ex.id,"goal",e.target.value)} placeholder="25"/></label>
           ) : (<>
-            <SetsStepper value={ex.sets} onChange={(v)=>setEx(day.id,ex.id,"sets",v)}/>
-            <div className="mini" style={{flex:1,gap:6}}><span className="unit">Wdh.</span><input className="setin" style={{flex:1}} value={ex.reps} onChange={(e)=>setEx(day.id,ex.id,"reps",e.target.value)} placeholder="8"/></div>
+            <label className="exf"><span className="exf-l">Sätze</span><input className="exin" inputMode="numeric" value={ex.sets} onChange={(e)=>setEx(day.id,ex.id,"sets",e.target.value)} placeholder="3"/></label>
+            <label className="exf"><span className="exf-l">Wiederholungen</span><input className="exin" value={ex.reps} onChange={(e)=>setEx(day.id,ex.id,"reps",e.target.value)} placeholder="8"/></label>
           </>)}
-        </div>
-        <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
-          <button className={"chip"+((ex.scheme||"standard")==="standard"?" on":"")} onClick={()=>setEx(day.id,ex.id,"scheme","standard")}>Standard</button>
-          <button className={"chip"+(ex.scheme==="rep_goal"?" on":"")} onClick={()=>setEx(day.id,ex.id,"scheme","rep_goal")}>Rep Goal</button>
-          <span style={{width:1,height:18,background:"var(--line)",margin:"0 4px"}}/>
-          <span className="unit" style={{marginRight:2}}>tracken:</span>
-          <button className={"chip"+(ex.track_rir?" on":"")} onClick={()=>setEx(day.id,ex.id,"track_rir",!ex.track_rir)}>RIR</button>
-          <button className={"chip"+(ex.track_pct?" on":"")} onClick={()=>setEx(day.id,ex.id,"track_pct",!ex.track_pct)}>%</button>
+          <label className={"exf"+(intens==="none"?" exf-full":"")}><span className="exf-l">Intensität</span>
+            <select className="exin" value={intens} onChange={(e)=>setEx(day.id,ex.id,"intensity",e.target.value)}>
+              <option value="none">Aus</option>
+              <option value="rir">RIR</option>
+              <option value="pct">% von 1RM</option>
+            </select>
+          </label>
+          {intens!=="none" && <label className="exf"><span className="exf-l">Vorgabe ({intens==="pct"?"%":"RIR"})</span><input className="exin" inputMode="numeric" value={ex.intensity_target||""} onChange={(e)=>setEx(day.id,ex.id,"intensity_target",e.target.value)} placeholder={intens==="pct"?"75":"2"}/></label>}
         </div>
         <input className="notein" value={ex.note} onChange={(e)=>setEx(day.id,ex.id,"note",e.target.value)} placeholder="Hinweis (optional)"/>
-      </div>))}
+      </div>;})}
       <ExerciseAdder onAdd={(nm,st,rp)=>addEx(day.id,nm,st,rp)}/>
     </div>))}
     {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(p)=>{ setDayImage(pickDayId,p); setPickDayId(null); }}/>}
