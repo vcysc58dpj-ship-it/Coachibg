@@ -1464,6 +1464,16 @@ const DEFAULT_ANAMNESE=[
 ];
 const ANAM_TYPES=[{v:"scale",l:"Skala 1–10"},{v:"yesno",l:"Ja / Nein"},{v:"text",l:"Freitext"},{v:"number",l:"Zahl"},{v:"photo",l:"Foto"}];
 const anamTypeLabel=(v)=>{ const x=ANAM_TYPES.find(x=>x.v===v); return x?x.l:v; };
+const DEFAULT_CHECKIN=[
+  {label:"Wie zufrieden bist du insgesamt mit dieser Woche?",type:"scale"},
+  {label:"Wie konsequent warst du bei deiner Ernährung?",type:"scale"},
+  {label:"Hast du alle geplanten Trainingseinheiten geschafft?",type:"yesno"},
+  {label:"Wie war dein Energielevel im Schnitt?",type:"scale"},
+  {label:"Wie gut war dein Schlaf?",type:"scale"},
+  {label:"Wie hoch war dein Stresslevel?",type:"scale"},
+  {label:"Was ist diese Woche gut gelaufen?",type:"text"},
+  {label:"Was war schwierig oder wo brauchst du Unterstützung?",type:"text"},
+];
 
 // Eingabefeld je Antworttyp (geteilt)
 function QInput({type,val,onText,onFile}){
@@ -1703,13 +1713,26 @@ function LiveCheckinTab({clientId,role,toast}){
   const [history,setHistory]=useState(null);      // [{id,date,answers:[{question_id,question_label,answer_text,answer_file,signedUrl}]}]
   const [view,setView]=useState(role==="coach"?"settings":"fill"); // coach: settings|history ; client: fill|history
   const [busy,setBusy]=useState(false);
+  const seededRef=useRef(false);
+  const seedKey="nk_checkin_seeded_"+clientId;
+  const wasSeeded=()=>{ try{ return localStorage.getItem(seedKey)==="1"; }catch(e){ return false; } };
+  const markSeeded=()=>{ try{ localStorage.setItem(seedKey,"1"); }catch(e){} };
 
   // --- Laden ---
+  const fetchQ=async()=>{ const { data,error } = await window.supa.from("checkin_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); if(error) throw error; return (data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})); };
   const loadQuestions=async()=>{
     try{
-      const { data,error } = await window.supa.from("checkin_questions").select("id,label,type,position,created_at").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
-      if(error) throw error;
-      setQuestions((data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})));
+      let rows=await fetchQ();
+      // Standard-Bogen einmalig vorbefüllen (nur Coach/Self-Edit, nie erneut nach absichtlichem Leeren)
+      if(rows.length===0 && role==="coach" && !seededRef.current && !wasSeeded()){
+        seededRef.current=true;
+        const ins=DEFAULT_CHECKIN.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
+        const { error:ie } = await window.supa.from("checkin_questions").insert(ins);
+        if(!ie){ markSeeded(); rows=await fetchQ(); }
+      }
+      seededRef.current=true;
+      if(rows.length>0) markSeeded();
+      setQuestions(rows);
     }catch(e){ toast("Fragen konnten nicht geladen werden"); setQuestions([]); }
   };
   const loadWeekday=async()=>{
