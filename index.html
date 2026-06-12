@@ -386,11 +386,11 @@
   .exrow{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);}
   .exrow:last-child{border-bottom:none;}
   .exf-row{display:flex;align-items:center;gap:8px;}
-  .exf-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:11px 0 9px;}
-  .exf{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .exf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 4px;}
+  .exf{display:flex;flex-direction:column;gap:6px;min-width:0;}
   .exf-full{grid-column:1 / -1;}
-  .exf-l{font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.04em;}
-  .exin{background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:15px;padding:10px 12px;border-radius:10px;outline:none;width:100%;box-sizing:border-box;}
+  .exf-l{font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;}
+  .exin{background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:15px;padding:12px 13px;border-radius:11px;outline:none;width:100%;box-sizing:border-box;}
   .exin:focus{border-color:var(--accent);}
   select.exin{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),linear-gradient(135deg,var(--faint) 50%,transparent 50%);background-position:calc(100% - 16px) 17px,calc(100% - 11px) 17px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px;}
 
@@ -519,9 +519,13 @@
   .titlein{width:100%;background:transparent;border:none;color:var(--text);font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;padding:9px 2px;outline:none;}
   .dayin{flex:1;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-weight:700;font-size:15px;padding:9px 11px;border-radius:10px;outline:none;min-width:0;}
   .dayin:focus{border-color:var(--accent);}
-  .exedit{padding:12px 0;border-bottom:1px solid var(--line);}
+  .exedit{padding:18px 0;border-bottom:1px solid var(--line);}
   .exedit:last-of-type{border-bottom:none;}
-  .exname{flex:1;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-weight:600;font-size:15px;padding:9px 11px;border-radius:9px;outline:none;min-width:0;}
+  .addex{width:100%;background:transparent;border:1px dashed var(--line);color:var(--accent);font-weight:700;font-size:14.5px;padding:13px;border-radius:12px;cursor:pointer;margin-top:10px;}
+  .addex:active{background:var(--bg-3);}
+  .addnote{background:transparent;border:none;color:var(--faint);font-size:13px;font-weight:600;padding:7px 2px 2px;cursor:pointer;}
+  .exedit:last-of-type{border-bottom:none;}
+  .exname{flex:1;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-weight:600;font-size:15.5px;padding:12px 13px;border-radius:11px;outline:none;min-width:0;}
   .exname:focus{border-color:var(--accent);}
   .notein{width:100%;background:var(--bg-3);border:1px solid var(--line);color:var(--dim);font-size:13px;padding:8px 11px;border-radius:9px;outline:none;margin-top:7px;}
   .notein:focus{border-color:var(--accent);color:var(--text);}
@@ -2346,6 +2350,11 @@ function DayLogger({day,last,onSave,onCancel,mode,initialSets,initialDate,initia
     {mode==="edit" && <button className="link" style={{display:"block",margin:"14px auto 0",color:"var(--faint)"}} onClick={onDelete}>Eintrag löschen</button>}
   </div>;
 }
+function ExNote({value,onChange}){
+  const [open,setOpen]=useState(!!value);
+  if(!open) return <button className="addnote" onClick={()=>setOpen(true)}>+ Hinweis für den Kunden</button>;
+  return <input className="notein" value={value} onChange={(e)=>onChange(e.target.value)} placeholder="Hinweis (optional)" autoFocus/>;
+}
 function ExerciseAdder({onAdd}){
   const [n,setN]=useState(""),[s,setS]=useState("3"),[r,setR]=useState("8");
   return <div style={{marginTop:10}}>
@@ -3022,9 +3031,9 @@ function LivePlanTab({clientId,role,toast}){
           </label>
           {intens!=="none" && <label className="exf"><span className="exf-l">Vorgabe ({intens==="pct"?"%":"RIR"})</span><input className="exin" inputMode="numeric" value={ex.intensity_target||""} onChange={(e)=>setEx(day.id,ex.id,"intensity_target",e.target.value)} placeholder={intens==="pct"?"75":"2"}/></label>}
         </div>
-        <input className="notein" value={ex.note} onChange={(e)=>setEx(day.id,ex.id,"note",e.target.value)} placeholder="Hinweis (optional)"/>
+        <ExNote value={ex.note} onChange={(v)=>setEx(day.id,ex.id,"note",v)}/>
       </div>;})}
-      <ExerciseAdder onAdd={(nm,st,rp)=>addEx(day.id,nm,st,rp)}/>
+      <button className="addex" onClick={()=>addEx(day.id,"","3","8")}>+ Übung</button>
     </div>))}
     {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(p)=>{ setDayImage(pickDayId,p); setPickDayId(null); }}/>}
     <button className="btn btn-ghost" onClick={addDay}>+ Trainingstag</button>
