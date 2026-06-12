@@ -2353,12 +2353,89 @@ function SetsStepper({value,onChange}){
   const v=Math.max(1,parseInt(value)||1);
   return <div className="stepper"><button onClick={()=>onChange(String(Math.max(1,v-1)))}>−</button><span>{v} Sätze</span><button onClick={()=>onChange(String(v+1))}>+</button></div>;
 }
+// Live-Logger: jeder abgehakte Satz wird SOFORT gespeichert (kein Datenverlust bei Reload)
+function LiveDayLogger({day,last,initialSaved,onCommitExercise,onNoteCommit,onFinish,image,toast}){
+  const build=()=>{
+    const o={};
+    day.exercises.forEach(ex=>{
+      const saved=(initialSaved&&initialSaved[ex.id])||[];
+      const target=Math.max(1, parseInt(ex.sets)||1);
+      const rows=[];
+      saved.forEach(s=>rows.push({key:nid(),reps:s.reps||"",kg:s.kg||"",done:true}));
+      while(rows.length<target) rows.push({key:nid(),reps:"",kg:"",done:false});
+      o[ex.id]=rows;
+    });
+    return o;
+  };
+  const [sets,setSets]=useState(build());
+  const [note,setNote]=useState("");
+  const [tab,setTab]=useState("sets");
+  const doneRowsOf=(arr)=>arr.filter(r=>r.done).map(r=>({reps:r.reps,kg:r.kg}));
+  const commit=(exId,arr)=>{ const ex=day.exercises.find(e=>e.id===exId); onCommitExercise(ex, doneRowsOf(arr)); };
+  const toggle=(exId,i)=>setSets(s=>{ const arr=s[exId].map((r,idx)=>idx===i?{...r,done:!r.done}:r); commit(exId,arr); return {...s,[exId]:arr}; });
+  const edit=(exId,i,field,val)=>setSets(s=>{ const arr=s[exId].map((r,idx)=>idx===i?{...r,[field]:val}:r); if(arr[i].done) commit(exId,arr); return {...s,[exId]:arr}; });
+  const addSet=(exId)=>setSets(s=>({...s,[exId]:[...s[exId],{key:nid(),reps:"",kg:"",done:false}]}));
+  const delSet=(exId)=>setSets(s=>{ const arr=s[exId].slice(0,-1); commit(exId,arr); return {...s,[exId]:arr}; });
+  const totalDone=day.exercises.reduce((n,ex)=>n+(sets[ex.id]||[]).filter(r=>r.done).length,0);
+  const coachNotes=day.exercises.filter(ex=>ex.note&&ex.note.trim());
+  const lastPerf=(exId)=>{ const prev=last&&last.sets&&last.sets[exId]; if(!prev||!prev.length) return null; return prev.map(r=>{ const kg=(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+"kg×"):""; return kg+(r.reps||"–"); }).join(",  "); };
+
+  return <div className="mbody logview">
+    <button className="link" style={{marginBottom:10}} onClick={onFinish}>‹ Alle Pläne</button>
+    <div className="logtop"><div><div className="logtitle">{day.name}</div>{last&&<div className="logsub">zuletzt: {fmtFull(last.date)}</div>}</div></div>
+    <div className="loginfo">
+      <div className="li-ico">{image?<img src={image} alt=""/>:<Icon name="chest"/>}</div>
+      <div className="li-fields">
+        <div className="li-flabel">Heute · {fmtFull(today())}</div>
+        <div className="li-setcount" style={{marginTop:8}}><Icon name="plan"/><span>{totalDone} {totalDone===1?"Satz erledigt":"Sätze erledigt"}</span></div>
+        <div className="muted" style={{fontSize:12,marginTop:6}}>Jeder abgehakte Satz wird sofort gespeichert.</div>
+      </div>
+    </div>
+    <div className="logtabs">
+      <button className={tab==="sets"?"on":""} onClick={()=>setTab("sets")}>Übungen &amp; Sätze</button>
+      <button className={tab==="notes"?"on":""} onClick={()=>setTab("notes")}>Notizen</button>
+    </div>
+    {tab==="sets" ? <>
+      {day.exercises.map(ex=>{ const perf=lastPerf(ex.id);
+        return <div key={ex.id} className="exblock">
+          <div className="exb-head"><div className="exb-name">{ex.name}</div><div className="exb-goal">Ziel: {ex.sets}×{ex.reps}</div></div>
+          {perf && <div className="exb-last">Letztes Mal<br/><b>{perf}</b></div>}
+          <div className="setgrid sethead" style={{gridTemplateColumns:"30px 1fr 1fr 42px"}}><span>Satz</span><span>Wiederh.</span><span>kg</span><span></span></div>
+          {(sets[ex.id]||[]).map((row,i)=>(
+            <div key={row.key} className="setgrid" style={{gridTemplateColumns:"30px 1fr 1fr 42px"}}>
+              <span className="setno">{i+1}</span>
+              <input className="setin" inputMode="numeric" value={row.reps} placeholder="–" onChange={(e)=>edit(ex.id,i,"reps",e.target.value)}/>
+              <input className="setin" inputMode="decimal" value={row.kg} placeholder="–" onChange={(e)=>edit(ex.id,i,"kg",e.target.value)}/>
+              <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" style={{width:34,height:34,borderRadius:9,border:"1px solid var(--line)",background:row.done?"var(--accent)":"transparent",color:row.done?"#fff":"var(--faint)",fontSize:17,lineHeight:1,cursor:"pointer",justifySelf:"center",padding:0}}>{row.done?"✓":""}</button>
+            </div>
+          ))}
+          <div style={{display:"flex",gap:8,marginTop:6}}>
+            <button className="addbtn" style={{flex:1}} onClick={()=>addSet(ex.id)}>+ Satz</button>
+            {(sets[ex.id]||[]).length>1 && <button className="addbtn" style={{flex:"none",width:46,color:"var(--faint)"}} onClick={()=>delSet(ex.id)}>−</button>}
+          </div>
+        </div>;
+      })}
+    </> : <>
+      {coachNotes.length>0 && <div className="mcard" style={{borderColor:"rgba(225,29,46,0.3)"}}>
+        <div className="li-flabel" style={{marginBottom:8}}>Hinweise deines Coaches</div>
+        {coachNotes.map(ex=>(<div key={ex.id} style={{marginBottom:8}}><div className="en" style={{fontSize:14}}>{ex.name}</div><div className="enote">{ex.note}</div></div>))}
+      </div>}
+      <div className="mcard">
+        <div className="li-flabel" style={{marginBottom:8}}>Deine Notiz zu dieser Einheit</div>
+        <textarea className="ta" value={note} onChange={(e)=>setNote(e.target.value)} onBlur={()=>onNoteCommit(note)} placeholder="Wie lief das Training? Schmerzen, Energie, Anmerkungen…"/>
+      </div>
+    </>}
+    <button className="btn" style={{marginTop:8}} onClick={()=>{ onNoteCommit(note); onFinish(); }}>Fertig</button>
+  </div>;
+}
 function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const [openDayId,setOpenDayId]=useState(null);   // neuer Eintrag für diesen Tag
   const [editWid,setEditWid]=useState(null);        // bestehende Einheit bearbeiten
   const [workouts,setWorkouts]=useState(null);
   const [openWid,setOpenWid]=useState(null);        // ausgeklappte Einheit (Ansicht)
   const [savingDay,setSavingDay]=useState(false);
+  const [sessionSaved,setSessionSaved]=useState(null); // bereits gespeicherte Sätze der laufenden Einheit
+  const widRef=useRef(null);                          // workout_id der laufenden Live-Einheit
 
   const loadWorkouts=async()=>{
     try{
@@ -2437,6 +2514,39 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
     catch(e){ toast("Löschen fehlgeschlagen: "+(e.message||"")); }
   };
 
+  // --- Live-Einheit (Sofort-Speicherung pro Satz) ---
+  const lastForRef=(dayId)=>{ if(!workouts) return null; const ds=workouts.filter(w=>w.dayId===dayId && w.id!==widRef.current).slice().sort((a,b)=>a.date<b.date?1:-1); return ds.length?ds[0]:null; };
+  const openSession=async(day)=>{
+    if(!day.exercises.length){ toast("Für diesen Tag sind keine Übungen hinterlegt."); return; }
+    let wid=null; const saved={};
+    try{
+      const { data:ws } = await window.supa.from("workouts").select("id").eq("client_id",clientId).eq("plan_id",plan.id).eq("day_id",day.id).eq("date",today()).order("id",{ascending:false}).limit(1);
+      if(ws&&ws.length){ wid=ws[0].id; const { data:ss } = await window.supa.from("workout_sets").select("exercise_id,set_index,reps,kg").eq("workout_id",wid).order("set_index",{ascending:true}); (ss||[]).forEach(s=>{ (saved[s.exercise_id]=saved[s.exercise_id]||[]).push({reps:s.reps,kg:s.kg}); }); }
+    }catch(e){}
+    widRef.current=wid; setSessionSaved(saved); setOpenDayId(day.id);
+  };
+  const ensureWorkout=async()=>{
+    if(widRef.current) return widRef.current;
+    const { data:w, error } = await window.supa.from("workouts").insert({ client_id:clientId, plan_id:plan.id, day_id:openDayId, date:today() }).select("id").single();
+    if(error) throw error; widRef.current=w.id; return w.id;
+  };
+  const commitExercise=async(ex,doneRows)=>{
+    try{
+      const wid=await ensureWorkout();
+      await window.supa.from("workout_sets").delete().eq("workout_id",wid).eq("exercise_id",ex.id);
+      if(doneRows.length){
+        const rows=doneRows.map((r,idx)=>({ workout_id:wid, client_id:clientId, exercise_id:ex.id, exercise_name:ex.name, set_index:idx, reps:String(r.reps||""), kg:String(r.kg||"") }));
+        const { error } = await window.supa.from("workout_sets").insert(rows); if(error) throw error;
+      }
+    }catch(e){ toast("Satz konnte nicht gespeichert werden: "+(e.message||"")); }
+  };
+  const commitNote=async(note)=>{ if(!widRef.current) return; try{ await window.supa.from("workouts").update({ note:(note||"").trim()||null }).eq("id",widRef.current); }catch(e){} };
+  const finishSession=async()=>{
+    const wid=widRef.current;
+    if(wid){ try{ const { data:ss } = await window.supa.from("workout_sets").select("workout_id").eq("workout_id",wid).limit(1); if(!ss||!ss.length){ await window.supa.from("workouts").delete().eq("id",wid); } }catch(e){} }
+    widRef.current=null; setOpenDayId(null); setSessionSaved(null); await loadWorkouts();
+  };
+
   const renderSession=(w)=>{
     const keys=Object.keys(w.sets);
     if(!keys.length) return <div className="muted">Keine Sätze erfasst.</div>;
@@ -2454,8 +2564,8 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   // --- Fokus-Ansichten (neuer Eintrag / Bearbeiten) ---
   if(openDayId){
     const day=plan.days.find(d=>d.id===openDayId);
-    if(day) return <DayLogger day={day} last={lastFor(day.id)} mode="new" isActive={plan.id===activeId} saving={savingDay} image={imgResolve?imgResolve(day.imagePath):""}
-      onSave={(sets,date,note)=>saveDay(day,sets,date,note)} onCancel={()=>setOpenDayId(null)}/>;
+    if(day) return <LiveDayLogger day={day} last={lastForRef(day.id)} initialSaved={sessionSaved||{}} image={imgResolve?imgResolve(day.imagePath):""}
+      onCommitExercise={commitExercise} onNoteCommit={commitNote} onFinish={finishSession} toast={toast}/>;
   }
   if(editWid){
     const w=workouts && workouts.find(x=>x.id===editWid);
@@ -2484,8 +2594,8 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
 
     <div className="sectlabel">Trainingstage</div>
     {plan.days.length===0 && <div className="muted">Für diesen Plan sind noch keine Tage hinterlegt.</div>}
-    {plan.days.map(day=>{ const last=lastFor(day.id); const isNext=day.id===nextDayId;
-      return <button key={day.id} className={"dayrow"+(isNext?" next":"")} onClick={()=>{ if(day.exercises.length){ setOpenDayId(day.id); } else { toast("Für diesen Tag sind keine Übungen hinterlegt."); } }}>
+    {plan.days.map(day=>{ const last=lastForRef(day.id); const isNext=day.id===nextDayId;
+      return <button key={day.id} className={"dayrow"+(isNext?" next":"")} onClick={()=>openSession(day)}>
         <div className="dr-ico">{day.imagePath && imgResolve && imgResolve(day.imagePath) ? <img src={imgResolve(day.imagePath)} alt=""/> : <Icon name="chest"/>}</div>
         <div className="dr-main"><div className="dr-name">{day.name}</div><div className="dr-sub">{last?("zuletzt: "+fmtFull(last.date)):(day.exercises.length+" Übungen")}</div></div>
         <div className="dr-chev">›</div>
