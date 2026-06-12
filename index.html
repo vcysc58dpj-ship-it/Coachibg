@@ -2354,7 +2354,7 @@ function SetsStepper({value,onChange}){
   return <div className="stepper"><button onClick={()=>onChange(String(Math.max(1,v-1)))}>−</button><span>{v} Sätze</span><button onClick={()=>onChange(String(v+1))}>+</button></div>;
 }
 // Live-Logger: jeder abgehakte Satz wird SOFORT gespeichert (kein Datenverlust bei Reload)
-function LiveDayLogger({day,last,initialSaved,onCommitExercise,onNoteCommit,onFinish,image,toast}){
+function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitExercise,onNoteCommit,onFinish,image,toast}){
   const build=()=>{
     const o={};
     day.exercises.forEach(ex=>{
@@ -2368,6 +2368,7 @@ function LiveDayLogger({day,last,initialSaved,onCommitExercise,onNoteCommit,onFi
     return o;
   };
   const [sets,setSets]=useState(build());
+  const [date,setDate]=useState(initialDate||today());
   const [note,setNote]=useState("");
   const [tab,setTab]=useState("sets");
   const doneRowsOf=(arr)=>arr.filter(r=>r.done).map(r=>({reps:r.reps,kg:r.kg}));
@@ -2386,8 +2387,9 @@ function LiveDayLogger({day,last,initialSaved,onCommitExercise,onNoteCommit,onFi
     <div className="loginfo">
       <div className="li-ico">{image?<img src={image} alt=""/>:<Icon name="chest"/>}</div>
       <div className="li-fields">
-        <div className="li-flabel">Heute · {fmtFull(today())}</div>
-        <div className="li-setcount" style={{marginTop:8}}><Icon name="plan"/><span>{totalDone} {totalDone===1?"Satz erledigt":"Sätze erledigt"}</span></div>
+        <div className="li-flabel">Datum der Einheit</div>
+        <DateField value={date} max={today()} onChange={(d)=>{ setDate(d); onDateChange&&onDateChange(d); }}/>
+        <div className="li-setcount" style={{marginTop:10}}><Icon name="plan"/><span>{totalDone} {totalDone===1?"Satz erledigt":"Sätze erledigt"}</span></div>
         <div className="muted" style={{fontSize:12,marginTop:6}}>Jeder abgehakte Satz wird sofort gespeichert.</div>
       </div>
     </div>
@@ -2409,10 +2411,6 @@ function LiveDayLogger({day,last,initialSaved,onCommitExercise,onNoteCommit,onFi
               <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" style={{width:34,height:34,borderRadius:9,border:"1px solid var(--line)",background:row.done?"var(--accent)":"transparent",color:row.done?"#fff":"var(--faint)",fontSize:17,lineHeight:1,cursor:"pointer",justifySelf:"center",padding:0}}>{row.done?"✓":""}</button>
             </div>
           ))}
-          <div style={{display:"flex",gap:8,marginTop:6}}>
-            <button className="addbtn" style={{flex:1}} onClick={()=>addSet(ex.id)}>+ Satz</button>
-            {(sets[ex.id]||[]).length>1 && <button className="addbtn" style={{flex:"none",width:46,color:"var(--faint)"}} onClick={()=>delSet(ex.id)}>−</button>}
-          </div>
         </div>;
       })}
     </> : <>
@@ -2435,7 +2433,9 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const [openWid,setOpenWid]=useState(null);        // ausgeklappte Einheit (Ansicht)
   const [savingDay,setSavingDay]=useState(false);
   const [sessionSaved,setSessionSaved]=useState(null); // bereits gespeicherte Sätze der laufenden Einheit
+  const [sessionDate,setSessionDate]=useState(today());
   const widRef=useRef(null);                          // workout_id der laufenden Live-Einheit
+  const dateRef=useRef(today());                       // Datum der laufenden Live-Einheit
 
   const loadWorkouts=async()=>{
     try{
@@ -2518,18 +2518,19 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const lastForRef=(dayId)=>{ if(!workouts) return null; const ds=workouts.filter(w=>w.dayId===dayId && w.id!==widRef.current).slice().sort((a,b)=>a.date<b.date?1:-1); return ds.length?ds[0]:null; };
   const openSession=async(day)=>{
     if(!day.exercises.length){ toast("Für diesen Tag sind keine Übungen hinterlegt."); return; }
-    let wid=null; const saved={};
+    let wid=null, wdate=today(); const saved={};
     try{
-      const { data:ws } = await window.supa.from("workouts").select("id").eq("client_id",clientId).eq("plan_id",plan.id).eq("day_id",day.id).eq("date",today()).order("id",{ascending:false}).limit(1);
-      if(ws&&ws.length){ wid=ws[0].id; const { data:ss } = await window.supa.from("workout_sets").select("exercise_id,set_index,reps,kg").eq("workout_id",wid).order("set_index",{ascending:true}); (ss||[]).forEach(s=>{ (saved[s.exercise_id]=saved[s.exercise_id]||[]).push({reps:s.reps,kg:s.kg}); }); }
+      const { data:ws } = await window.supa.from("workouts").select("id,date").eq("client_id",clientId).eq("plan_id",plan.id).eq("day_id",day.id).eq("date",today()).order("id",{ascending:false}).limit(1);
+      if(ws&&ws.length){ wid=ws[0].id; wdate=ws[0].date||today(); const { data:ss } = await window.supa.from("workout_sets").select("exercise_id,set_index,reps,kg").eq("workout_id",wid).order("set_index",{ascending:true}); (ss||[]).forEach(s=>{ (saved[s.exercise_id]=saved[s.exercise_id]||[]).push({reps:s.reps,kg:s.kg}); }); }
     }catch(e){}
-    widRef.current=wid; setSessionSaved(saved); setOpenDayId(day.id);
+    widRef.current=wid; dateRef.current=wdate; setSessionSaved(saved); setSessionDate(wdate); setOpenDayId(day.id);
   };
   const ensureWorkout=async()=>{
     if(widRef.current) return widRef.current;
-    const { data:w, error } = await window.supa.from("workouts").insert({ client_id:clientId, plan_id:plan.id, day_id:openDayId, date:today() }).select("id").single();
+    const { data:w, error } = await window.supa.from("workouts").insert({ client_id:clientId, plan_id:plan.id, day_id:openDayId, date:dateRef.current||today() }).select("id").single();
     if(error) throw error; widRef.current=w.id; return w.id;
   };
+  const changeSessionDate=async(d)=>{ dateRef.current=d; setSessionDate(d); if(widRef.current){ try{ await window.supa.from("workouts").update({ date:d }).eq("id",widRef.current); }catch(e){} } };
   const commitExercise=async(ex,doneRows)=>{
     try{
       const wid=await ensureWorkout();
@@ -2544,7 +2545,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const finishSession=async()=>{
     const wid=widRef.current;
     if(wid){ try{ const { data:ss } = await window.supa.from("workout_sets").select("workout_id").eq("workout_id",wid).limit(1); if(!ss||!ss.length){ await window.supa.from("workouts").delete().eq("id",wid); } }catch(e){} }
-    widRef.current=null; setOpenDayId(null); setSessionSaved(null); await loadWorkouts();
+    widRef.current=null; dateRef.current=today(); setOpenDayId(null); setSessionSaved(null); await loadWorkouts();
   };
 
   const renderSession=(w)=>{
@@ -2564,7 +2565,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   // --- Fokus-Ansichten (neuer Eintrag / Bearbeiten) ---
   if(openDayId){
     const day=plan.days.find(d=>d.id===openDayId);
-    if(day) return <LiveDayLogger day={day} last={lastForRef(day.id)} initialSaved={sessionSaved||{}} image={imgResolve?imgResolve(day.imagePath):""}
+    if(day) return <LiveDayLogger day={day} last={lastForRef(day.id)} initialSaved={sessionSaved||{}} initialDate={sessionDate} onDateChange={changeSessionDate} image={imgResolve?imgResolve(day.imagePath):""}
       onCommitExercise={commitExercise} onNoteCommit={commitNote} onFinish={finishSession} toast={toast}/>;
   }
   if(editWid){
@@ -5441,7 +5442,7 @@ function App(){
   else if(screen==="anamnese") view=<AnamneseWizard clientId={profile&&profile.id} toast={toast} onSignOut={signOut} onDone={async()=>{ setRole("client"); setScreen("notify"); }}/>;
   else if(screen==="notify") view=<NotifyPrompt onDone={()=>setScreen("app")} toast={toast}/>;
   else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
-  else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const selfTools={plan:true,food:true,habits:true,checkin:true,weight:true,chat:false,cloud:false,call:false,...((profile&&profile.tools)||{})}; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={selfTools}/>; }
+  else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const _baseSelf={plan:true,food:true,habits:true,checkin:true,weight:true,chat:false,cloud:false,call:false}; const selfTools=(profile&&profile.account_type==="self_coach")?{..._baseSelf,...((profile&&profile.tools)||{})}:_baseSelf; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={selfTools}/>; }
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools} unread={unread}/>; }
   else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools} canCall={!(profile&&profile.tools&&profile.tools.call===false)}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole} unread={unread} unreadByClient={unreadByClient}/>;
