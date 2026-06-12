@@ -1689,6 +1689,104 @@ function CoachAnamnese({clientId,toast}){
   </>;
 }
 
+// Coach: editierbare Standard-Check-in-Vorlage (gilt für NEUE Kunden; per Button auch auf bestehende anwendbar)
+function CoachCheckinTemplate({toast}){
+  const [uid,setUid]=useState(null);
+  const [rows,setRows]=useState(null);
+  const [newLabel,setNewLabel]=useState("");
+  const [newType,setNewType]=useState("scale");
+  const [busy,setBusy]=useState(false);
+  const [applying,setApplying]=useState(false);
+  const seededRef=useRef(false);
+  useEffect(()=>{ (async()=>{ try{ const { data } = await window.supa.auth.getUser(); setUid(data&&data.user?data.user.id:null); }catch(e){ setUid(null); } })(); },[]);
+  const seedKey=uid?("nk_checkin_tpl_seeded_"+uid):"";
+  const wasSeeded=()=>{ try{ return localStorage.getItem(seedKey)==="1"; }catch(e){ return false; } };
+  const markSeeded=()=>{ try{ localStorage.setItem(seedKey,"1"); }catch(e){} };
+  const fetchRows=async()=>{ const { data,error } = await window.supa.from("checkin_template").select("id,label,type,position,created_at").eq("coach_id",uid).order("position",{ascending:true}).order("created_at",{ascending:true}); if(error) throw error; return (data||[]).map(q=>({id:q.id,label:q.label,type:q.type,position:q.position})); };
+  const load=async()=>{
+    try{
+      let r=await fetchRows();
+      if(r.length===0 && !seededRef.current && !wasSeeded()){
+        seededRef.current=true;
+        const ins=DEFAULT_CHECKIN.map((q,i)=>({ coach_id:uid, label:q.label, type:q.type, position:i }));
+        const { error:ie } = await window.supa.from("checkin_template").insert(ins);
+        if(!ie){ markSeeded(); r=await fetchRows(); }
+      }
+      seededRef.current=true;
+      if(r.length>0) markSeeded();
+      setRows(r);
+    }catch(e){ toast("Vorlage konnte nicht geladen werden"); setRows([]); }
+  };
+  useEffect(()=>{ if(uid) load(); },[uid]);
+
+  const addQ=async()=>{ if(!newLabel.trim()||busy) return; setBusy(true);
+    try{ const pos=rows.length; const { error } = await window.supa.from("checkin_template").insert({ coach_id:uid, label:newLabel.trim(), type:newType, position:pos }); if(error) throw error; setNewLabel(""); setNewType("scale"); await load(); }
+    catch(e){ toast("Hinzufügen fehlgeschlagen: "+(e.message||"")); } finally{ setBusy(false); } };
+  const delQ=async(id)=>{ if(busy) return; if(!await askConfirm({title:"Frage aus Vorlage entfernen?",message:"Betrifft nur die Vorlage für künftige Kunden. Bestehende Kunden behalten die Frage.",confirmText:"Entfernen",danger:true})) return; setBusy(true); const prev=rows; setRows(qs=>qs.filter(q=>q.id!==id));
+    try{ const { error } = await window.supa.from("checkin_template").delete().eq("id",id); if(error) throw error; }
+    catch(e){ setRows(prev); toast("Entfernen fehlgeschlagen"); } finally{ setBusy(false); } };
+  const move=async(idx,dir)=>{ const j=idx+dir; if(j<0||j>=rows.length) return; const a=rows[idx], b=rows[j];
+    try{ await window.supa.from("checkin_template").update({position:b.position}).eq("id",a.id); await window.supa.from("checkin_template").update({position:a.position}).eq("id",b.id); await load(); }
+    catch(e){ toast("Reihenfolge konnte nicht geändert werden"); } };
+
+  const applyToAll=async()=>{
+    if(applying||!rows||rows.length===0) return;
+    if(!await askConfirm({title:"Auf alle Kunden anwenden?",message:"Fehlende Vorlagen-Fragen werden zu allen deinen Kunden hinzugefügt. Bereits vorhandene Fragen (gleicher Text) werden übersprungen. Eigene Zusatzfragen der Kunden bleiben unberührt.",confirmText:"Anwenden"})) return;
+    setApplying(true);
+    try{
+      const { data:cls,error } = await window.supa.from("profiles").select("id").eq("role","client").eq("coach_id",uid);
+      if(error) throw error;
+      const clients=cls||[];
+      const norm=(s)=>(s||"").trim().toLowerCase();
+      let added=0, touched=0;
+      for(const c of clients){
+        const { data:ex } = await window.supa.from("checkin_questions").select("label,position").eq("client_id",c.id);
+        const have=new Set((ex||[]).map(q=>norm(q.label)));
+        const maxPos=(ex||[]).reduce((m,q)=>Math.max(m,q.position),-1);
+        const missing=rows.filter(q=>!have.has(norm(q.label)));
+        if(missing.length===0) continue;
+        const ins=missing.map((q,i)=>({ client_id:c.id, label:q.label, type:q.type, position:maxPos+1+i }));
+        const { error:ie } = await window.supa.from("checkin_questions").insert(ins);
+        if(!ie){ added+=ins.length; touched++; }
+      }
+      toast(added>0 ? (added+" Fragen zu "+touched+" Kunden hinzugefügt") : "Alle Kunden hatten die Fragen bereits");
+    }catch(e){ toast("Anwenden fehlgeschlagen: "+(e.message||"")); }
+    finally{ setApplying(false); }
+  };
+
+  if(!uid || rows===null) return <div className="muted">Lädt…</div>;
+  return <>
+    <div className="sectlabel">Standard-Check-in</div>
+    <div className="muted" style={{fontSize:13,marginBottom:6}}>Diese Vorlage bekommen NEUE Kunden automatisch. Mit „Auf alle Kunden anwenden" fügst du fehlende Fragen auch zu bestehenden Kunden hinzu.</div>
+    {rows.length===0 && <div className="muted" style={{marginBottom:10}}>Noch keine Fragen. Lege unten welche an.</div>}
+    {rows.map((q,i)=>(
+      <div key={q.id} className="mcard ci-qrow">
+        <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
+        <div className="ci-qacts">
+          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button>
+          <button className="iconbtn" disabled={i===rows.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button>
+          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+        </div>
+      </div>
+    ))}
+    <div className="sectlabel">Frage hinzufügen</div>
+    <div className="mcard">
+      <div className="field" style={{marginBottom:10}}><label>Frage</label>
+        <input value={newLabel} onChange={(e)=>setNewLabel(e.target.value)} placeholder="z.B. Wie war deine Energie diese Woche?"
+          style={{width:"100%",background:"var(--bg-3)",border:"1px solid var(--line)",color:"var(--text)",fontSize:16,padding:"12px 14px",borderRadius:12,outline:"none",boxSizing:"border-box"}}/>
+      </div>
+      <div className="field" style={{marginBottom:14}}><label>Antworttyp</label>
+        <div className="typewrap">{ANAM_TYPES.map(tp=>(
+          <button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>
+        ))}</div>
+      </div>
+      <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
+    </div>
+    <div style={{height:14}}/>
+    <button className="btn btn-ghost" disabled={applying||rows.length===0} onClick={applyToAll}>{applying?"Wird angewendet…":"Auf alle Kunden anwenden"}</button>
+  </>;
+}
+
 // Coach: globale Standard-Anamnese-Vorlage (gilt für NEUE Kunden)
 function CoachAnamneseTemplate({toast}){
   const [uid,setUid]=useState(null);
@@ -1726,7 +1824,9 @@ function LiveCheckinTab({clientId,role,toast}){
       // Standard-Bogen einmalig vorbefüllen (nur Coach/Self-Edit, nie erneut nach absichtlichem Leeren)
       if(rows.length===0 && role==="coach" && !seededRef.current && !wasSeeded()){
         seededRef.current=true;
-        const ins=DEFAULT_CHECKIN.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
+        let seed=DEFAULT_CHECKIN;
+        try{ const { data:u }=await window.supa.auth.getUser(); const myId=u&&u.user?u.user.id:null; if(myId){ const { data:tpl }=await window.supa.from("checkin_template").select("label,type,position").eq("coach_id",myId).order("position",{ascending:true}); if(tpl&&tpl.length) seed=tpl.map(t=>({label:t.label,type:t.type})); } }catch(e){}
+        const ins=seed.map((q,i)=>({ client_id:clientId, label:q.label, type:q.type, position:i }));
         const { error:ie } = await window.supa.from("checkin_questions").insert(ins);
         if(!ie){ markSeeded(); rows=await fetchQ(); }
       }
@@ -4122,8 +4222,8 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
     }catch(e){ toast("Löschen fehlgeschlagen: "+(e.message||"")); }
   };
 
-  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"anamnese",l:"Anamnese-Vorlage",i:"checkin"},{k:"account",l:"Konto",i:"settings"}];
-  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",anamnese:"Anamnese-Vorlage",account:"Konto"};
+  const COACH_NAV=[{k:"home",l:"Dashboard",i:"home"},{k:"clients",l:"Kunden",i:"habits"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"chat",l:"Chat",i:"chat"},{k:"anamnese",l:"Anamnese-Vorlage",i:"checkin"},{k:"checkin_tpl",l:"Check-in-Vorlage",i:"checkin"},{k:"account",l:"Konto",i:"settings"}];
+  const titleFor={home:"Dashboard",clients:"Kunden",cloud:"Cloud",chat:"Chat",anamnese:"Anamnese-Vorlage",checkin_tpl:"Check-in-Vorlage",account:"Konto"};
 
   let body;
   if(tab==="home") body=<CoachDashboard clients={clients} onOpen={onOpen} toast={toast} unread={unread} onChat={()=>setTab("chat")}/>;
@@ -4161,6 +4261,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   else if(tab==="chat") body=<CoachChatList clients={(clients||[]).filter(c=>c.active!==false)} onOpen={onOpen} unreadByClient={unreadByClient}/>;
   else if(tab==="account") body=<AccountSettings theme={theme} setTheme={setTheme} toast={toast} onRefresh={onRefresh}/>;
   else if(tab==="anamnese") body=<CoachAnamneseTemplate toast={toast}/>;
+  else if(tab==="checkin_tpl") body=<CoachCheckinTemplate toast={toast}/>;
 
   return <div className="app">
     <div className="topbar">
