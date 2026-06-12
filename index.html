@@ -4403,20 +4403,28 @@ function CoachClientListLive({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,
   </div>;
 }
 
+// Interne Login-Domain: ein Benutzername wird daraus zu einer Schein-Mail (name@nk.coach).
+// Wird nie verschickt, nur als eindeutige Login-Kennung benutzt. Beim Onboarding tauscht
+// die onboard-client Edge Function diese Schein-Mail gegen die echte Mail des Kunden.
+const LOGIN_DOMAIN="@nk.coach";
+const looksLikeEmail=(s)=>(s||"").indexOf("@")>0;
+const userToEmail=(s)=>{ const v=(s||"").trim().toLowerCase(); return looksLikeEmail(v)?v:v+LOGIN_DOMAIN; };
+const validUsername=(s)=>/^[a-z0-9][a-z0-9._-]{1,30}$/.test((s||"").trim().toLowerCase());
+
 function CreateClientSheet({onClose,onCreate,onCreated,toast}){
-  const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
   const [pw,setPw]=useState("");
   const [busy,setBusy]=useState(false);
   const [msg,setMsg]=useState(null);
-  const [done,setDone]=useState(null); // {email, pw} nach Erfolg
+  const [done,setDone]=useState(null); // {username, pw} nach Erfolg
   const gen=()=>{ const chars="abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"; setPw(Array.from(crypto.getRandomValues(new Uint8Array(10))).map(b=>chars[b%chars.length]).join("")); };
   const submit=async()=>{
-    const mail=email.trim().toLowerCase();
-    if(!mail || mail.indexOf("@")<1){ setMsg({type:"err",text:"Bitte gib eine gültige E-Mail ein."}); return; }
+    const u=username.trim().toLowerCase();
+    if(!validUsername(u)){ setMsg({type:"err",text:"Benutzername: 2–31 Zeichen, nur Buchstaben, Zahlen, . _ - (kein @, keine Leerzeichen)."}); return; }
     if(pw.length<8){ setMsg({type:"err",text:"Das Start-Passwort muss mindestens 8 Zeichen haben."}); return; }
     setBusy(true); setMsg(null);
-    const r=await onCreate(mail,pw);
-    if(r && r.ok){ setDone({email:mail,pw}); toast("Kunde angelegt"); }
+    const r=await onCreate(u+LOGIN_DOMAIN,pw);
+    if(r && r.ok){ setDone({username:u,pw}); toast("Kunde angelegt"); }
     else { setMsg({type:"err",text:(r&&r.error)||"Konnte Kunden nicht anlegen."}); setBusy(false); }
   };
   return <>
@@ -4424,8 +4432,8 @@ function CreateClientSheet({onClose,onCreate,onCreated,toast}){
     <div className="sheet">
       {!done ? <>
         <h3>Neuen Kunden anlegen</h3>
-        <div className="muted" style={{marginBottom:14}}>Du legst Login-Daten an. Der Kunde richtet beim ersten Login sein eigenes Profil und Passwort ein.</div>
-        <Field label="E-Mail (Login)" type="email" value={email} onChange={setEmail} placeholder="kunde@mail.de"/>
+        <div className="muted" style={{marginBottom:14}}>Du legst Login-Daten an. Der Kunde meldet sich zuerst mit Benutzername + Passwort an und hinterlegt beim Onboarding seine echte E-Mail.</div>
+        <Field label="Benutzername (Login)" value={username} onChange={setUsername} placeholder="z.B. max.mueller"/>
         <div className="field"><label>Start-Passwort</label>
           <div className="mini" style={{gap:8}}>
             <input style={{flex:1}} value={pw} onChange={(e)=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/>
@@ -4439,10 +4447,10 @@ function CreateClientSheet({onClose,onCreate,onCreated,toast}){
         <h3>Kunde angelegt ✓</h3>
         <div className="muted" style={{marginBottom:14}}>Gib dem Kunden diese Zugangsdaten. Beim ersten Login richtet er Name, echte E-Mail, Passwort und Profilbild selbst ein.</div>
         <div className="mcard" style={{padding:"14px 16px"}}>
-          <div className="setline"><span>E-Mail</span><span className="sv">{done.email}</span></div>
+          <div className="setline"><span>Benutzername</span><span className="sv">{done.username}</span></div>
           <div className="setline"><span>Passwort</span><span className="sv">{done.pw}</span></div>
         </div>
-        <button className="btn" style={{marginTop:12}} onClick={async()=>{ const ok=await copyText("E-Mail: "+done.email+"\n\nPasswort: "+done.pw); toast(ok?"Zugangsdaten kopiert":"Konnte nicht kopieren"); }}>Zugangsdaten kopieren</button>
+        <button className="btn" style={{marginTop:12}} onClick={async()=>{ const ok=await copyText("Benutzername: "+done.username+"\n\nPasswort: "+done.pw); toast(ok?"Zugangsdaten kopiert":"Konnte nicht kopieren"); }}>Zugangsdaten kopieren</button>
         <button className="btn btn-ghost" style={{marginTop:10}} onClick={onCreated}>Fertig</button>
       </>}
     </div>
@@ -4494,23 +4502,24 @@ function Auth(){
   const live = !!window.supa;
 
   const loginPw=async()=>{
-    const mail=email.trim().toLowerCase();
-    if(!mail || mail.indexOf("@")<1){ setMsg({type:"err",text:"Bitte gib eine gültige E-Mail-Adresse ein."}); return; }
+    const raw=email.trim().toLowerCase();
+    if(!raw){ setMsg({type:"err",text:"Bitte gib deine E-Mail oder deinen Benutzernamen ein."}); return; }
     if(!pw){ setMsg({type:"err",text:"Bitte gib dein Passwort ein."}); return; }
     if(!live){ setMsg({type:"err",text:"Login noch nicht aktiv: Bitte die Supabase-Zugangsdaten in der Datei eintragen."}); return; }
+    const mail=userToEmail(raw);
     setBusy(true); setMsg(null);
     try{
       const { error } = await window.supa.auth.signInWithPassword({ email: mail, password: pw });
       if(error) throw error;
     }catch(e){
-      setMsg({type:"err",text:"Login fehlgeschlagen: "+(e.message||"E-Mail oder Passwort falsch")});
+      setMsg({type:"err",text:"Login fehlgeschlagen: "+(e.message||"E-Mail/Benutzername oder Passwort falsch")});
       setBusy(false);
     }
   };
 
   const sendReset=async()=>{
     const mail=email.trim().toLowerCase();
-    if(!mail || mail.indexOf("@")<1){ setMsg({type:"err",text:"Bitte gib deine E-Mail-Adresse ein."}); return; }
+    if(!mail || mail.indexOf("@")<1){ setMsg({type:"err",text:"Passwort-Reset geht nur mit einer echten E-Mail. Wenn du dich mit Benutzernamen anmeldest, frag deinen Coach nach einem neuen Passwort."}); return; }
     if(!live){ setMsg({type:"err",text:"Login noch nicht aktiv."}); return; }
     setBusy(true); setMsg(null);
     try{
@@ -4527,7 +4536,7 @@ function Auth(){
     <div className="card">
       {mode==="login" ? <>
         <h2 style={{fontSize:22,marginBottom:14}}>Einloggen</h2>
-        <Field label="E-Mail" type="email" value={email} onChange={setEmail} placeholder="du@mail.de"/>
+        <Field label="E-Mail oder Benutzername" value={email} onChange={setEmail} placeholder="du@mail.de oder benutzername"/>
         <Field label="Passwort" type="password" value={pw} onChange={setPw} placeholder="••••••••"/>
         <label style={{display:"flex",alignItems:"center",gap:9,margin:"4px 2px 14px",fontSize:14,color:"var(--dim)",cursor:"pointer"}}>
           <Toggle on={stay} onClick={()=>setStay(!stay)}/> Angemeldet bleiben
@@ -4734,26 +4743,33 @@ function AdminEditSheet({user,coaches,onClose,onSave,onDelete}){
   </>;
 }
 function AdminCreateSheet({coaches,onClose,onCreate}){
-  const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
   const [pw,setPw]=useState("");
-  const [nm,setNm]=useState("");
   const [type,setType]=useState("client");
   const [coachId,setCoachId]=useState("");
   const [busy,setBusy]=useState(false);
+  const [msg,setMsg]=useState(null);
+  const gen=()=>{ const chars="abcdefghijkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"; setPw(Array.from(crypto.getRandomValues(new Uint8Array(10))).map(b=>chars[b%chars.length]).join("")); };
   const submit=async()=>{
-    if(!email.trim()||pw.length<8) return;
-    setBusy(true);
-    await onCreate({email:email.trim(),password:pw,display_name:nm.trim(),account_type:type,coach_id:type==="client"?(coachId||null):null});
+    const u=username.trim().toLowerCase();
+    if(!validUsername(u)){ setMsg({type:"err",text:"Benutzername: 2–31 Zeichen, nur Buchstaben, Zahlen, . _ - (kein @, keine Leerzeichen)."}); return; }
+    if(pw.length<8){ setMsg({type:"err",text:"Das Start-Passwort muss mindestens 8 Zeichen haben."}); return; }
+    setBusy(true); setMsg(null);
+    await onCreate({email:u+LOGIN_DOMAIN,password:pw,display_name:"",account_type:type,coach_id:type==="client"?(coachId||null):null});
     setBusy(false);
   };
   return <>
     <div className="scrim" onClick={onClose}/>
     <div className="sheet sheet-full">
       <h3>Account anlegen</h3>
-      <div className="muted" style={{fontSize:12.5,marginBottom:14}}>Der Account wird sofort aktiviert. Bei „Kunde" durchläuft er beim ersten Login das Onboarding.</div>
-      <Field label="E-Mail"><input className="inp" type="email" autoCapitalize="none" autoCorrect="off" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@mail.de"/></Field>
-      <Field label="Name (optional)"><input className="inp" value={nm} onChange={e=>setNm(e.target.value)} placeholder="Vorname Nachname"/></Field>
-      <Field label="Start-Passwort (min. 8 Zeichen)"><input className="inp" value={pw} onChange={e=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/></Field>
+      <div className="muted" style={{fontSize:12.5,marginBottom:14}}>Der Account wird sofort aktiviert. Bei „Kunde" durchläuft er beim ersten Login das Onboarding (Name + echte E-Mail).</div>
+      <Field label="Benutzername (Login)" value={username} onChange={setUsername} placeholder="z.B. max.mueller"/>
+      <div className="field"><label>Start-Passwort (min. 8 Zeichen)</label>
+        <div className="mini" style={{gap:8}}>
+          <input style={{flex:1}} value={pw} onChange={(e)=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/>
+          <button className="btn btn-ghost" style={{width:"auto",padding:"0 14px"}} onClick={gen}>Würfeln</button>
+        </div>
+      </div>
       <div className="sectlabel">Account-Typ</div>
       <div className="seg seg3" style={{marginBottom:14}}>
         <button className={type==="coach"?"on":""} onClick={()=>setType("coach")}>Coach</button>
@@ -4767,7 +4783,8 @@ function AdminCreateSheet({coaches,onClose,onCreate}){
           {coaches.map(c=><option key={c.id} value={c.id}>{c.display_name||c.email}</option>)}
         </select>
       </>}
-      <button className="btn" disabled={busy||!email.trim()||pw.length<8} style={{marginTop:14}} onClick={submit}>{busy?"Legt an…":"Anlegen"}</button>
+      <button className="btn" disabled={busy||!validUsername(username)||pw.length<8} style={{marginTop:14}} onClick={submit}>{busy?"Legt an…":"Anlegen"}</button>
+      {msg && <div className={"authmsg "+msg.type}>{msg.text}</div>}
       <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={onClose}>Abbrechen</button>
     </div>
   </>;
