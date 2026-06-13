@@ -824,6 +824,40 @@
   .gate-step-txt b{font-weight:700;}
   .gate-arrow{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;background:var(--bg-3);border:1px solid var(--line);border-radius:7px;padding:1px 7px;font-size:13px;}
   .gate-desktop-icon{font-size:48px;margin-bottom:18px;opacity:.4;}
+
+  /* ===== Dark Mode ===== */
+  [data-theme="dark"]{
+    --bg:#0F0F11; --bg-2:#1C1C1F; --bg-3:#2C2C2F;
+    --line:rgba(255,255,255,0.09); --line-2:rgba(255,255,255,0.17);
+    --text:#F2F2F7; --dim:#8E8E93; --faint:#48484A;
+    --accent:#F2F2F7; --accent-2:#FFFFFF; --on-accent:#0F0F11; --ok:#30D158; --r:16px;
+  }
+  [data-theme="dark"] body{background:var(--bg);}
+  [data-theme="dark"] .composer{background:rgba(28,28,31,0.94);backdrop-filter:blur(12px);}
+  [data-theme="dark"] .tabbar{background:rgba(15,15,17,0.97);backdrop-filter:blur(12px);}
+  [data-theme="dark"] .topbar{background:rgba(15,15,17,0.96);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.07);}
+  [data-theme="dark"] .tgl.on{background:#32D74B;border-color:#32D74B;}
+  [data-theme="dark"] .tgl.on .knob{background:#fff;}
+  [data-theme="dark"] .planhero{background:linear-gradient(140deg,#2A2A2E,#1C1C1F);border-color:#3A3A3E;color:var(--text);}
+  [data-theme="dark"] .planhero .ph-badge{background:rgba(242,242,247,0.12);color:var(--text);}
+  [data-theme="dark"] .planhero .ph-sub{color:var(--dim);}
+  [data-theme="dark"] .drawer .dhead{background:#1C1C1F;border-bottom-color:rgba(255,255,255,0.08);}
+  [data-theme="dark"] .drawer .dhead .dname{color:#fff;}
+  [data-theme="dark"] .drawer .dhead .drole{color:rgba(255,255,255,0.5);}
+  [data-theme="dark"] .drawer .dhead .dav{background:rgba(255,255,255,0.10);border-color:rgba(255,255,255,0.16);color:#fff;}
+  [data-theme="dark"] .drawer{box-shadow:-16px 0 48px rgba(0,0,0,0.55);}
+  [data-theme="dark"] .sheet,.cdlg{background:var(--bg-2);box-shadow:0 -12px 48px rgba(0,0,0,0.55);}
+  [data-theme="dark"] .card,.mcard,.loginfo,.cir-card{box-shadow:0 1px 0 rgba(255,255,255,0.04),0 4px 18px rgba(0,0,0,0.36);}
+  [data-theme="dark"] .btn{box-shadow:0 6px 18px rgba(0,0,0,0.40);}
+  [data-theme="dark"] select{background:var(--bg-2);color:var(--text);}
+
+  /* Autofill: prevent iOS dark-background override */
+  input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{
+    -webkit-box-shadow:0 0 0 1000px var(--bg-2) inset !important;
+    -webkit-text-fill-color:var(--text) !important;
+    caret-color:var(--text);
+    transition:background-color 5000s ease-in-out 0s;
+  }
 </style>
 </head>
 <body>
@@ -1004,6 +1038,7 @@ function Icon({name}){
     menu:<g {...s}><path d="M4 7h16M4 12h16M4 17h16"/></g>,
     mail:<g {...s}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></g>,
     sun:<g {...s}><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.4 5.6 16.7 7.3M7.3 16.7 5.6 18.4M18.4 18.4 16.7 16.7M7.3 7.3 5.6 5.6"/></g>,
+    moon:<g {...s}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></g>,
     logout:<g {...s}><path d="M15 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H15"/><path d="M14 12H9.5M17 9l3 3-3 3"/></g>,
     file:<g {...s}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></g>,
     folder:<g {...s}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g>,
@@ -1285,7 +1320,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
       <div className="trainrow">
         <div className="tr-meta"><div className="trm"><Icon name="habits"/>{nextDay.exCount} Übungen</div>{plan.days.length>1 && <div className="trm"><Icon name="plan"/>Tag {nextIdx+1} / {plan.days.length}</div>}</div>
         <div className="tr-main"><div className="tr-title">{nextDay.name}</div><div className="tr-sub">{plan.title}</div>
-          <span className="tr-pill">Geplant für heute</span></div>
+          </div>
       </div>
     </div>}
     {plan && trainedToday && <div className="card" style={{borderColor:"var(--ok)"}}>
@@ -4438,8 +4473,8 @@ function AccountSettings({theme,setTheme,toast,onRefresh}){
 
     <div className="sectlabel">Darstellung</div>
     <div className="mcard" style={{padding:"6px 16px"}}>
-      <div className="tglrow"><div><div className="en">Helles Design</div><div className="enote">Zwischen hellem und dunklem Modus wechseln</div></div>
-        <Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
+      <div className="tglrow"><div><div className="en">Dunkles Design</div><div className="enote">Zwischen hellem und dunklem Modus wechseln</div></div>
+        <Toggle on={theme==="dark"} onClick={()=>setTheme(theme==="dark"?"light":"dark")}/></div>
     </div>
   </>;
 }
@@ -4461,8 +4496,8 @@ function SettingsTab({cdata,upd,theme,setTheme,toast,clientId,live,onRefresh}){
     </div>
     <div className="sectlabel">Darstellung</div>
     <div className="mcard" style={{padding:"6px 16px"}}>
-      <div className="tglrow"><div><div className="en">Helles Design</div><div className="enote">Zwischen hellem und dunklem Modus wechseln</div></div>
-        <Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
+      <div className="tglrow"><div><div className="en">Dunkles Design</div><div className="enote">Zwischen hellem und dunklem Modus wechseln</div></div>
+        <Toggle on={theme==="dark"} onClick={()=>setTheme(theme==="dark"?"light":"dark")}/></div>
     </div>
   </div>;
 }
@@ -4520,7 +4555,7 @@ function MiniMenu({onClose,theme,setTheme,onSwitch,onSignOut,onBroadcast,toast})
         <button onClick={()=>{onClose();onBroadcast();}}><Icon name="mail"/>Nachricht an alle</button>
       </div>
       <div className="dfoot">
-        <div className="tglrow"><span className="lab"><Icon name="sun"/>Helles Design</span><Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
+        <div className="tglrow"><span className="lab"><Icon name="moon"/>Dunkles Design</span><Toggle on={theme==="dark"} onClick={()=>setTheme(theme==="dark"?"light":"dark")}/></div>
         <button className="drow" onClick={()=>enablePush(toast)}><Icon name="bell"/>Mitteilungen aktivieren</button>
         <button className="drow" onClick={onSignOut}><Icon name="logout"/>Abmelden</button>
       </div>
@@ -5405,7 +5440,7 @@ function AdminMenu({modes,onSwitch,onClose,theme,setTheme,onSignOut}){
         <ModeSwitchRows modes={modes} mode="admin" onMode={onSwitch} onClose={onClose}/>
       </div>
       <div className="dfoot">
-        <div className="tglrow"><span className="lab"><Icon name="sun"/>Helles Design</span><Toggle on={theme==="light"} onClick={()=>setTheme(theme==="light"?"dark":"light")}/></div>
+        <div className="tglrow"><span className="lab"><Icon name="moon"/>Dunkles Design</span><Toggle on={theme==="dark"} onClick={()=>setTheme(theme==="dark"?"light":"dark")}/></div>
         <button className="drow" onClick={onSignOut}><Icon name="logout"/>Abmelden</button>
       </div>
     </div>
