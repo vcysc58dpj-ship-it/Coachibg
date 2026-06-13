@@ -811,6 +811,19 @@
   .cir-note-saved{background:var(--bg-3);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:8px;line-height:1.4;}
   .cir-new-badge{font-family:"IBM Plex Mono";font-size:9px;letter-spacing:.08em;background:var(--accent);color:#fff;border-radius:99px;padding:2px 7px;vertical-align:middle;margin-left:6px;}
 
+
+  /* ===== PWA Install Gate ===== */
+  .gate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;}
+  .gate-logo{height:44px;margin-bottom:28px;opacity:.9;}
+  .gate-hl{font-family:"Bricolage Grotesque";font-weight:800;font-size:24px;letter-spacing:-0.03em;color:var(--text);margin-bottom:10px;max-width:280px;}
+  .gate-sub{font-size:15px;color:var(--dim);line-height:1.5;max-width:290px;margin-bottom:28px;}
+  .gate-steps{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;text-align:left;}
+  .gate-step{display:flex;align-items:flex-start;gap:13px;background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 4px 12px rgba(11,12,15,.06);}
+  .gate-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .gate-step-txt{font-size:14px;line-height:1.45;color:var(--text);}
+  .gate-step-txt b{font-weight:700;}
+  .gate-arrow{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;background:var(--bg-3);border:1px solid var(--line);border-radius:7px;padding:1px 7px;font-size:13px;}
+  .gate-desktop-icon{font-size:48px;margin-bottom:18px;opacity:.4;}
 </style>
 </head>
 <body>
@@ -2001,8 +2014,15 @@ function LiveCheckinTab({clientId,role,toast}){
 
   const dueToday = weekday!=null && ((new Date(t+"T00:00:00").getDay()+6)%7)===weekday;
 
-  // Wizard nimmt die volle Höhe — kein mbody-Wrapper nötig
-  if(questions.length>0) return <ClientCheckinWizard clientId={clientId} questions={questions} t={t} toast={toast} onDone={()=>{ setView("history"); }} prevCi={prevCi}/>;
+  // Wizard: Seg-Tabs oben, Wizard nimmt den Rest
+  if(questions.length>0) return (
+    <div style={{display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+      <div style={{padding:"8px 16px 0",flexShrink:0}}><Seg/></div>
+      <div style={{flex:1,overflow:"hidden"}}>
+        <ClientCheckinWizard clientId={clientId} questions={questions} t={t} toast={toast} onDone={()=>{ setView("history"); }} prevCi={prevCi}/>
+      </div>
+    </div>
+  );
   return <div className="mbody"><Seg/>
     {weekday!=null && <div className="ci-dayhint">Dein Check-in-Tag: <b>{WD[weekday]}</b>{dueToday && <span className="ci-due"> · heute fällig</span>}</div>}
     <div className="mcard"><div style={{fontWeight:700,marginBottom:3}}>Noch kein Fragebogen</div><div className="muted" style={{fontSize:13}}>Sobald dein Coach Fragen einrichtet, kannst du hier deinen Check-in ausfüllen.</div></div>
@@ -5463,6 +5483,73 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
     {menu && <AdminMenu modes={modes} onSwitch={onSwitch} onClose={()=>setMenu(false)} theme={theme} setTheme={setTheme} onSignOut={onSignOut}/>}
   </div>;
 }
+// ======== InstallGate (PWA-only) ========
+function InstallGate(){
+  const ios  = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const android = /Android/i.test(navigator.userAgent);
+  const mobile = ios || android;
+  // iOS Chrome/Firefox/Edge cannot install PWA — needs Safari
+  const needsSafari = ios && /CriOS|FxiOS|OPiOS|EdgiOS/i.test(navigator.userAgent);
+
+  if(!mobile) return (
+    <div className="gate">
+      <div className="gate-desktop-icon">💻</div>
+      <div className="gate-hl">Nur auf dem Smartphone</div>
+      <div className="gate-sub">Öffne diese Seite auf deinem iPhone oder Android-Gerät und füge sie zum Home-Bildschirm hinzu.</div>
+      <img className="gate-logo" src={LOGO} alt="kraftkonzept"/>
+    </div>
+  );
+
+  if(needsSafari) return (
+    <div className="gate">
+      <img className="gate-logo" src={LOGO} alt="kraftkonzept"/>
+      <div className="gate-hl">In Safari öffnen</div>
+      <div className="gate-sub">Die App kann nur über Safari installiert werden. Kopiere den Link und öffne ihn in Safari.</div>
+      <div className="gate-steps">
+        <div className="gate-step"><span className="gate-num">1</span><span className="gate-step-txt">Kopiere die Adresse aus dem Browser</span></div>
+        <div className="gate-step"><span className="gate-num">2</span><span className="gate-step-txt">Öffne <b>Safari</b> und füge die Adresse ein</span></div>
+        <div className="gate-step"><span className="gate-num">3</span><span className="gate-step-txt">Folge dann den Anweisungen zum Installieren</span></div>
+      </div>
+    </div>
+  );
+
+  if(ios) return (
+    <div className="gate">
+      <img className="gate-logo" src={LOGO} alt="kraftkonzept"/>
+      <div className="gate-hl">Zum Home‑Bildschirm</div>
+      <div className="gate-sub">kraftkonzept läuft nur als installierte App.</div>
+      <div className="gate-steps">
+        <div className="gate-step"><span className="gate-num">1</span><span className="gate-step-txt">Tippe unten in Safari auf <span className="gate-arrow">↑ Teilen</span></span></div>
+        <div className="gate-step"><span className="gate-num">2</span><span className="gate-step-txt">Scrolle und wähle <b>„Zum Home-Bildschirm"</b></span></div>
+        <div className="gate-step"><span className="gate-num">3</span><span className="gate-step-txt">Tippe oben rechts auf <b>„Hinzufügen"</b></span></div>
+      </div>
+    </div>
+  );
+
+  // Android
+  return (
+    <div className="gate">
+      <img className="gate-logo" src={LOGO} alt="kraftkonzept"/>
+      <div className="gate-hl">App installieren</div>
+      <div className="gate-sub">kraftkonzept läuft nur als installierte App.</div>
+      <div className="gate-steps">
+        <div className="gate-step"><span className="gate-num">1</span><span className="gate-step-txt">Tippe oben rechts auf <b>⋮ Menü</b></span></div>
+        <div className="gate-step"><span className="gate-num">2</span><span className="gate-step-txt">Wähle <b>„App installieren"</b> oder <b>„Zum Startbildschirm"</b></span></div>
+        <div className="gate-step"><span className="gate-num">3</span><span className="gate-step-txt">Bestätige die Installation</span></div>
+      </div>
+    </div>
+  );
+}
+
+function Root(){
+  const standalone =
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true;
+  if(!standalone) return <InstallGate/>;
+  return <App/>;
+}
+
+
 function App(){
   const live = !!window.supa;
   const [screen,setScreen]=useState(live ? "loading" : "auth"); // loading | auth | redeem | app
@@ -5750,7 +5837,7 @@ function App(){
     <button className="mb-x" onClick={(e)=>{e.stopPropagation();setBanner(null);}} aria-label="Schließen">×</button>
   </div>}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
 }
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
 </script>
 </body>
 </html>
