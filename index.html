@@ -762,14 +762,14 @@
   .splash .lg{width:148px;opacity:1;}
 
   /* ===== Check-in Wizard ===== */
-  .wiz-wrap{display:flex;flex-direction:column;min-height:calc(var(--vh,100dvh) - 120px);}
+  .wiz-header{padding:10px 16px 0;flex-shrink:0;}
+  .wiz-footer{flex-shrink:0;padding:10px 16px calc(env(safe-area-inset-bottom) + 10px);border-top:1px solid var(--line);background:var(--bg);}
   .wiz-prog{height:3px;background:var(--bg-3);border-radius:2px;margin-bottom:6px;}
   .wiz-prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease;}
-  .wiz-counter{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.09em;color:var(--faint);margin-bottom:22px;}
+  .wiz-counter{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.09em;color:var(--faint);}
   .wiz-q{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;letter-spacing:-0.025em;line-height:1.3;margin-bottom:8px;}
   .wiz-hint{font-size:13px;color:var(--faint);margin-bottom:18px;display:flex;align-items:center;gap:5px;}
   .wiz-hint-val{font-weight:700;color:var(--dim);}
-  .wiz-answer{flex:1;}
   .wiz-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:6px;}
   .wiz-sc{height:54px;border-radius:13px;border:1.5px solid var(--line-2);background:var(--bg-2);font-weight:700;font-size:17px;color:var(--text);transition:background .1s,border-color .1s,color .1s;box-shadow:0 1px 2px rgba(11,12,15,.04);}
   .wiz-sc.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(11,12,15,.18);}
@@ -781,10 +781,9 @@
   .wiz-num-input{flex:1;text-align:center;font-size:34px;font-weight:800;letter-spacing:-0.02em;background:var(--bg-2);border:1.5px solid var(--line-2);border-radius:14px;padding:12px;color:var(--text);outline:none;}
   .wiz-photo-lbl{display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 20px;border:2px dashed var(--line-2);border-radius:18px;background:var(--bg-2);color:var(--text);font-weight:600;cursor:pointer;margin-top:6px;}
   .wiz-ta{font-size:16px;min-height:130px;margin-top:6px;}
-  .wiz-nav{display:flex;gap:10px;margin-top:auto;padding-top:20px;}
+  .wiz-nav{display:flex;gap:10px;}
   .wiz-back{flex:none;min-width:52px;padding-left:14px;padding-right:14px;}
   .wiz-fwd{flex:1;}
-  .wiz-summary{padding-bottom:24px;}
   .wiz-sum-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;letter-spacing:-0.025em;margin-bottom:16px;}
   .wiz-sum-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
   .wiz-sum-q{color:var(--dim);font-size:13px;flex:1;line-height:1.35;}
@@ -812,34 +811,6 @@
   .cir-note-saved{background:var(--bg-3);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:8px;line-height:1.4;}
   .cir-new-badge{font-family:"IBM Plex Mono";font-size:9px;letter-spacing:.08em;background:var(--accent);color:#fff;border-radius:99px;padding:2px 7px;vertical-align:middle;margin-left:6px;}
 
-  /* ===== Training Blocks ===== */
-  .blocks-sec{margin-bottom:6px;}
-  .block-card{border:1px solid var(--line);border-radius:var(--r);background:var(--bg-2);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 2px rgba(11,12,15,.05),0 4px 12px rgba(11,12,15,.06);}
-  .block-stripe{height:5px;}
-  .block-body{padding:14px 16px;}
-  .block-name{font-weight:800;font-size:16px;letter-spacing:-0.01em;}
-  .block-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;}
-  .block-status{font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.07em;padding:2px 8px;border-radius:99px;font-weight:700;border:1px solid var(--line);}
-  .block-status.ba{background:var(--accent);color:#fff;border-color:var(--accent);}
-  .block-status.bd{background:var(--bg-3);color:var(--faint);}
-  .block-status.bu{background:var(--bg-3);color:var(--dim);}
-  .block-dates{font-size:12px;color:var(--faint);}
-  .block-prog{height:3px;background:var(--bg-3);border-radius:2px;margin-top:10px;}
-  .block-prog-fill{height:100%;border-radius:2px;transition:width .4s ease;}
-  .block-plan-ref{font-size:13px;color:var(--dim);margin-top:5px;}
-  .block-goals{font-size:13.5px;color:var(--text);margin-top:8px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px;}
-  .block-actions{display:flex;gap:8px;margin-top:10px;}
-  .block-edit-btn{font-size:13px;font-weight:600;color:var(--accent);padding:0;background:none;border:none;}
-  .block-form{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(11,12,15,.05),0 4px 12px rgba(11,12,15,.06);}
-  .block-form-h{font-weight:800;font-size:16px;margin-bottom:14px;}
-  .block-form-row{margin-bottom:10px;}
-  .block-form-label{font-size:12.5px;color:var(--dim);margin-bottom:4px;}
-  .block-form-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .block-colorpick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-  .block-coloropt{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .12s;}
-  .block-coloropt.sel{border-color:var(--text);}
-  .block-setup-note{background:var(--bg-3);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:16px;}
-  .block-setup-note code{font-family:"IBM Plex Mono";font-size:11px;background:var(--bg-2);padding:2px 5px;border-radius:4px;color:var(--text);}
 </style>
 </head>
 <body>
@@ -1984,12 +1955,12 @@ function LiveCheckinTab({clientId,role,toast}){
   const signFile=async(path)=>{ try{ const { data } = await window.supa.storage.from("client-files").createSignedUrl(path,60*60*24); return (data&&data.signedUrl)||""; }catch(e){ return ""; } };
   const loadHistory=async()=>{
     try{
-      const { data:cs,error } = await window.supa.from("checkins").select("id,date,created_at").eq("client_id",clientId).order("date",{ascending:false}).limit(40);
+      const { data:cs,error } = await window.supa.from("checkins").select("id,date,created_at,coach_note").eq("client_id",clientId).order("date",{ascending:false}).limit(40);
       if(error) throw error;
       const ids=(cs||[]).map(c=>c.id);
       let ans=[];
       if(ids.length){ const { data:a } = await window.supa.from("checkin_answers").select("checkin_id,question_id,question_label,answer_text,answer_file").in("checkin_id",ids); ans=a||[]; }
-      const rows=(cs||[]).map(c=>({ id:c.id, date:c.date, answers:ans.filter(a=>a.checkin_id===c.id) }));
+      const rows=(cs||[]).map(c=>({ id:c.id, date:c.date, coachNote:c.coach_note||null, answers:ans.filter(a=>a.checkin_id===c.id) }));
       // Foto-Signaturen nachladen
       for(const r of rows){ for(const a of r.answers){ if(a.answer_file){ a.signedUrl=await signFile(a.answer_file); } } }
       setHistory(rows);
@@ -2030,11 +2001,11 @@ function LiveCheckinTab({clientId,role,toast}){
 
   const dueToday = weekday!=null && ((new Date(t+"T00:00:00").getDay()+6)%7)===weekday;
 
+  // Wizard nimmt die volle Höhe — kein mbody-Wrapper nötig
+  if(questions.length>0) return <ClientCheckinWizard clientId={clientId} questions={questions} t={t} toast={toast} onDone={()=>{ setView("history"); }} prevCi={prevCi}/>;
   return <div className="mbody"><Seg/>
     {weekday!=null && <div className="ci-dayhint">Dein Check-in-Tag: <b>{WD[weekday]}</b>{dueToday && <span className="ci-due"> · heute fällig</span>}</div>}
-    {questions.length===0
-      ? <div className="mcard"><div style={{fontWeight:700,marginBottom:3}}>Noch kein Fragebogen</div><div className="muted" style={{fontSize:13}}>Sobald dein Coach Fragen einrichtet, kannst du hier deinen Check-in ausfüllen.</div></div>
-      : <ClientCheckinWizard clientId={clientId} questions={questions} t={t} toast={toast} onDone={()=>{ setView("history"); }} prevCi={prevCi}/>}
+    <div className="mcard"><div style={{fontWeight:700,marginBottom:3}}>Noch kein Fragebogen</div><div className="muted" style={{fontSize:13}}>Sobald dein Coach Fragen einrichtet, kannst du hier deinen Check-in ausfüllen.</div></div>
   </div>;
 }
 
@@ -2175,44 +2146,52 @@ function ClientCheckinWizard({clientId,questions,t,toast,onDone,prevCi}){
   const setFile=(id,f)=>setVals(s=>({...s,[id]:{...s[id],file:f,fileName:f?f.name:""}}));
   const prevAns=(qId)=>{ if(!prevCi) return null; const a=prevCi.answers.find(a=>a.question_id===qId); return a?(a.answer_text||null):null; };
   const total=questions.length; const isSummary=step===total;
-  const q=questions[step]; const isLast=step===total-1;
+  const q=isSummary?null:questions[step]; const isLast=!isSummary&&step===total-1;
   const save=async()=>{
     if(busy) return; setBusy(true);
     try{
       const {data:ci,error:ce}=await window.supa.from("checkins").insert({client_id:clientId,date:t}).select("id").single(); if(ce) throw ce;
       const rows=[];
-      for(const q of questions){
-        const v=vals[q.id]||{}; let answer_file=null;
-        if(q.type==="photo"&&v.file){ const ext=(v.file.name.split(".").pop()||"jpg").toLowerCase(); const path=clientId+"/checkin/"+ci.id+"_"+q.id+"_"+nid()+"."+ext; const {error:ue}=await window.supa.storage.from("client-files").upload(path,v.file,{contentType:v.file.type||"image/jpeg",upsert:false}); if(ue) throw ue; answer_file=path; }
-        rows.push({checkin_id:ci.id,client_id:clientId,question_id:q.id,question_label:q.label,answer_text:(q.type==="photo"?null:(v.text||null)),answer_file});
+      for(const qr of questions){
+        const v=vals[qr.id]||{}; let answer_file=null;
+        if(qr.type==="photo"&&v.file){ const ext=(v.file.name.split(".").pop()||"jpg").toLowerCase(); const path=clientId+"/checkin/"+ci.id+"_"+qr.id+"_"+nid()+"."+ext; const {error:ue}=await window.supa.storage.from("client-files").upload(path,v.file,{contentType:v.file.type||"image/jpeg",upsert:false}); if(ue) throw ue; answer_file=path; }
+        rows.push({checkin_id:ci.id,client_id:clientId,question_id:qr.id,question_label:qr.label,answer_text:(qr.type==="photo"?null:(v.text||null)),answer_file});
       }
       if(rows.length){ const {error:ae}=await window.supa.from("checkin_answers").insert(rows); if(ae) throw ae; }
       toast("Check-in abgeschickt ✓"); onDone();
     }catch(e){ toast("Fehler: "+(e.message||"")); setBusy(false); }
   };
+  /* ---- Zusammenfassung ---- */
   if(isSummary) return (
-    <div className="wiz-summary">
-      <div className="wiz-sum-title">Zusammenfassung</div>
-      {questions.map(q=>(
-        <div key={q.id} className="wiz-sum-row">
-          <div className="wiz-sum-q">{q.label}</div>
-          <div className="wiz-sum-a">{q.type==="photo"?(vals[q.id].file?<span>📷 {vals[q.id].fileName}</span>:<span className="muted">—</span>):(vals[q.id].text||<span className="muted">—</span>)}</div>
+    <div style={{display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+      <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px 16px 8px",overscrollBehavior:"contain"}}>
+        <div className="wiz-sum-title">Zusammenfassung</div>
+        {questions.map(qr=>(
+          <div key={qr.id} className="wiz-sum-row">
+            <div className="wiz-sum-q">{qr.label}</div>
+            <div className="wiz-sum-a">{qr.type==="photo"?(vals[qr.id].file?<span>📷 {vals[qr.id].fileName}</span>:<span className="muted">—</span>):(vals[qr.id].text||<span className="muted">—</span>)}</div>
+          </div>
+        ))}
+      </div>
+      <div className="wiz-footer">
+        <div className="wiz-nav">
+          <button className="btn btn-ghost wiz-back" onClick={()=>setStep(total-1)}>←</button>
+          <button className="btn wiz-fwd" disabled={busy} onClick={save}>{busy?"Sendet…":"Abschicken ✓"}</button>
         </div>
-      ))}
-      <div className="wiz-nav" style={{marginTop:20}}>
-        <button className="btn btn-ghost wiz-back" onClick={()=>setStep(total-1)}>←</button>
-        <button className="btn wiz-fwd" disabled={busy} onClick={save}>{busy?"Sendet…":"Abschicken ✓"}</button>
       </div>
     </div>
   );
+  /* ---- Einzelne Frage ---- */
   const prev=prevAns(q.id);
   return (
-    <div className="wiz-wrap">
-      <div className="wiz-prog"><div className="wiz-prog-fill" style={{width:((step+1)/total*100)+"%"}}/></div>
-      <div className="wiz-counter">{step+1} / {total}</div>
-      <div className="wiz-q">{q.label}</div>
-      {prev && <div className="wiz-hint">Letzte Woche: <span className="wiz-hint-val">{prev}</span></div>}
-      <div className="wiz-answer">
+    <div style={{display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+      <div className="wiz-header">
+        <div className="wiz-prog"><div className="wiz-prog-fill" style={{width:((step+1)/total*100)+"%"}}/></div>
+        <div className="wiz-counter" style={{marginTop:5}}>{step+1} / {total}</div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px 16px 12px",overscrollBehavior:"contain"}}>
+        <div className="wiz-q">{q.label}</div>
+        {prev && <div className="wiz-hint">Letzte Woche: <span className="wiz-hint-val">{prev}</span></div>}
         {q.type==="scale" && <div className="wiz-scale">{[1,2,3,4,5,6,7,8,9,10].map(n=><button key={n} className={"wiz-sc"+(String(n)===String(vals[q.id].text)?" on":"")} onClick={()=>setText(q.id,String(n))}>{n}</button>)}</div>}
         {q.type==="yesno" && <div className="wiz-yn">
           <button className={"wiz-yn-btn"+(vals[q.id].text==="Ja"?" on":"")} onClick={()=>setText(q.id,"Ja")}>Ja</button>
@@ -2230,32 +2209,39 @@ function ClientCheckinWizard({clientId,questions,t,toast,onDone,prevCi}){
           <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f)setFile(q.id,f);e.target.value="";}}/>
         </label>}
       </div>
-      <div className="wiz-nav">
-        {step>0?<button className="btn btn-ghost wiz-back" onClick={()=>setStep(s=>s-1)}>←</button>:<span/>}
-        <button className="btn wiz-fwd" onClick={()=>setStep(s=>s+1)}>{isLast?"Zusammenfassung":"Weiter →"}</button>
+      <div className="wiz-footer">
+        <div className="wiz-nav">
+          {step>0?<button className="btn btn-ghost wiz-back" onClick={()=>setStep(st=>st-1)}>←</button>:<span/>}
+          <button className="btn wiz-fwd" onClick={()=>setStep(st=>st+1)}>{isLast?"Zusammenfassung":"Weiter →"}</button>
+        </div>
       </div>
     </div>
   );
 }
 
+
 // ======== CheckinReviewCard ========
-const SCORE_CLS=(v)=>{ const n=parseInt(v); if(isNaN(n)) return "sn"; if(n<=3) return "sl"; if(n<=6) return "sm"; return "sh"; };
+const SCORE_CLS=(v)=>{ const n=parseInt(v); if(isNaN(n)) return ""; if(n<=3) return "sl"; if(n<=6) return "sm"; return "sh"; };
 function CheckinReviewCard({c,clientId,isNew,toast}){
   const [open,setOpen]=useState(false);
-  const [note,setNote]=useState("");
-  const [savedNote,setSavedNote]=useState(null);
+  const [note,setNote]=useState(c.coachNote||"");
   const [savingNote,setSavingNote]=useState(false);
   const clientAnswers=c.answers.filter(a=>a.question_id!=="_coach");
-  const numericAnswers=clientAnswers.filter(a=>{ const n=parseInt(a.answer_text); return !isNaN(n); });
-  const loadNote=async()=>{ try{ const {data}=await window.supa.from("checkin_answers").select("answer_text").eq("checkin_id",c.id).eq("question_id","_coach").maybeSingle(); setSavedNote(data?data.answer_text:""); setNote(data?data.answer_text:""); }catch(e){ setSavedNote(""); } };
-  const saveNote=async()=>{ if(savingNote) return; setSavingNote(true); try{ const existing=await window.supa.from("checkin_answers").select("id").eq("checkin_id",c.id).eq("question_id","_coach").maybeSingle(); if(existing&&existing.data){ await window.supa.from("checkin_answers").update({answer_text:note}).eq("id",existing.data.id); } else { await window.supa.from("checkin_answers").insert({checkin_id:c.id,client_id:clientId,question_id:"_coach",question_label:"Coach-Notiz",answer_text:note}); } setSavedNote(note); toast("Notiz gespeichert"); }catch(e){ toast("Fehler: "+(e.message||"")); } finally{ setSavingNote(false); } };
-  const toggle=()=>{ if(!open) loadNote(); setOpen(o=>!o); };
+  const saveNote=async()=>{
+    if(savingNote) return; setSavingNote(true);
+    try{
+      const {error}=await window.supa.from("checkins").update({coach_note:note}).eq("id",c.id);
+      if(error) throw error;
+      toast("Notiz gespeichert ✓");
+    }catch(e){ toast("Fehler – Migration nötig: ALTER TABLE checkins ADD COLUMN coach_note text"); }
+    finally{ setSavingNote(false); }
+  };
   return (
     <div className="cir-card">
-      <div className="cir-head" onClick={toggle}>
+      <div className="cir-head" onClick={()=>setOpen(o=>!o)}>
         <div>
           <div className="cir-date">{fmtFull(c.date)}{isNew&&<span className="cir-new-badge">NEU</span>}</div>
-          <div className="cir-chips">{numericAnswers.slice(0,4).map((a,i)=><span key={i} className={"cir-chip "+SCORE_CLS(a.answer_text)}>{a.question_label.split(" ").slice(-2).join(" ")}: {a.answer_text}</span>)}{savedNote&&<span className="cir-chip sn">✎</span>}</div>
+          {c.coachNote&&!open&&<div style={{fontSize:12,color:"var(--faint)",marginTop:3}}>✎ Notiz vorhanden</div>}
         </div>
         <span className="cir-toggle">{open?"▲":"▼"}</span>
       </div>
@@ -2263,19 +2249,20 @@ function CheckinReviewCard({c,clientId,isNew,toast}){
         {clientAnswers.map((a,i)=>(
           <div key={i} className="cir-ans-row">
             <div className="cir-ans-q">{a.question_label}</div>
-            {a.answer_file?(a.signedUrl?<img className="ci-haimg" src={a.signedUrl} alt=""/>:<div className="muted" style={{fontSize:13}}>📷 Foto</div>):<div className={"cir-ans-a "+SCORE_CLS(a.answer_text)}>{a.answer_text||"—"}</div>}
+            {a.answer_file?(a.signedUrl?<img className="ci-haimg" src={a.signedUrl} alt=""/>:<div className="muted" style={{fontSize:13}}>📷 Foto</div>)
+              :<div className={"cir-ans-a "+SCORE_CLS(a.answer_text)}>{a.answer_text||"—"}</div>}
           </div>
         ))}
         <div className="cir-note-sec">
-          <div className="ci-flabel" style={{marginBottom:6}}>Coach-Notiz</div>
-          {savedNote&&<div className="cir-note-saved">{savedNote}</div>}
-          <textarea className="ta" rows={3} value={note} onChange={e=>setNote(e.target.value)} placeholder="Feedback, Anpassung, Lob…"/>
+          <div className="ci-flabel" style={{marginBottom:6}}>Coach-Notiz <span style={{fontWeight:400,color:"var(--faint)"}}>(auch für Kunden sichtbar)</span></div>
+          <textarea className="ta" rows={3} value={note} onChange={e=>setNote(e.target.value)} placeholder="Feedback, Anpassungen, Lob…"/>
           <button className="btn btn-ghost" style={{marginTop:8,fontSize:14}} disabled={savingNote} onClick={saveNote}>{savingNote?"…":"Notiz speichern"}</button>
         </div>
       </div>}
     </div>
   );
 }
+
 
 // ======== CoachCheckinHistory ========
 function CoachCheckinHistory({history,clientId,toast}){
@@ -2284,76 +2271,6 @@ function CoachCheckinHistory({history,clientId,toast}){
   return <>{history.map((c,i)=><CheckinReviewCard key={c.id} c={c} clientId={clientId} isNew={i===0} toast={toast}/>)}</>;
 }
 
-// ======== BlockPlanning ========
-const BLOCK_COLORS=["#0B0C0F","#1D4ED8","#15803D","#B45309","#7C3AED","#BE123C","#0369A1","#64748B"];
-function BlockPlanning({clientId,coachId,role,plans,toast}){
-  const [blocks,setBlocks]=useState(null);
-  const [form,setForm]=useState(null); // null or block draft
-  const [saving,setSaving]=useState(false);
-  const [tableErr,setTableErr]=useState(false);
-  const todayStr=today();
-  const addWeeks=(d,w)=>{ const dt=new Date(d+"T00:00:00"); dt.setDate(dt.getDate()+w*7); return dt.toISOString().slice(0,10); };
-  const fmtDateShort=(d)=>{ if(!d) return ""; const [y,m,dd]=d.split("-"); return dd+"."+m+"."+y.slice(2); };
-  const blockPct=(b)=>{ const end=addWeeks(b.start_date,b.weeks); if(todayStr<b.start_date||todayStr>=end) return null; const tot=b.weeks*7; const done=Math.floor((new Date(todayStr).getTime()-new Date(b.start_date+"T00:00:00").getTime())/86400000); return Math.min(100,Math.round(done/tot*100)); };
-  const blockWeek=(b)=>{ const done=Math.floor((new Date(todayStr).getTime()-new Date(b.start_date+"T00:00:00").getTime())/86400000); return Math.min(b.weeks,Math.floor(done/7)+1); };
-  const blockStat=(b)=>{ const end=addWeeks(b.start_date,b.weeks); if(todayStr<b.start_date) return "upcoming"; if(todayStr>=end) return "done"; return "active"; };
-  const load=async()=>{ try{ const {data,error}=await window.supa.from("training_blocks").select("id,name,description,start_date,weeks,plan_id,goals,color,position").eq("client_id",clientId).order("start_date",{ascending:true}); if(error){ if(error.code==="42P01"||String(error.message).includes("exist")) setTableErr(true); setBlocks([]); return; } setBlocks(data||[]); }catch(e){ setBlocks([]); } };
-  useEffect(()=>{ if(clientId) load(); },[clientId]);
-  const openNew=()=>setForm({id:null,name:"",description:"",start_date:todayStr,weeks:4,plan_id:"",goals:"",color:BLOCK_COLORS[0],position:(blocks||[]).length});
-  const openEdit=(b)=>setForm({...b,plan_id:b.plan_id||""});
-  const doSave=async()=>{ if(!form||saving) return; if(!form.name.trim()){ toast("Name fehlt"); return; } setSaving(true); try{ const row={client_id:clientId,coach_id:coachId||null,name:form.name.trim(),description:(form.description||"").trim(),start_date:form.start_date,weeks:parseInt(form.weeks)||4,plan_id:form.plan_id||null,goals:(form.goals||"").trim(),color:form.color||BLOCK_COLORS[0],position:form.position||0}; if(form.id){ await window.supa.from("training_blocks").update(row).eq("id",form.id); } else { await window.supa.from("training_blocks").insert(row); } toast(form.id?"Block aktualisiert":"Block erstellt"); setForm(null); await load(); }catch(e){ toast("Fehler: "+(e.message||"")); } finally{ setSaving(false); } };
-  const doDelete=async(id)=>{ if(!await askConfirm({title:"Block löschen?",message:"Dieser Trainingsblock wird dauerhaft entfernt.",confirmText:"Löschen",danger:true})) return; try{ await window.supa.from("training_blocks").delete().eq("id",id); await load(); }catch(e){ toast("Fehler: "+(e.message||"")); } };
-  if(blocks===null) return null;
-  const hasBlocks=blocks.length>0;
-  if(!hasBlocks && role!=="coach") return null;
-  return (
-    <div className="blocks-sec">
-      <div className="sectlabel">Trainingsblöcke</div>
-      {tableErr && <div className="block-setup-note">Tabelle <code>training_blocks</code> noch nicht angelegt. Führe einmalig die SQL-Migration in Supabase aus (steht im Roadmap-Dokument).</div>}
-      {!tableErr && blocks.map(b=>{ const stat=blockStat(b); const pct=blockPct(b); const plan=plans&&plans.find(p=>p.id===b.plan_id);
-        return <div key={b.id} className="block-card">
-          <div className="block-stripe" style={{background:b.color||"#0B0C0F"}}/>
-          <div className="block-body">
-            <div className="block-name">{b.name}</div>
-            <div className="block-meta-row">
-              <span className={"block-status "+(stat==="active"?"ba":stat==="done"?"bd":"bu")}>{stat==="active"?("KW "+blockWeek(b)+" / "+b.weeks):stat==="done"?"Abgeschlossen":"Startet "+fmtDateShort(b.start_date)}</span>
-              <span className="block-dates">{fmtDateShort(b.start_date)} – {fmtDateShort(addWeeks(b.start_date,b.weeks))}</span>
-            </div>
-            {plan&&<div className="block-plan-ref">Plan: {plan.title}</div>}
-            {pct!==null&&<div className="block-prog"><div className="block-prog-fill" style={{width:pct+"%",background:b.color||"#0B0C0F"}}/></div>}
-            {b.goals&&<div className="block-goals">{b.goals}</div>}
-            {role==="coach"&&<div className="block-actions"><button className="block-edit-btn" onClick={()=>openEdit(b)}>Bearbeiten</button><button className="block-edit-btn" style={{color:"var(--faint)"}} onClick={()=>doDelete(b.id)}>Löschen</button></div>}
-          </div>
-        </div>;
-      })}
-      {role==="coach"&&<>
-        {form&&<div className="block-form">
-          <div className="block-form-h">{form.id?"Block bearbeiten":"Neuer Block"}</div>
-          <div className="block-form-row"><div className="block-form-label">Name</div><input className="setinput" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="z. B. Hypertrophie-Block"/></div>
-          <div className="block-form-2col">
-            <div className="block-form-row"><div className="block-form-label">Startdatum</div><input className="setinput" type="date" value={form.start_date} onChange={e=>setForm(f=>({...f,start_date:e.target.value}))}/></div>
-            <div className="block-form-row"><div className="block-form-label">Wochen</div><input className="setinput" type="number" min="1" max="52" value={form.weeks} onChange={e=>setForm(f=>({...f,weeks:e.target.value}))}/></div>
-          </div>
-          <div className="block-form-row"><div className="block-form-label">Plan verlinken</div>
-            <select className="setinput" value={form.plan_id} onChange={e=>setForm(f=>({...f,plan_id:e.target.value}))}>
-              <option value="">— keiner —</option>
-              {(plans||[]).map(p=><option key={p.id} value={p.id}>{p.title}</option>)}
-            </select>
-          </div>
-          <div className="block-form-row"><div className="block-form-label">Ziele / Notiz</div><textarea className="ta" rows={3} value={form.goals} onChange={e=>setForm(f=>({...f,goals:e.target.value}))} placeholder="Was soll dieser Block erreichen?"/></div>
-          <div className="block-form-row"><div className="block-form-label">Farbe</div>
-            <div className="block-colorpick">{BLOCK_COLORS.map(c=><span key={c} className={"block-coloropt"+(form.color===c?" sel":"")} style={{background:c}} onClick={()=>setForm(f=>({...f,color:c}))}/>)}</div>
-          </div>
-          <div style={{display:"flex",gap:10,marginTop:4}}>
-            <button className="btn btn-ghost" style={{flex:1}} onClick={()=>setForm(null)}>Abbrechen</button>
-            <button className="btn" style={{flex:2}} disabled={saving} onClick={doSave}>{saving?"…":form.id?"Speichern":"Block erstellen"}</button>
-          </div>
-        </div>}
-        {!form&&<button className="btn btn-ghost" onClick={openNew}>+ Trainingsblock</button>}
-      </>}
-    </div>
-  );
-}
 
 // ---- Verlauf (Coach + Kunde) ----
 function CheckinHistory({history,typeLabel}){
@@ -2362,8 +2279,8 @@ function CheckinHistory({history,typeLabel}){
   return <>{history.map(c=>(
     <div key={c.id} className="mcard">
       <div className="ci-hdate">{fmtFull(c.date)} · {weekdayShort(c.date)}</div>
-      {c.answers.length===0 && <div className="muted" style={{fontSize:13}}>Keine Antworten.</div>}
-      {c.answers.map((a,i)=>(
+      {c.answers.filter(a=>a.question_id!=="_coach").length===0 && <div className="muted" style={{fontSize:13}}>Keine Antworten.</div>}
+      {c.answers.filter(a=>a.question_id!=="_coach").map((a,i)=>(
         <div key={i} className="ci-ha">
           <div className="ci-haq">{a.question_label}</div>
           {a.answer_file
@@ -2371,6 +2288,10 @@ function CheckinHistory({history,typeLabel}){
             : <div className="ci-haa">{a.answer_text||"—"}</div>}
         </div>
       ))}
+      {c.coachNote && <div className="ci-ha" style={{borderTop:"1px solid var(--line)",marginTop:8,paddingTop:8}}>
+        <div className="ci-haq" style={{color:"var(--ok)",fontWeight:700}}>💬 Coach-Feedback</div>
+        <div className="ci-haa">{c.coachNote}</div>
+      </div>}
     </div>
   ))}</>;
 }
@@ -3234,7 +3155,6 @@ function LivePlanTab({clientId,role,toast}){
   // Liste
   if(!openPlanId){
     return <div className="mbody">
-      <BlockPlanning clientId={clientId} coachId={myId} role={role} plans={plans} toast={toast}/>
       <div className="sectlabel">{role==="coach"?"Trainingspläne":"Deine Trainingspläne"}</div>
       {err && <div className="authmsg err" style={{marginBottom:10}}>{err}</div>}
       {plans.length===0 && <div className="muted">Noch kein Plan angelegt.</div>}
