@@ -782,7 +782,7 @@
   .wiz-photo-lbl{display:flex;flex-direction:column;align-items:center;gap:10px;padding:32px 20px;border:2px dashed var(--line-2);border-radius:18px;background:var(--bg-2);color:var(--text);font-weight:600;cursor:pointer;margin-top:6px;}
   .wiz-ta{font-size:16px;min-height:130px;margin-top:6px;}
   .wiz-nav{display:flex;gap:10px;}
-  .wiz-back{flex:none;min-width:52px;padding-left:14px;padding-right:14px;}
+  .wiz-back{flex:none;width:auto;min-width:52px;padding-left:14px;padding-right:14px;}
   .wiz-fwd{flex:1;}
   .wiz-sum-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;letter-spacing:-0.025em;margin-bottom:16px;}
   .wiz-sum-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
@@ -1966,7 +1966,7 @@ function LiveCheckinTab({clientId,role,toast}){
       setHistory(rows);
     }catch(e){ toast("Verlauf konnte nicht geladen werden"); setHistory([]); }
   };
-  const loadPrev=async()=>{ try{ const {data:cs}=await window.supa.from("checkins").select("id,date").eq("client_id",clientId).order("date",{ascending:false}).limit(1); if(cs&&cs.length){ const {data:as}=await window.supa.from("checkin_answers").select("question_id,question_label,answer_text,answer_file").eq("checkin_id",cs[0].id); setPrevCi({id:cs[0].id,date:cs[0].date,answers:as||[]}); } }catch(e){} };
+  const loadPrev=async()=>{ try{ const {data:cs}=await window.supa.from("checkins").select("id,date").eq("client_id",clientId).order("date",{ascending:false}).limit(1); if(cs&&cs.length){ const {data:as}=await window.supa.from("checkin_answers").select("question_id,question_label,answer_text,answer_file").eq("checkin_id",cs[0].id); setPrevCi({id:cs[0].id,date:cs[0].date,answers:as||[]}); if(cs[0].date===t) setView("history"); } }catch(e){} };
   useEffect(()=>{ if(clientId){ loadQuestions(); loadWeekday(); } },[clientId]);
   useEffect(()=>{ if(clientId && view==="history") loadHistory(); },[clientId, view]);
   useEffect(()=>{ if(clientId && role!=="coach") loadPrev(); },[clientId]);
@@ -2226,6 +2226,7 @@ function CheckinReviewCard({c,clientId,isNew,toast}){
   const [open,setOpen]=useState(false);
   const [note,setNote]=useState(c.coachNote||"");
   const [savingNote,setSavingNote]=useState(false);
+  useEffect(()=>{ setNote(c.coachNote||""); },[c.coachNote]);
   const clientAnswers=c.answers.filter(a=>a.question_id!=="_coach");
   const saveNote=async()=>{
     if(savingNote) return; setSavingNote(true);
