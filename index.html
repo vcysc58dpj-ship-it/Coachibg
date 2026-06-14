@@ -226,15 +226,14 @@
   .habline .hl-name{font-weight:600;font-size:14.5px;}
   .habline .hl-check{width:26px;height:26px;border-radius:50%;border:1.6px solid var(--line);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex:none;}
   .habline .hl-check.on{background:var(--accent);border-color:var(--accent);}
-  .habbars{display:flex;gap:5px;margin-top:14px;}
-  .habbars .hb{flex:1;height:4px;border-radius:2px;background:var(--bg-3);}
-  .habbars .hb.on{background:var(--accent);}
+  .habbars{position:relative;height:4px;border-radius:2px;background:var(--bg-3);margin-top:14px;overflow:hidden;}
+  .habbars .hb-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:2px;transition:width .35s ease;}
   /* Training */
-  .trainrow{display:flex;gap:14px;}
+  .trainrow{display:flex;gap:14px;padding-bottom:8px;}
   .trainrow .tr-meta{flex:1;display:flex;flex-direction:column;gap:12px;justify-content:center;border-right:1px solid var(--line);padding-right:12px;}
   .trainrow .trm{display:flex;align-items:center;gap:9px;color:var(--dim);font-size:14px;}
   .trainrow .trm svg{width:17px;height:17px;color:var(--faint);}
-  .trainrow .tr-main{flex:1;}
+  .trainrow .tr-main{flex:1;display:flex;flex-direction:column;justify-content:center;}
   .trainrow .tr-title{font-weight:800;font-size:17px;}
   .trainrow .tr-sub{color:var(--accent);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:0.04em;margin-top:3px;}
   .trainrow .tr-pill{display:inline-block;margin-top:12px;background:var(--bg-3);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--dim);}
@@ -850,6 +849,8 @@
   [data-theme="dark"] .card,.mcard,.loginfo,.cir-card{box-shadow:0 1px 0 rgba(255,255,255,0.04),0 4px 18px rgba(0,0,0,0.36);}
   [data-theme="dark"] .btn{box-shadow:0 6px 18px rgba(0,0,0,0.40);}
   [data-theme="dark"] select{background:var(--bg-2);color:var(--text);}
+  [data-theme="dark"] .logo-sm,[data-theme="dark"] .logo-auth,[data-theme="dark"] .splash .lg{filter:invert(1);}
+  [data-theme="dark"] .gate-logo{filter:invert(1);}
 
   /* Autofill: prevent iOS dark-background override */
   input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{
@@ -1311,7 +1312,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
           <span className={"hl-check"+(on?" on":"")}>{on?"✓":""}</span>
         </div>;
       })}</div>
-      <div className="habbars">{habits.map(h=>(<div key={h.id} className={"hb"+(habitDone[h.id]?" on":"")}/>))}</div>
+      <div className="habbars"><div className="hb-fill" style={{width:(habDone/(habits.length||1)*100)+"%"}}/></div>
     </div>}
 
     {/* Nächste Trainingseinheit */}
@@ -5595,7 +5596,7 @@ function App(){
   const [data,setData]=useState(SEED);
   const [openCid,setOpenCid]=useState(null);
   const [toastMsg,setToastMsg]=useState("");
-  const [theme,setTheme]=useState(()=>{ try{ return localStorage.getItem("nk_theme")||"dark"; }catch(e){ return "dark"; } });
+  const [theme,setTheme]=useState(()=>{ try{ return localStorage.getItem("nk_theme")||"light"; }catch(e){ return "light"; } });
   const [shared,setShared]=useState([{id:"sf1",name:"Trainingsprinzipien.txt",mime:"text/plain",kind:"file",by:"coach",date:dstr(addDays(new Date(),-10)),url:"data:text/plain;charset=utf-8,"+encodeURIComponent("Progressive Overload. Konsistenz schlaegt Perfektion. Schlaf und Protein priorisieren. Fragen? Schreib mir jederzeit.")}]);
   useEffect(()=>{ document.documentElement.setAttribute("data-theme", theme); try{ localStorage.setItem("nk_theme",theme); }catch(e){} const mc=document.querySelector("meta[name=theme-color]"); if(mc) mc.setAttribute("content", "#FFFFFF"); },[theme]);
   useEffect(()=>{ if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(()=>{}); } },[]);
