@@ -862,75 +862,93 @@
   }
 
   /* ===== Journey ===== */
-  /* --- left path --- */
+  .jny-hdr{margin-bottom:20px;}
+  .jny-hdr-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:23px;letter-spacing:-0.03em;margin-bottom:5px;}
+  .jny-hdr-sub{font-size:13.5px;color:var(--dim);line-height:1.45;margin-bottom:16px;}
+  .jny-hdr-bar{height:7px;background:var(--bg-3);border-radius:99px;overflow:hidden;}
+  .jny-hdr-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+  .jny-hdr-meta{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.04em;color:var(--dim);margin-top:7px;}
+  /* timeline structure */
   .jny-tl{padding-bottom:24px;}
-  .jny-row{display:flex;align-items:stretch;gap:0;}
-  .jny-lc{display:flex;flex-direction:column;align-items:center;width:56px;flex-shrink:0;}
-  .jny-circ{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:background .2s;}
+  .jny-row{display:flex;gap:0;}
+  .jny-lc{display:flex;flex-direction:column;align-items:center;width:52px;flex-shrink:0;}
+  .jny-circ{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;transition:all .25s;margin-top:13px;}
   .jny-circ.done{background:var(--text);color:var(--bg);}
-  .jny-circ.active{background:var(--bg-2);border:2.5px solid var(--text);box-shadow:0 0 0 3px rgba(11,12,15,.06);}
-  .jny-circ.locked{background:var(--bg-3);border:2px solid var(--line-2);color:var(--faint);}
-  .jny-circ.goal{background:var(--text);color:var(--bg);}
-  .jny-inner-dot{width:12px;height:12px;border-radius:50%;background:var(--text);}
-  .jny-vline{width:2px;flex:1;min-height:16px;margin:2px 0;border-radius:1px;background:var(--line-2);}
+  .jny-circ.active{background:var(--bg-2);border:2.5px solid var(--text);}
+  .jny-circ.active .jny-inner-dot{width:11px;height:11px;border-radius:50%;background:var(--text);}
+  .jny-circ.locked{background:var(--bg-3);border:1.5px solid var(--line-2);color:var(--faint);}
+  .jny-circ.goal{background:var(--text);color:var(--bg);font-size:17px;}
+  .jny-vline{width:2px;flex:1;min-height:14px;margin:5px 0;border-radius:1px;background:var(--line-2);}
   .jny-vline.done{background:var(--text);}
-  .jny-vline.dashed{background:repeating-linear-gradient(to bottom,var(--line-2) 0px,var(--line-2) 4px,transparent 4px,transparent 9px);}
-  /* --- stage cards --- */
-  .jny-rc{flex:1;min-width:0;padding:0 0 14px 8px;display:flex;flex-direction:column;justify-content:center;}
-  .jny-card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 4px 12px rgba(11,12,15,.05);cursor:pointer;transition:border-color .15s;}
-  .jny-card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 14px rgba(11,12,15,.10);}
-  .jny-card.done{background:var(--bg-3);cursor:default;}
-  .jny-card.locked{opacity:.55;cursor:default;}
-  .jny-card.goal{background:var(--bg-2);cursor:default;}
-  .jny-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-  .jny-card-status{font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:3px;}
-  .jny-card-status.active{color:var(--accent);}
-  .jny-card-title{font-weight:800;font-size:16px;letter-spacing:-0.01em;}
-  .jny-card.done .jny-card-title{text-decoration:line-through;color:var(--faint);}
-  .jny-card-chev{font-size:11px;color:var(--faint);flex-shrink:0;margin-top:2px;}
-  .jny-card-desc{font-size:13.5px;color:var(--dim);margin-top:6px;line-height:1.45;}
-  .jny-card-date{font-size:12px;color:var(--ok);margin-top:6px;font-weight:600;}
-  /* expanded content */
-  .jny-card-desc{font-size:13.5px;color:var(--dim);margin-top:7px;line-height:1.5;}
-  .jny-card-date{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ok);margin-top:10px;font-weight:600;background:rgba(21,128,74,.10);padding:4px 10px;border-radius:99px;}
-  /* expanded content — clean, structured */
-  .jny-expand{margin-top:14px;}
-  .jny-streak-block{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-top:10px;}
-  .jny-streak-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
-  .jny-streak-head-l{font-size:12.5px;font-weight:600;color:var(--text);}
-  .jny-streak-head-r{font-family:"IBM Plex Mono";font-size:11px;color:var(--dim);}
+  .jny-vline.dashed{background:repeating-linear-gradient(to bottom,var(--line-2) 0 4px,transparent 4px 9px);}
+  /* cards */
+  .jny-rc{flex:1;min-width:0;padding:0 0 12px 10px;}
+  .jny-card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 1px 2px rgba(11,12,15,.04),0 5px 14px rgba(11,12,15,.05);overflow:hidden;transition:border-color .18s,box-shadow .18s;}
+  .jny-card.active{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent),0 6px 18px rgba(11,12,15,.10);}
+  .jny-card.done{background:var(--bg-3);box-shadow:none;}
+  .jny-card.locked{background:var(--bg-3);box-shadow:none;opacity:.7;}
+  .jny-card.goal{border-color:var(--line-2);}
+  .jny-chead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .jny-chead.nopt{cursor:default;}
+  .jny-cstatus{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:4px;}
+  .jny-cstatus.active{color:var(--accent);}
+  .jny-ctitle{font-weight:800;font-size:16px;letter-spacing:-0.01em;line-height:1.25;}
+  .jny-card.done .jny-ctitle{text-decoration:line-through;text-decoration-thickness:2px;color:var(--faint);}
+  .jny-cchev{width:24px;height:24px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .25s;color:var(--dim);}
+  .jny-card.active .jny-cchev{background:var(--accent);color:var(--on-accent);}
+  .jny-cchev.open{transform:rotate(180deg);}
+  /* expandable body — grid animation */
+  .jny-cbody-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.4,0,.2,1);}
+  .jny-cbody-wrap.open{grid-template-rows:1fr;}
+  .jny-cbody-inner{overflow:hidden;}
+  .jny-cbody{padding:0 16px 16px;}
+  .jny-cdesc{font-size:13.5px;color:var(--dim);line-height:1.5;padding-top:2px;}
+  .jny-cdate{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ok);margin-top:12px;font-weight:700;background:rgba(21,128,74,.10);padding:5px 11px;border-radius:99px;}
+  /* substeps checklist */
+  .jny-sub-sec{margin-top:14px;}
+  .jny-sub-h{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:9px;}
+  .jny-sub-item{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-top:1px solid var(--line);}
+  .jny-sub-item:first-of-type{border-top:none;padding-top:2px;}
+  .jny-sub-check{width:21px;height:21px;border-radius:50%;border:2px solid var(--line-2);background:var(--bg);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;cursor:pointer;transition:all .15s;}
+  .jny-sub-check.on{background:var(--ok);border-color:var(--ok);}
+  .jny-sub-txt{font-size:14px;line-height:1.4;color:var(--text);flex:1;}
+  .jny-sub-txt.done{text-decoration:line-through;color:var(--faint);}
+  /* streak block */
+  .jny-streak{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-top:14px;}
+  .jny-streak-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+  .jny-streak-lbl{font-size:12.5px;font-weight:600;}
+  .jny-streak-cnt{font-family:"IBM Plex Mono";font-size:11px;color:var(--dim);}
   .jny-streak-bar{height:6px;background:var(--bg-3);border-radius:99px;overflow:hidden;}
-  .jny-streak-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .45s cubic-bezier(.4,0,.2,1);}
-  .jny-habits-lbl{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:14px 0 8px;}
-  .jny-habit-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:11px 14px;margin-top:7px;}
-  .jny-habit-name{font-weight:600;font-size:14px;}
-  .jny-habit-goal{font-size:11.5px;color:var(--faint);margin-top:2px;}
-  .jny-habit-streak{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-  .jny-habit-num{font-family:"Bricolage Grotesque";font-weight:800;font-size:24px;line-height:1;letter-spacing:-0.02em;}
-  .jny-habit-lbl{font-family:"IBM Plex Mono";font-size:8.5px;letter-spacing:.08em;color:var(--faint);}
-  .jny-fire{font-size:18px;}
-  /* --- header --- */
-  .jny-hdr{margin-bottom:22px;}
-  .jny-hdr-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;letter-spacing:-0.03em;margin-bottom:4px;}
-  .jny-hdr-sub{font-size:14px;color:var(--dim);}
-  /* --- coach editor --- */
+  .jny-streak-fill{height:100%;background:var(--ok);border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+  .jny-streak-habit{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:13px;color:var(--dim);}
+  .jny-streak-fire{font-size:15px;}
+  .jny-streak-habit b{color:var(--text);font-weight:700;}
+  /* coach editor */
   .jny-ecard{margin-bottom:10px;}
-  .jny-ecard-head{display:flex;gap:10px;align-items:flex-start;}
-  .jny-echeck{width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);background:var(--bg-3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;margin-top:2px;transition:background .12s,border-color .12s;}
+  .jny-ehead{display:flex;gap:11px;align-items:flex-start;}
+  .jny-echeck{width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);background:var(--bg-3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;margin-top:2px;transition:all .12s;}
   .jny-echeck.on{background:var(--ok);border-color:var(--ok);}
   .jny-etitle{font-weight:700;font-size:15px;}
   .jny-etitle.done{text-decoration:line-through;color:var(--faint);}
   .jny-edesc{font-size:13px;color:var(--dim);margin-top:3px;line-height:1.35;}
-  .jny-estreak{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--faint);margin-top:5px;}
-  .jny-estreak svg{width:13px;height:13px;}
-  .jny-edit-btn{background:var(--bg-3);border:1px solid var(--line-2);border-radius:10px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--text);flex-shrink:0;}
-  .jny-move-btn{background:none;border:none;padding:4px 6px;color:var(--faint);font-size:16px;cursor:pointer;}
-  .jny-move-btn:disabled{opacity:.25;}
-  /* dashboard mini card */
+  .jny-emeta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--faint);margin-top:6px;flex-wrap:wrap;}
+  .jny-emeta .chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg-3);border-radius:99px;padding:3px 9px;}
+  .jny-emeta svg{width:12px;height:12px;}
+  .jny-icobtn{width:32px;height:32px;border-radius:9px;background:var(--bg-3);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0;cursor:pointer;}
+  .jny-icobtn svg{width:15px;height:15px;}
+  .jny-move{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
+  .jny-move button{width:26px;height:18px;border:none;background:none;color:var(--faint);font-size:13px;cursor:pointer;padding:0;line-height:1;}
+  .jny-move button:disabled{opacity:.22;}
+  /* substep editor rows */
+  .jny-sub-edit{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .jny-sub-edit input{flex:1;}
+  .jny-sub-del{background:none;border:none;color:var(--faint);font-size:17px;cursor:pointer;padding:2px 6px;flex-shrink:0;}
+  .jny-addsub{font-size:13px;font-weight:600;color:var(--accent);background:none;border:none;padding:4px 0;cursor:pointer;}
+  /* dashboard mini */
   .jny-mini-stage{font-size:13.5px;font-weight:600;margin-bottom:8px;}
   .jny-mini-bar{height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden;}
   .jny-mini-fill{height:100%;background:var(--ok);border-radius:2px;transition:width .4s ease;}
-  .jny-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .jny-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
   .jny-dot.s{background:var(--faint);}
   .jny-dot.g{background:var(--ok);}
 </style>
@@ -4660,7 +4678,7 @@ function BroadcastSheet({onClose,onSend,count}){
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
-const SELF_TABS=[{k:"home",l:"Start",i:"home"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"habits",l:"Habits",i:"habits"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
+const SELF_TABS=[{k:"home",l:"Start",i:"home"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"habits",l:"Habits",i:"habits"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const MODE_LABEL={admin:"Admin-Bereich",coach:"Coach-Bereich",self_coach:"Self-Coaching",client:"Kunden-Ansicht"};
 const MODE_ICON={admin:"settings",coach:"home",self_coach:"chest",client:"home"};
 function ModeSwitchRows({modes,mode,onMode,onClose}){
@@ -5686,9 +5704,20 @@ async function checkJourneyStreak(stage){
 
 // StageForm is a TOP-LEVEL component (not nested) to prevent keyboard-loses-focus bug
 function JourneyStageForm({sd,setSd,habits,saving,onSave,onCancel,onDelete}){
+  const subs=sd.substeps||[];
+  const setSubs=(fn)=>setSd(d=>({...d,substeps:fn(d.substeps||[])}));
+  const addSub=()=>setSubs(a=>[...a,{id:nid(),text:"",done:false}]);
+  const updSub=(id,text)=>setSubs(a=>a.map(x=>x.id===id?{...x,text}:x));
+  const delSub=(id)=>setSubs(a=>a.filter(x=>x.id!==id));
   return <>
     <input className="setinput" style={{marginBottom:8}} value={sd.title||""} onChange={e=>setSd(d=>({...d,title:e.target.value}))} placeholder="Titel des Stadiums"/>
-    <textarea className="ta" rows={2} style={{marginBottom:8}} value={sd.description||""} onChange={e=>setSd(d=>({...d,description:e.target.value}))} placeholder="Beschreibung (optional)"/>
+    <textarea className="ta" rows={2} style={{marginBottom:10}} value={sd.description||""} onChange={e=>setSd(d=>({...d,description:e.target.value}))} placeholder="Beschreibung (optional)"/>
+    <div className="ci-flabel" style={{marginBottom:7}}>Unterpunkte</div>
+    {subs.map(sub=><div key={sub.id} className="jny-sub-edit">
+      <input className="setinput" value={sub.text} onChange={e=>updSub(sub.id,e.target.value)} placeholder="z.B. Trainingsplan verstanden"/>
+      <button className="jny-sub-del" onClick={()=>delSub(sub.id)}>×</button>
+    </div>)}
+    <button className="jny-addsub" style={{marginBottom:12}} onClick={addSub}>+ Unterpunkt</button>
     <div style={{display:"flex",gap:8,marginBottom:8}}>
       <button className={"btn"+(sd.completion_type!=="auto"?" ":" btn-ghost")} style={{flex:1,fontSize:13}} onClick={()=>setSd(d=>({...d,completion_type:"manual"}))}>Manuell</button>
       <button className={"btn"+(sd.completion_type==="auto"?" ":" btn-ghost")} style={{flex:1,fontSize:13}} onClick={()=>setSd(d=>({...d,completion_type:"auto"}))}>Auto-Streak</button>
@@ -5712,82 +5741,76 @@ function JourneyStageForm({sd,setSd,habits,saving,onSave,onCancel,onDelete}){
   </>;
 }
 
-function ClientJourneyView({journey,stages,habitsMap,habitStreaks}){
+const ChevronDown=()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
+const LockIcon=()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>;
+
+function ClientJourneyStage({st,index,state,habitsMap,habitStreaks,onToggleSub,isLast}){
+  const isDone=state==="done", isActive=state==="active", isLocked=state==="locked";
+  const [open,setOpen]=useState(isActive);
+  const subs=Array.isArray(st.substeps)?st.substeps:[];
+  const hasHabit=st.completion_type==="auto"&&st.streak_habit_id&&habitsMap&&habitsMap[st.streak_habit_id];
+  const streak=habitStreaks?.[st.streak_habit_id]||0;
+  const pct=hasHabit?Math.min(100,Math.round(streak/st.streak_days*100)):0;
+  const canOpen=!isLocked&&(st.description||subs.length||hasHabit||isDone);
+  return <div className="jny-row">
+    <div className="jny-lc">
+      <div className={"jny-circ "+state}>
+        {isDone?"✓":isActive?<div className="jny-inner-dot"/>:<LockIcon/>}
+      </div>
+      {!isLast&&<div className={"jny-vline"+(isDone?" done":isLocked?" dashed":"")}/>}
+    </div>
+    <div className="jny-rc">
+      <div className={"jny-card "+state}>
+        <div className={"jny-chead"+(canOpen?"":" nopt")} onClick={()=>canOpen&&setOpen(o=>!o)}>
+          <div style={{flex:1,minWidth:0}}>
+            <div className={"jny-cstatus"+(isActive?" active":"")}>{index+1} · {isDone?"Abgeschlossen":isActive?"Aktuell":"Gesperrt"}</div>
+            <div className="jny-ctitle">{st.title}</div>
+          </div>
+          {canOpen&&<div className={"jny-cchev"+(open?" open":"")}><ChevronDown/></div>}
+        </div>
+        <div className={"jny-cbody-wrap"+(open&&canOpen?" open":"")}>
+          <div className="jny-cbody-inner"><div className="jny-cbody">
+            {st.description&&<div className="jny-cdesc">{st.description}</div>}
+            {subs.length>0&&<div className="jny-sub-sec">
+              <div className="jny-sub-h">Schritte</div>
+              {subs.map(sub=><div key={sub.id} className="jny-sub-item">
+                <div className={"jny-sub-check"+(sub.done?" on":"")} onClick={()=>!isLocked&&onToggleSub(st,sub.id)}>{sub.done?"✓":""}</div>
+                <div className={"jny-sub-txt"+(sub.done?" done":"")}>{sub.text}</div>
+              </div>)}
+            </div>}
+            {isActive&&hasHabit&&<div className="jny-streak">
+              <div className="jny-streak-top"><span className="jny-streak-lbl">Fortschritt zum Abschluss</span><span className="jny-streak-cnt">{streak} / {st.streak_days} Tage</span></div>
+              <div className="jny-streak-bar"><div className="jny-streak-fill" style={{width:pct+"%"}}/></div>
+              <div className="jny-streak-habit"><span className="jny-streak-fire">{streak>0?"🔥":"○"}</span><span><b>{habitsMap[st.streak_habit_id]?.name}</b> · {st.streak_days} Tage am Stück</span></div>
+            </div>}
+            {isDone&&st.completed_at&&<div><span className="jny-cdate">✓ Erreicht am {fmtFull(st.completed_at.slice(0,10))}</span></div>}
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </div>;
+}
+
+function ClientJourneyView({journey,stages,habitsMap,habitStreaks,onToggleSub}){
   if(!journey) return <div className="mbody"><div className="mcard"><div className="muted" style={{fontSize:13}}>Dein Coach richtet bald deine Journey ein.</div></div></div>;
   const done=stages.filter(s=>s.completed).length;
   const total=stages.length;
   const activeIdx=stages.findIndex(s=>!s.completed);
-  const [expanded,setExpanded]=useState(()=>{ const set=new Set(); if(activeIdx>=0&&stages[activeIdx]) set.add(stages[activeIdx].id); return set; });
-  const toggle=(id)=>setExpanded(e=>{ const n=new Set(e); n.has(id)?n.delete(id):n.add(id); return n; });
+  const stateFor=(i)=>stages[i].completed?"done":i===activeIdx?"active":i>activeIdx?"locked":"done";
   return <div className="mbody">
     <div className="jny-hdr">
       <div className="jny-hdr-title">{journey.title||"Deine Reise"}</div>
-      <div className="jny-hdr-sub" style={{marginBottom:14}}>{(journey.start_state||"").split(".")[0]} – {(journey.goal_state||"").split(".")[0]}</div>
-      <div style={{height:6,background:"var(--bg-3)",borderRadius:99,overflow:"hidden"}}>
-        <div style={{height:"100%",background:"var(--ok)",borderRadius:99,width:total?(done/total*100)+"%":"0%",transition:"width .45s cubic-bezier(.4,0,.2,1)"}}/>
-      </div>
-      <div style={{fontSize:12,color:"var(--dim)",marginTop:6,fontFamily:'"IBM Plex Mono"'}}>{done} / {total} Stadien abgeschlossen</div>
+      <div className="jny-hdr-sub">{journey.start_state} {journey.goal_state?" → "+journey.goal_state.replace(/^Zielzustand:\s*/,""):""}</div>
+      <div className="jny-hdr-bar"><div className="jny-hdr-fill" style={{width:total?(done/total*100)+"%":"0%"}}/></div>
+      <div className="jny-hdr-meta">{done} / {total} Stadien abgeschlossen</div>
     </div>
     <div className="jny-tl">
-      {stages.map((st,i)=>{
-        const isDone=st.completed;
-        const isActive=i===activeIdx;
-        const isLocked=!isDone&&i>activeIdx;
-        const isExp=expanded.has(st.id);
-        const isLast=i===stages.length-1;
-        const hasHabit=st.completion_type==="auto"&&st.streak_habit_id&&habitsMap&&habitsMap[st.streak_habit_id];
-        const streak=habitStreaks?.[st.streak_habit_id]||0;
-        const pct=hasHabit?Math.min(100,Math.round(streak/st.streak_days*100)):0;
-        return <div key={st.id} className="jny-row">
-          <div className="jny-lc">
-            <div className={"jny-circ "+(isDone?"done":isActive?"active":"locked")}>
-              {isDone?"✓":isActive?<div className="jny-inner-dot"/>:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>}
-            </div>
-            {!isLast&&<div className={"jny-vline"+(isDone?" done":isLocked?" dashed":"")}/>}
-          </div>
-          <div className="jny-rc">
-            <div className={"jny-card "+(isDone?"done":isActive?"active":isLocked?"locked":"")} onClick={()=>!isLocked&&toggle(st.id)}>
-              <div className="jny-card-top">
-                <div style={{flex:1,minWidth:0}}>
-                  <div className={"jny-card-status"+(isActive?" active":"")}>{i+1} · {isDone?"Abgeschlossen":isActive?"Aktuell":"Gesperrt"}</div>
-                  <div className="jny-card-title">{st.title}</div>
-                </div>
-                {!isLocked&&<span className="jny-card-chev">{isExp?"▲":"▼"}</span>}
-              </div>
-              {isExp&&!isLocked&&<div className="jny-expand">
-                {st.description&&<div className="jny-card-desc" style={{marginTop:0}}>{st.description}</div>}
-                {isDone&&st.completed_at&&<div><span className="jny-card-date">✓ Erreicht am {fmtFull(st.completed_at.slice(0,10))}</span></div>}
-                {isActive&&hasHabit&&<>
-                  <div className="jny-streak-block">
-                    <div className="jny-streak-head">
-                      <span className="jny-streak-head-l">Fortschritt zum Abschluss</span>
-                      <span className="jny-streak-head-r">{streak} / {st.streak_days} Tage</span>
-                    </div>
-                    <div className="jny-streak-bar"><div className="jny-streak-fill" style={{width:pct+"%"}}/></div>
-                  </div>
-                  <div className="jny-habits-lbl">Diese Gewohnheit bringt dich weiter</div>
-                  <div className="jny-habit-row">
-                    <div style={{minWidth:0}}><div className="jny-habit-name">{habitsMap[st.streak_habit_id]?.name}</div><div className="jny-habit-goal">{st.streak_days} Tage am Stück abschließen</div></div>
-                    <div className="jny-habit-streak">
-                      <div style={{textAlign:"right"}}><div className="jny-habit-num">{streak}</div><div className="jny-habit-lbl">STREAK</div></div>
-                      <span style={{fontSize:20}}>{streak>0?"🔥":"⚪"}</span>
-                    </div>
-                  </div>
-                </>}
-                {isActive&&!hasHabit&&<div className="jny-card-desc" style={{fontStyle:"italic",color:"var(--faint)",marginTop:10}}>Dein Coach schließt dieses Stadium für dich ab, sobald es soweit ist.</div>}
-              </div>}
-            </div>
-          </div>
-        </div>;
-      })}
+      {stages.map((st,i)=><ClientJourneyStage key={st.id} st={st} index={i} state={stateFor(i)} habitsMap={habitsMap} habitStreaks={habitStreaks} onToggleSub={onToggleSub} isLast={false}/>)}
       <div className="jny-row">
         <div className="jny-lc"><div className="jny-circ goal">🏆</div></div>
-        <div className="jny-rc">
-          <div className="jny-card goal">
-            <div className="jny-card-status">Ziel</div>
-            <div className="jny-card-title">{journey.goal_state}</div>
-          </div>
-        </div>
+        <div className="jny-rc"><div className="jny-card goal">
+          <div className="jny-chead nopt"><div style={{flex:1,minWidth:0}}><div className="jny-cstatus">Ziel</div><div className="jny-ctitle">{(journey.goal_state||"").replace(/^Zielzustand:\s*/,"")}</div></div></div>
+        </div></div>
       </div>
     </div>
   </div>;
@@ -5803,16 +5826,16 @@ function CoachJourneyEditor({journey,stages,habits,toast,onRefresh,onCreate,jour
     catch(e){toast("Fehler: "+e.message);} finally{setSaving(false);}};
   const saveSt=async()=>{ if(!sd||saving)return; setSaving(true);
     try{
-      const row={journey_id:journeyId,title:(sd.title||"").trim(),description:sd.description||"",position:sd._new?stages.length:sd.position,completion_type:sd.completion_type||"manual",streak_habit_id:sd.completion_type==="auto"?(sd.streak_habit_id||null):null,streak_days:sd.completion_type==="auto"?(parseInt(sd.streak_days)||7):7};
+      const cleanSubs=(sd.substeps||[]).filter(x=>x.text&&x.text.trim()).map(x=>({id:x.id,text:x.text.trim(),done:!!x.done}));
+      const row={journey_id:journeyId,title:(sd.title||"").trim(),description:sd.description||"",position:sd._new?stages.length:sd.position,completion_type:sd.completion_type||"manual",streak_habit_id:sd.completion_type==="auto"?(sd.streak_habit_id||null):null,streak_days:sd.completion_type==="auto"?(parseInt(sd.streak_days)||7):7,substeps:cleanSubs};
       if(sd.id&&!sd._new){await window.supa.from("journey_stages").update(row).eq("id",sd.id);}
       else{await window.supa.from("journey_stages").insert(row);}
       setSd(null); await onRefresh();
-    }catch(e){toast("Fehler: "+e.message);} finally{setSaving(false);}};
+    }catch(e){toast("Fehler: "+(e.message||""));} finally{setSaving(false);}};
   const completeSt=async(st)=>{ try{ await window.supa.from("journey_stages").update({completed:!st.completed,completed_at:!st.completed?new Date().toISOString():null}).eq("id",st.id); await onRefresh(); }catch(e){toast("Fehler");}};
-  const delSt=async(id)=>{ if(!await askConfirm({title:"Stadium löschen?",message:"Wird dauerhaft entfernt.",confirmText:"Löschen",danger:true}))return; try{await window.supa.from("journey_stages").delete().eq("id",id); await onRefresh();}catch(e){toast("Fehler");}};
+  const delSt=async(id)=>{ if(!await askConfirm({title:"Stadium löschen?",message:"Wird dauerhaft entfernt.",confirmText:"Löschen",danger:true}))return; try{await window.supa.from("journey_stages").delete().eq("id",id); setSd(null); await onRefresh();}catch(e){toast("Fehler");}};
   const moveSt=async(idx,dir)=>{ const t=stages[idx+dir]; if(!t)return;
     try{await window.supa.from("journey_stages").update({position:t.position}).eq("id",stages[idx].id); await window.supa.from("journey_stages").update({position:stages[idx].position}).eq("id",t.id); await onRefresh();}catch(e){toast("Fehler");}};
-
   if(!journey) return <div className="mbody"><div className="mcard"><div style={{fontWeight:700,marginBottom:6}}>Noch keine Journey</div><div className="muted" style={{fontSize:13,marginBottom:14}}>Erstelle die Journey mit dem Standard-Template.</div><button className="btn" onClick={onCreate}>Journey erstellen</button></div></div>;
   return <div className="mbody">
     <div className="sectlabel">Ausgangspunkt & Ziel</div>
@@ -5830,35 +5853,38 @@ function CoachJourneyEditor({journey,stages,habits,toast,onRefresh,onCreate,jour
     </div>:<div className="mcard">
       <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
         <div className="jny-dot s"/>
-        <div style={{flex:1}}><div className="jny-ep-lbl" style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--faint)",marginBottom:2}}>Ausgangspunkt</div><div style={{fontSize:14}}>{journey.start_state||"—"}</div></div>
+        <div style={{flex:1}}><div style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--faint)",marginBottom:2}}>Ausgangspunkt</div><div style={{fontSize:14}}>{journey.start_state||"—"}</div></div>
       </div>
       <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
         <div className="jny-dot g"/>
-        <div style={{flex:1}}><div className="jny-ep-lbl" style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--faint)",marginBottom:2}}>Ziel</div><div style={{fontSize:14}}>{journey.goal_state||"—"}</div></div>
+        <div style={{flex:1}}><div style={{fontSize:11,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",color:"var(--faint)",marginBottom:2}}>Ziel</div><div style={{fontSize:14}}>{journey.goal_state||"—"}</div></div>
       </div>
-      <button className="jny-edit-btn" style={{marginTop:12}} onClick={()=>{setJd({title:journey.title||"Deine Journey",start_state:journey.start_state||"",goal_state:journey.goal_state||""});setEditJ(true);}}>Bearbeiten</button>
+      <button className="btn btn-ghost" style={{marginTop:12,fontSize:13}} onClick={()=>{setJd({title:journey.title||"Deine Journey",start_state:journey.start_state||"",goal_state:journey.goal_state||""});setEditJ(true);}}>Bearbeiten</button>
     </div>}
     <div className="sectlabel">Stadien ({stages.length})</div>
-    {stages.map((st,i)=><div key={st.id} className="mcard jny-ecard">
-      <div className="jny-ecard-head">
+    {stages.map((st,i)=>{ const subs=Array.isArray(st.substeps)?st.substeps:[]; return <div key={st.id} className="mcard jny-ecard">
+      <div className="jny-ehead">
         <div className={"jny-echeck"+(st.completed?" on":"")} onClick={()=>completeSt(st)}>{st.completed?"✓":""}</div>
         <div style={{flex:1,minWidth:0}}>
           <div className={"jny-etitle"+(st.completed?" done":"")}>{st.title}</div>
           {st.description&&<div className="jny-edesc">{st.description}</div>}
-          {st.completion_type==="auto"&&st.streak_habit_id&&<div className="jny-estreak"><Icon name="habits"/>{habits.find(h=>h.id===st.streak_habit_id)?.name||"Habit"} · {st.streak_days} Tage</div>}
+          <div className="jny-emeta">
+            {subs.length>0&&<span className="chip">{subs.length} Unterpunkt{subs.length>1?"e":""}</span>}
+            {st.completion_type==="auto"&&st.streak_habit_id&&<span className="chip"><Icon name="habits"/>{habits.find(h=>h.id===st.streak_habit_id)?.name||"Habit"} · {st.streak_days}T</span>}
+          </div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:0}}>
-          <button className="jny-move-btn" disabled={i===0} onClick={()=>moveSt(i,-1)}>↑</button>
-          <button className="jny-move-btn" disabled={i===stages.length-1} onClick={()=>moveSt(i,1)}>↓</button>
-          <button className="jny-edit-btn" onClick={()=>setSd(sd?.id===st.id&&!sd._new?null:{...st,_new:false})}>✎ Edit</button>
+        <div className="jny-move">
+          <button disabled={i===0} onClick={()=>moveSt(i,-1)}>▲</button>
+          <button disabled={i===stages.length-1} onClick={()=>moveSt(i,1)}>▼</button>
         </div>
+        <button className="jny-icobtn" onClick={()=>setSd(sd?.id===st.id&&!sd._new?null:{...st,substeps:subs,_new:false})}><Icon name="pencil"/></button>
       </div>
-      {sd?.id===st.id&&!sd._new&&<div style={{marginTop:12,borderTop:"1px solid var(--line)",paddingTop:12}}>
+      {sd?.id===st.id&&!sd._new&&<div style={{marginTop:13,borderTop:"1px solid var(--line)",paddingTop:13}}>
         <JourneyStageForm sd={sd} setSd={setSd} habits={habits} saving={saving} onSave={saveSt} onCancel={()=>setSd(null)} onDelete={()=>delSt(st.id)}/>
       </div>}
-    </div>)}
-    {!sd?<button className="btn btn-ghost" onClick={()=>setSd({_new:true,title:"",description:"",completion_type:"manual",streak_habit_id:"",streak_days:7})}>+ Stadium hinzufügen</button>
-    :sd._new&&<div className="mcard"><div style={{fontWeight:700,marginBottom:10}}>Neues Stadium</div><JourneyStageForm sd={sd} setSd={setSd} habits={habits} saving={saving} onSave={saveSt} onCancel={()=>setSd(null)}/></div>}
+    </div>;})}
+    {!sd?<button className="btn btn-ghost" onClick={()=>setSd({_new:true,title:"",description:"",substeps:[],completion_type:"manual",streak_habit_id:"",streak_days:7})}>+ Stadium hinzufügen</button>
+    :sd._new&&<div className="mcard"><div style={{fontWeight:700,marginBottom:12}}>Neues Stadium</div><JourneyStageForm sd={sd} setSd={setSd} habits={habits} saving={saving} onSave={saveSt} onCancel={()=>setSd(null)}/></div>}
   </div>;
 }
 
@@ -5880,13 +5906,11 @@ function JourneyTab({clientId,role,toast}){
         let list=ss||[];
         for(const st of list){ if(!st.completed&&st.completion_type==="auto"&&st.streak_habit_id){ const ok=await checkJourneyStreak(st); if(ok){await window.supa.from("journey_stages").update({completed:true,completed_at:new Date().toISOString()}).eq("id",st.id);st.completed=true;} } }
         setStages(list);
-        // Load habits for coach editor
         if(role==="coach"){
           const {data:hs}=await window.supa.from("habits").select("id,name").eq("client_id",clientId).eq("archived",false).order("position");
           setHabits(hs||[]);
         }
-        // Load habit data for streak display (all roles)
-        const autoIds=[...new Set(list.filter(s=>s.streak_habit_id).map(s=>s.streak_habit_id))];
+        const autoIds=[...new Set(list.filter(st=>st.streak_habit_id).map(st=>st.streak_habit_id))];
         if(autoIds.length){
           const {data:hs}=await window.supa.from("habits").select("id,name").in("id",autoIds);
           const hmap={}; for(const h of (hs||[])) hmap[h.id]=h; setHabitsMap(hmap);
@@ -5902,18 +5926,23 @@ function JourneyTab({clientId,role,toast}){
   };
   useEffect(()=>{(async()=>{try{const {data}=await window.supa.auth.getUser();setMyId(data?.user?.id||null);}catch(e){}})();},[]);
   useEffect(()=>{if(clientId)load();},[clientId]);
+  const toggleSub=async(st,subId)=>{
+    const subs=(Array.isArray(st.substeps)?st.substeps:[]).map(x=>x.id===subId?{...x,done:!x.done}:x);
+    setStages(list=>list.map(x=>x.id===st.id?{...x,substeps:subs}:x));
+    try{ await window.supa.from("journey_stages").update({substeps:subs}).eq("id",st.id); }catch(e){ toast("Fehler beim Speichern"); load(); }
+  };
   const createJourney=async()=>{
     try{
-      const {data:j,error}=await window.supa.from("journeys").insert({client_id:clientId,coach_id:myId,title:"Deine Journey",start_state:"Ausgangspunkt: Unstrukturiert, ohne klaren Plan.",goal_state:"Zielzustand: Gesunder, starker Körper — Fitness als fester Lebensbestandteil."}).select().single();
+      const {data:j,error}=await window.supa.from("journeys").insert({client_id:clientId,coach_id:myId,title:"Deine Journey",start_state:"Unstrukturiert, ohne klaren Plan.",goal_state:"Gesunder, starker Körper — Fitness als fester Lebensbestandteil."}).select().single();
       if(error)throw error;
-      await window.supa.from("journey_stages").insert(DEFAULT_JOURNEY_STAGES.map(st=>({...st,journey_id:j.id})));
+      await window.supa.from("journey_stages").insert(DEFAULT_JOURNEY_STAGES.map(st=>({...st,journey_id:j.id,substeps:[]})));
       await load();
     }catch(e){toast("Fehler: "+e.message);}
   };
   if(journey===undefined) return <div className="mbody"><div className="muted">Lädt…</div></div>;
   if(tableErr) return <div className="mbody"><div className="mcard"><div style={{fontWeight:700,marginBottom:6}}>Migration nötig</div><div className="muted" style={{fontSize:13}}>Führe die Journey-SQL-Migration in Supabase aus.</div></div></div>;
   if(role==="coach") return <CoachJourneyEditor journey={journey} stages={stages} habits={habits} journeyId={journey?.id} toast={toast} onRefresh={load} onCreate={createJourney} myId={myId}/>;
-  return <ClientJourneyView journey={journey} stages={stages} habitsMap={habitsMap} habitStreaks={habitStreaks}/>;
+  return <ClientJourneyView journey={journey} stages={stages} habitsMap={habitsMap} habitStreaks={habitStreaks} onToggleSub={toggleSub}/>;
 }
 
 function JourneyMiniCard({clientId,go}){
