@@ -712,7 +712,7 @@
   .authtabs button{flex:1;padding:9px;border-radius:9px;font-size:14px;font-weight:600;color:var(--dim);}
   .authtabs button.on{background:var(--bg-2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.18);}
 
-  /* ===== kraftkonzept v93.1 — crafted high-contrast skin ===== */
+  /* ===== kraftkonzept v100 — crafted high-contrast skin ===== */
   h1,h2,h3{letter-spacing:-0.032em;}
   .ttl{letter-spacing:-0.03em;font-size:20px;}
 
@@ -991,6 +991,11 @@
   //   Project URL  und  anon public key
   window.SUPA_URL  = "https://qelwhtytxepvfcliizxo.supabase.co";
   window.SUPA_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlbHdodHl0eGVwdmZjbGlpenhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTE1MjIsImV4cCI6MjA5NTgyNzUyMn0.QULQhdEZPFr_72zS0gueIyAZtMHGnEpBKtw7ByQnPUM";
+
+  // Passwort-Recovery-Token erfassen, BEVOR Supabase den URL-Hash entfernt
+  window.__INITIAL_HASH__ = window.location.hash || "";
+  window.__INITIAL_SEARCH__ = window.location.search || "";
+  window.__IS_RECOVERY__ = /type=recovery/.test(window.__INITIAL_HASH__) || /[?&]type=recovery/.test(window.__INITIAL_SEARCH__);
 
   window.supa = null;
   try {
@@ -5329,15 +5334,29 @@ function Auth(){
 function RecoveryScreen({onDone,toast}){
   const [pw,setPw]=useState(""); const [pw2,setPw2]=useState("");
   const [busy,setBusy]=useState(false); const [msg,setMsg]=useState(null);
+  const [done,setDone]=useState(false);
+  const standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
   const save=async()=>{
     if(pw.length<8){ setMsg({type:"err",text:"Mindestens 8 Zeichen."}); return; }
     if(pw!==pw2){ setMsg({type:"err",text:"Die Passwörter stimmen nicht überein."}); return; }
     setBusy(true); setMsg(null);
-    try{ const { error } = await window.supa.auth.updateUser({ password: pw }); if(error) throw error; toast("Neues Passwort gespeichert"); onDone(); }
+    try{
+      const { error } = await window.supa.auth.updateUser({ password: pw }); if(error) throw error;
+      toast("Neues Passwort gespeichert");
+      if(standalone){ onDone(); } else { try{ await window.supa.auth.signOut(); }catch(e){} setDone(true); }
+    }
     catch(e){ setMsg({type:"err",text:"Fehlgeschlagen: "+(e.message||"")}); setBusy(false); }
   };
+  if(done) return <div className="center">
+    <div style={{marginBottom:24}}><img className="logo-auth" src={LOGO} alt="kraftkonzept"/></div>
+    <div className="card" style={{textAlign:"center"}}>
+      <div style={{fontSize:44,marginBottom:10}}>✓</div>
+      <h2 style={{fontSize:22,marginBottom:8}}>Passwort geändert</h2>
+      <div className="muted" style={{fontSize:14,lineHeight:1.5}}>Öffne jetzt die <b>kraftkonzept</b> App auf deinem Home‑Bildschirm und melde dich mit deinem neuen Passwort an.</div>
+    </div>
+  </div>;
   return <div className="center">
-    <div style={{marginBottom:24}}><img className="logo-auth" src={LOGO} alt="NK"/></div>
+    <div style={{marginBottom:24}}><img className="logo-auth" src={LOGO} alt="kraftkonzept"/></div>
     <div className="card">
       <h2 style={{fontSize:22,marginBottom:6}}>Neues Passwort</h2>
       <div className="muted" style={{marginBottom:14,fontSize:13.5}}>Wähle ein neues Passwort für dein Konto.</div>
@@ -5709,6 +5728,8 @@ function Root(){
   const standalone =
     (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
     window.navigator.standalone === true;
+  // Passwort-Reset muss auch im Browser funktionieren (Mail-Links öffnen nie die PWA)
+  if(window.__IS_RECOVERY__) return <App/>;
   if(!standalone) return <InstallGate/>;
   return <App/>;
 }
@@ -6044,7 +6065,7 @@ function JourneyMiniCard({clientId,go}){
 
 function App(){
   const live = !!window.supa;
-  const [screen,setScreen]=useState(live ? "loading" : "auth"); // loading | auth | redeem | app
+  const [screen,setScreen]=useState(live ? (window.__IS_RECOVERY__ ? "recovery" : "loading") : "auth"); // loading | auth | redeem | app | recovery
   const [session,setSession]=useState(null);
   const [profile,setProfile]=useState(null); // {id,email,role,coach_id,display_name}
   const [role,setRole]=useState("coach");     // aktive Ansicht (coach kann zu client wechseln)
