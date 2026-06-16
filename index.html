@@ -44,7 +44,7 @@
   .field input{width:100%;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:16px;
     padding:13px 14px;border-radius:12px;outline:none;transition:border-color .15s,background .15s;}
   .field input::placeholder{color:var(--faint);}
-  .field input:focus{border-color:var(--accent);background:#322824;}
+  .field input:focus{border-color:var(--accent);background:var(--bg-2);}
 
   .card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r);padding:20px;}
 
@@ -853,12 +853,19 @@
   [data-theme="dark"] .gate-logo{filter:invert(1);}
   [data-theme="dark"] .ds-cell.sel,[data-theme="dark"] .calcol .cdate.sel{color:var(--bg);}
 
-  /* Autofill: prevent iOS dark-background override */
+  /* Autofill: prevent iOS dark-background override (concrete colors – var() unreliable here) */
   input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,input:-webkit-autofill:active{
-    -webkit-box-shadow:0 0 0 1000px var(--bg-2) inset !important;
-    -webkit-text-fill-color:var(--text) !important;
-    caret-color:var(--text);
+    -webkit-box-shadow:0 0 0 1000px #FFFFFF inset !important;
+    box-shadow:0 0 0 1000px #FFFFFF inset !important;
+    -webkit-text-fill-color:#0B0C0F !important;
+    caret-color:#0B0C0F;
     transition:background-color 5000s ease-in-out 0s;
+  }
+  [data-theme="dark"] input:-webkit-autofill,[data-theme="dark"] input:-webkit-autofill:hover,[data-theme="dark"] input:-webkit-autofill:focus,[data-theme="dark"] input:-webkit-autofill:active{
+    -webkit-box-shadow:0 0 0 1000px #1C1C1F inset !important;
+    box-shadow:0 0 0 1000px #1C1C1F inset !important;
+    -webkit-text-fill-color:#F2F2F7 !important;
+    caret-color:#F2F2F7;
   }
 
   /* ===== Journey (v3 design) ===== */
@@ -6223,6 +6230,14 @@ function App(){
   // Session-Bootstrap + Auth-Listener
   useEffect(()=>{
     if(!live) return;
+    // SICHERHEIT: Im Passwort-Recovery-Modus NIEMALS automatisch einloggen.
+    // Supabase stellt beim Token-Parsing eine Session her – diese darf NICHT in die App routen,
+    // sonst wäre man ohne neues Passwort eingeloggt. Session nur für updateUser bereithalten.
+    if(window.__IS_RECOVERY__){
+      window.supa.auth.getSession().then(({data})=>{ if(data && data.session) setSession(data.session); });
+      const { data:rsub } = window.supa.auth.onAuthStateChange((event,sess)=>{ setSession(sess||null); });
+      return ()=>{ rsub && rsub.subscription && rsub.subscription.unsubscribe(); };
+    }
     let active=true;
     let routed=false;
     const route=async(prof)=>{
