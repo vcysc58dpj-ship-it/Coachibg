@@ -1035,6 +1035,41 @@
   .pe-addex{width:100%;border:1.5px dashed var(--line-2);background:transparent;border-radius:16px;padding:16px;font-weight:700;font-size:15px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
   .pe-addex svg{width:18px;height:18px;}
   .pe-imgpick{margin-bottom:14px;}
+  /* Saubere Satz-Anzeige (absolvierte Einheiten) */
+  .ws-ex{margin-bottom:16px;}
+  .ws-ex:last-child{margin-bottom:0;}
+  .ws-exhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;}
+  .ws-exname{font-weight:700;font-size:15px;letter-spacing:-0.01em;}
+  .ws-exmeta{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.05em;color:var(--faint);text-transform:uppercase;flex-shrink:0;}
+  .ws-sets{display:flex;flex-direction:column;gap:5px;}
+  .ws-set{display:flex;align-items:center;gap:12px;background:var(--bg-3);border-radius:11px;padding:9px 13px;}
+  .ws-setnum{width:22px;height:22px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:var(--dim);flex-shrink:0;}
+  .ws-setvals{display:flex;gap:16px;align-items:baseline;flex:1;flex-wrap:wrap;}
+  .ws-val{font-size:14.5px;font-weight:600;color:var(--text);}
+  .ws-val .u{font-size:11.5px;color:var(--faint);font-weight:500;margin-left:3px;}
+  /* Session-Karte Vorschau (Coach) */
+  .done-prev{font-size:13px;color:var(--dim);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Vergleich vorherige vs aktuelle Einheit */
+  .cmp-head{display:flex;gap:10px;margin-bottom:12px;}
+  .cmp-col-lbl{flex:1;min-width:0;font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);line-height:1.3;}
+  .cmp-col-lbl.now{color:var(--text);font-weight:600;}
+  .cmp-ex{margin-bottom:15px;}
+  .cmp-ex:last-child{margin-bottom:0;}
+  .cmp-exname{font-weight:700;font-size:14.5px;margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+  .cmp-arrow{font-size:11px;font-weight:800;}
+  .cmp-arrow.up{color:#15814a;}
+  [data-theme="dark"] .cmp-arrow.up{color:#30D158;}
+  .cmp-arrow.down{color:#DC2626;}
+  .cmp-arrow.eq{color:var(--faint);}
+  .cmp-cols{display:flex;gap:10px;align-items:flex-start;}
+  .cmp-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+  .cmp-set{display:flex;align-items:center;gap:8px;border-radius:9px;padding:8px 11px;font-size:13.5px;line-height:1.2;}
+  .cmp-col.now .cmp-set{background:var(--bg-3);}
+  .cmp-col.prev .cmp-set{background:transparent;border:1px dashed var(--line-2);color:var(--dim);}
+  .cmp-sn{font-family:"IBM Plex Mono";font-size:10px;color:var(--faint);flex-shrink:0;}
+  .cmp-sv{font-weight:600;}
+  .cmp-col.prev .cmp-sv{font-weight:500;}
+  .cmp-empty{font-size:12px;color:var(--faint);padding:8px 2px;font-style:italic;}
 </style>
 </head>
 <body>
@@ -2949,6 +2984,82 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
     <button className="btn" style={{marginTop:8}} onClick={()=>{ onNoteCommit(note); onFinish(); }}>Fertig</button>
   </div>;
 }
+function fmtSetCompact(r){
+  const kg=(r.kg&&r.kg!=="-"&&r.kg!=="");
+  const rir=(r.rir&&r.rir!=="-"&&r.rir!=="");
+  const pct=(r.pct&&r.pct!=="-"&&r.pct!=="");
+  let main=(r.reps||"–");
+  main += kg ? (" × "+r.kg+" kg") : " Wdh";
+  let tail="";
+  if(rir) tail=" · RIR "+r.rir; else if(pct) tail=" · "+r.pct+"%";
+  return main+tail;
+}
+// Volumen-Kennzahl für den Fortschritts-Pfeil (kg-Volumen, sonst Gesamt-Wdh)
+function exVolume(rows){
+  let vol=0, reps=0, hasKg=false;
+  rows.forEach(r=>{ const rp=parseFloat(String(r.reps).replace(",","."))||0; const kg=parseFloat(String(r.kg).replace(",","."))||0; reps+=rp; if(kg>0){ hasKg=true; vol+=rp*kg; } });
+  return hasKg?{type:"kg",val:vol}:{type:"reps",val:reps};
+}
+function SessionCompare({cur,prev,plan}){
+  const planEx=((plan.days.find(d=>d.id===cur.dayId)||{}).exercises)||[];
+  const keys=[];
+  const pushKey=(id,name)=>{ if(!keys.find(x=>x.id===id)) keys.push({id,name}); };
+  planEx.forEach(e=>{ if(cur.sets[e.id]||(prev&&prev.sets[e.id])) pushKey(e.id,e.name); });
+  Object.keys(cur.sets).forEach(k=>pushKey(k,(cur.sets[k][0]&&cur.sets[k][0].name)||"Übung"));
+  if(prev) Object.keys(prev.sets).forEach(k=>pushKey(k,(prev.sets[k][0]&&prev.sets[k][0].name)||"Übung"));
+  if(!keys.length) return <div className="muted" style={{fontSize:13}}>Keine Sätze erfasst.</div>;
+  return <div>
+    <div className="cmp-head">
+      <div className="cmp-col-lbl now">Diese Einheit · {fmtDay(cur.date)}</div>
+      <div className="cmp-col-lbl">Zuvor · {fmtDay(prev.date)}</div>
+    </div>
+    {keys.map(k=>{
+      const cs=cur.sets[k.id]||[]; const ps=(prev&&prev.sets[k.id])||[];
+      let arrow=null;
+      if(cs.length&&ps.length){ const a=exVolume(cs), b=exVolume(ps); if(a.type===b.type){ if(a.val>b.val) arrow="up"; else if(a.val<b.val) arrow="down"; else arrow="eq"; } }
+      return <div key={k.id} className="cmp-ex">
+        <div className="cmp-exname">{k.name}{arrow&&<span className={"cmp-arrow "+arrow}>{arrow==="up"?"▲":arrow==="down"?"▼":"="}</span>}</div>
+        <div className="cmp-cols">
+          <div className="cmp-col now">
+            {cs.length?cs.map((r,i)=><div key={i} className="cmp-set"><span className="cmp-sn">{i+1}</span><span className="cmp-sv">{fmtSetCompact(r)}</span></div>):<div className="cmp-empty">–</div>}
+          </div>
+          <div className="cmp-col prev">
+            {ps.length?ps.map((r,i)=><div key={i} className="cmp-set"><span className="cmp-sn">{i+1}</span><span className="cmp-sv">{fmtSetCompact(r)}</span></div>):<div className="cmp-empty">nicht dabei</div>}
+          </div>
+        </div>
+      </div>;
+    })}
+  </div>;
+}
+
+function WorkoutSets({w,plan}){
+  const keys=Object.keys(w.sets);
+  if(!keys.length) return <div className="muted" style={{fontSize:13}}>Keine Sätze erfasst.</div>;
+  return <div>{keys.map(k=>{
+    const rows=w.sets[k];
+    const nm=(rows[0]&&rows[0].name)||(plan.days.flatMap(d=>d.exercises).find(e=>e.id===k)||{}).name||"Übung";
+    return <div key={k} className="ws-ex">
+      <div className="ws-exhead"><span className="ws-exname">{nm}</span><span className="ws-exmeta">{rows.length} {rows.length===1?"Satz":"Sätze"}</span></div>
+      <div className="ws-sets">
+        {rows.map((r,i)=>{
+          const hasKg=r.kg&&r.kg!=="-"&&r.kg!=="";
+          const hasRir=r.rir&&r.rir!=="-"&&r.rir!=="";
+          const hasPct=r.pct&&r.pct!=="-"&&r.pct!=="";
+          return <div key={i} className="ws-set">
+            <div className="ws-setnum">{i+1}</div>
+            <div className="ws-setvals">
+              <span className="ws-val">{r.reps||"–"}<span className="u">Wdh</span></span>
+              {hasKg && <span className="ws-val">{r.kg}<span className="u">kg</span></span>}
+              {hasRir && <span className="ws-val">RIR {r.rir}</span>}
+              {hasPct && <span className="ws-val">{r.pct}<span className="u">%</span></span>}
+            </div>
+          </div>;
+        })}
+      </div>
+    </div>;
+  })}</div>;
+}
+
 function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const [openDayId,setOpenDayId]=useState(null);   // neuer Eintrag für diesen Tag
   const [editWid,setEditWid]=useState(null);        // bestehende Einheit bearbeiten
@@ -3153,18 +3264,16 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
         const rangeStart=fmtDay(dstr(addDays(first,(wk-1)*7))); const rangeEnd=fmtFull(dstr(addDays(first,(wk-1)*7+6)));
         return <div key={wk} style={{marginBottom:18}}>
           <div className="weekhead"><span className="wh-title">Woche {wk}</span><span className="wh-range">{rangeStart} – {rangeEnd}</span><span className="wh-count">{items.length}/{plan.days.length||items.length}</span></div>
-          {items.map(w=>{ const day=plan.days.find(d=>d.id===w.dayId); const total=Object.values(w.sets).reduce((n,a)=>n+a.length,0);
-            const tgt=targetSets(w.dayId); const pct=tgt?Math.min(100,Math.round((total/tgt)*100)):100; const open=openWid===w.id;
+          {items.map(w=>{ const day=plan.days.find(d=>d.id===w.dayId); const total=Object.values(w.sets).reduce((n,a)=>n+a.length,0); const open=openWid===w.id;
             return <div key={w.id} className="donecard">
               <button className="done-row" onClick={()=>setOpenWid(open?null:w.id)}>
                 <div className="done-check"><Icon name="habits"/></div>
                 <div className="done-main"><div className="done-name">{day?day.name:"Training"}</div><div className="done-sub">{fmtFull(w.date)} · {total} {total===1?"Satz":"Sätze"}</div></div>
-                <div className="done-pct">{pct}%</div>
                 <div className="dr-chev">{open?"▾":"›"}</div>
               </button>
               {open && <div className="done-body">
-                {renderSession(w)}
-                {w.note && <div className="worknote"><span className="wn-lab">Notiz</span>{w.note}</div>}
+                <WorkoutSets w={w} plan={plan}/>
+                {w.note && <div className="worknote" style={{marginTop:14}}><span className="wn-lab">Notiz</span>{w.note}</div>}
                 <div className="done-acts">
                   <button className="da-edit" onClick={()=>{ setOpenWid(null); setEditWid(w.id); }}><Icon name="pencil"/>Bearbeiten</button>
                   <button className="da-del" onClick={()=>deleteWorkout(w.id)}><Icon name="trash"/>Löschen</button>
@@ -3662,12 +3771,22 @@ function CoachWorkoutHistory({plan,clientId,toast}){
         return <div key={wk} style={{marginBottom:18}}>
           <div style={{fontWeight:800,fontSize:15,margin:"6px 2px 10px",color:"var(--text)"}}>Woche {wk}</div>
           {items.map(w=>{ const day=plan.days.find(d=>d.id===w.dayId); const total=Object.values(w.sets).reduce((n,a)=>n+a.length,0); const open=openWid===w.id;
-            return <div key={w.id} className="exp">
-              <div className="head" onClick={()=>setOpenWid(open?null:w.id)}>
-                <div><div style={{fontWeight:700}}>{day?day.name:"Training"}</div><div className="enote" style={{marginTop:2}}>{fmtFull(w.date)} · {total} Sätze</div></div>
-                <div className="muted">{open?"▾":"▸"}</div>
-              </div>
-              {open && <div className="body2">{renderSession(w)}{w.note && <div className="worknote"><span className="wn-lab">Notiz vom Kunden</span>{w.note}</div>}</div>}
+            const exNames=Object.keys(w.sets).map(k=>{ const rows=w.sets[k]; return (rows[0]&&rows[0].name)||(plan.days.flatMap(d=>d.exercises).find(e=>e.id===k)||{}).name||"Übung"; });
+            const prev=workouts.filter(x=>x.dayId===w.dayId && x.date<w.date).slice().sort((a,b)=>a.date<b.date?1:-1)[0]||null;
+            return <div key={w.id} className="donecard">
+              <button className="done-row" onClick={()=>setOpenWid(open?null:w.id)}>
+                <div className="done-check"><Icon name="habits"/></div>
+                <div className="done-main">
+                  <div className="done-name">{day?day.name:"Training"}</div>
+                  <div className="done-sub">{fmtFull(w.date)} · {total} {total===1?"Satz":"Sätze"}{prev?" · Vergleich verfügbar":""}</div>
+                  {!open && exNames.length>0 && <div className="done-prev">{exNames.join(" · ")}</div>}
+                </div>
+                <div className="dr-chev">{open?"▾":"›"}</div>
+              </button>
+              {open && <div className="done-body">
+                {prev ? <SessionCompare cur={w} prev={prev} plan={plan}/> : <WorkoutSets w={w} plan={plan}/>}
+                {w.note && <div className="worknote" style={{marginTop:14}}><span className="wn-lab">Notiz vom Kunden</span>{w.note}</div>}
+              </div>}
             </div>;
           })}
         </div>;
