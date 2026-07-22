@@ -1180,6 +1180,28 @@
   .nut-createbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:var(--on-accent);border:none;border-radius:12px;padding:12px;font-weight:700;font-size:13.5px;cursor:pointer;}
   .nut-createbtn.ghost{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);}
   .nut-createbtn svg{width:15px;height:15px;}
+  .mm-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .mm-name{flex:1;font-weight:600;font-size:15px;cursor:pointer;padding:6px 0;}
+  /* Hero v2 – modern mit farbigen Makro-Balken */
+  .nut-hero-krow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .nut-hero-kcal{font-family:"Bricolage Grotesque";font-weight:800;font-size:46px;letter-spacing:-0.045em;line-height:1;}
+  .nut-hero-kcal em{font-style:normal;font-size:15px;font-weight:600;color:var(--faint);letter-spacing:0;margin-left:6px;}
+  .nut-hero-pct{font-family:"IBM Plex Mono";font-size:13px;font-weight:500;color:var(--dim);}
+  .nut-kbar{height:8px;background:var(--bg-3);border-radius:99px;overflow:hidden;margin-top:12px;}
+  .nut-kbar>div{height:100%;background:var(--accent);border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+  .nut-bars{margin-top:18px;display:flex;flex-direction:column;gap:13px;}
+  .nut-macrorow-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .nut-mr-lbl{font-weight:600;font-size:13.5px;}
+  .nut-mr-v{font-family:"IBM Plex Mono";font-size:11.5px;color:var(--dim);}
+  .nut-mbar{height:7px;background:var(--bg-3);border-radius:99px;overflow:hidden;}
+  .nut-mbar-fill{height:100%;border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+  .nut-mbar-fill.p{background:#22C55E;}
+  .nut-mbar-fill.c{background:#F59E0B;}
+  .nut-mbar-fill.f{background:#6366F1;}
+  .nut-hero-sub{display:flex;gap:20px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--faint);}
+  .nut-hero-sub b{color:var(--text);font-weight:700;}
+  /* Datums-Balken feiner */
+  .nut-navbtn{border-radius:50%;width:40px;height:40px;}
 </style>
 </head>
 <body>
@@ -4148,7 +4170,7 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
   };
   const del=async()=>{ if(!initial) return; if(!await askConfirm({title:"Lebensmittel löschen?",message:"Wird aus der Datenbank entfernt. Bereits getrackte Einträge bleiben erhalten.",confirmText:"Löschen",danger:true})) return;
     try{ const { error }=await window.supa.from("foods").delete().eq("id",initial.id); if(error) throw error; toast("Gelöscht"); onDeleted&&onDeleted(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
-  const NF=({k,label,unit})=><label className="exf"><span className="exf-l">{label}</span><input className="exin" inputMode="decimal" value={vals[k]} onChange={e=>setV(k,e.target.value)} placeholder="0"/></label>;
+  const NF=({k,label})=><label key={k} className="exf"><span className="exf-l">{label}</span><input className="exin" inputMode="decimal" value={vals[k]} onChange={e=>setV(k,e.target.value)} placeholder="0"/></label>;
   return <NutSheet full title={initial?"Lebensmittel bearbeiten":"Neues Lebensmittel"} onClose={onClose}>
     <div className="nut-imgrow">
       <label className="nut-imgpick">
@@ -4173,9 +4195,9 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
     <div className="enote" style={{fontSize:12,marginBottom:2}}>Damit findest du das Produkt später per Scan wieder.</div>
     <div className="ci-flabel" style={{margin:"16px 0 7px"}}>Nährwerte pro 100 g</div>
     <div className="exf-grid">
-      <NF k="kcal" label="kcal"/><NF k="protein" label="Eiweiß (g)"/>
-      <NF k="carbs" label="Kohlenhydrate (g)"/><NF k="sugar" label="davon Zucker (g)"/>
-      <NF k="fat" label="Fett (g)"/><NF k="fiber" label="Ballaststoffe (g)"/>
+      {NF({k:"kcal",label:"kcal"})}{NF({k:"protein",label:"Eiweiß (g)"})}
+      {NF({k:"carbs",label:"Kohlenhydrate (g)"})}{NF({k:"sugar",label:"davon Zucker (g)"})}
+      {NF({k:"fat",label:"Fett (g)"})}{NF({k:"fiber",label:"Ballaststoffe (g)"})}
     </div>
     <div className="ci-flabel" style={{margin:"16px 0 7px"}}>Portions-Shortcuts (optional)</div>
     <div className="enote" style={{fontSize:12,marginBottom:8}}>z.B. „Portion" = 30 g oder „Paprika groß" = 150 g</div>
@@ -4355,6 +4377,33 @@ function EditEntrySheet({entry,meals,toast,onClose,onSave,onDelete}){
   </NutSheet>;
 }
 
+function MealManager({clientId,meals,onClose,onChanged,toast}){
+  const [list,setList]=useState(meals.map(m=>({...m})));
+  const [newName,setNewName]=useState("");
+  const [renaming,setRenaming]=useState(null);
+  const reload=async()=>{ try{ const {data}=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setList((data||[]).map(m=>({...m}))); onChanged&&onChanged(); }catch(e){} };
+  const add=async()=>{ const nm=newName.trim(); if(!nm) return; try{ const {error}=await window.supa.from("nutrition_meals").insert({client_id:clientId,name:nm,position:list.length}); if(error) throw error; setNewName(""); await reload(); }catch(e){ toast("Mahlzeit konnte nicht angelegt werden"); } };
+  const del=async(m)=>{ try{ const {error}=await window.supa.from("nutrition_meals").delete().eq("id",m.id); if(error) throw error; await reload(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
+  const rename=async(m,name)=>{ const nm=(name||"").trim(); if(!nm||nm===m.name){ setRenaming(null); return; } try{ await window.supa.from("nutrition_meals").update({name:nm}).eq("id",m.id); }catch(e){} setRenaming(null); await reload(); };
+  const move=async(idx,dir)=>{ const j=idx+dir; if(j<0||j>=list.length) return; const a=list[idx],b=list[j]; try{ await window.supa.from("nutrition_meals").update({position:j}).eq("id",a.id); await window.supa.from("nutrition_meals").update({position:idx}).eq("id",b.id); await reload(); }catch(e){ toast("Verschieben fehlgeschlagen"); } };
+  return <NutSheet title="Mahlzeiten verwalten" onClose={onClose}>
+    {list.length===0 && <div className="muted" style={{fontSize:13,marginBottom:12}}>Noch keine Mahlzeiten.</div>}
+    {list.map((m,i)=><div key={m.id} className="mm-row">
+      {renaming===m.id
+        ? <input className="setinput" defaultValue={m.name} autoFocus onBlur={e=>rename(m,e.target.value)} onKeyDown={e=>{ if(e.key==="Enter") rename(m,e.target.value); }}/>
+        : <div className="mm-name" onClick={()=>setRenaming(m.id)}>{m.name}</div>}
+      <button className="dctrl" disabled={i===0} onClick={()=>move(i,-1)} aria-label="nach oben">▲</button>
+      <button className="dctrl" disabled={i===list.length-1} onClick={()=>move(i,1)} aria-label="nach unten">▼</button>
+      <button className="delx" onClick={()=>del(m)} aria-label="löschen">×</button>
+    </div>)}
+    <div style={{display:"flex",gap:8,marginTop:14}}>
+      <input className="setinput" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="z.B. Frühstück 2" onKeyDown={e=>{ if(e.key==="Enter") add(); }}/>
+      <button className="btn" style={{width:"auto",padding:"12px 18px",flexShrink:0}} onClick={add}>Hinzufügen</button>
+    </div>
+    <div className="enote" style={{fontSize:12,marginTop:8}}>Tippe einen Namen an zum Umbenennen. Pfeile zum Verschieben.</div>
+  </NutSheet>;
+}
+
 function NutritionTracking({clientId,role,toast,onConfig}){
   const [sub,setSub]=useState("diary"); // diary | db | recipes
   const [date,setDate]=useState(today());
@@ -4368,12 +4417,15 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const [recForm,setRecForm]=useState(null);
   const [addMealOpen,setAddMealOpen]=useState(false);
   const [newMeal,setNewMeal]=useState("");
+  const [mealMgrOpen,setMealMgrOpen]=useState(false);
+  const [targets,setTargets]=useState(null);
 
   const loadMeals=async()=>{ try{ const { data:ms }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setMeals(ms||[]); if(!ms||!ms.length){ // Standard-Mahlzeiten anlegen
       const defs=["Frühstück","Mittagessen","Abendessen","Snacks"].map((n,i)=>({client_id:clientId,name:n,position:i})); await window.supa.from("nutrition_meals").insert(defs); const { data:ms2 }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}); setMeals(ms2||[]); } }catch(e){ setMeals([]); } };
   const loadEntries=async()=>{ setEntries(null); try{ const { data:es }=await window.supa.from("food_log").select("*").eq("client_id",clientId).eq("date",date).order("created_at",{ascending:true}); setEntries(es||[]); }catch(e){ toast("Tagebuch konnte nicht geladen werden"); setEntries([]); } };
   useEffect(()=>{ if(clientId) loadMeals(); },[clientId]);
   useEffect(()=>{ if(clientId) loadEntries(); },[clientId,date]);
+  useEffect(()=>{ if(!clientId) return; (async()=>{ try{ const {data}=await window.supa.from("nutrition_settings").select("kcal,protein,carbs,fat,macros_enabled").eq("client_id",clientId).maybeSingle(); if(data&&data.macros_enabled) setTargets({kcal:data.kcal,protein:data.protein,carbs:data.carbs,fat:data.fat}); else setTargets(null); }catch(e){ setTargets(null); } })(); },[clientId]);
 
   const loadDb=async()=>{ try{ const { data:me }=await window.supa.auth.getUser(); const uid=me?.user?.id;
     const { data:fs }=await window.supa.from("foods").select("id,name,brand,category,barcode,image_path,kcal,protein,carbs,fiber,sugar,fat,created_by").order("name",{ascending:true}); setDbFoods((fs||[]).map(f=>({...f,mine:f.created_by===uid}))); }catch(e){ setDbFoods([]); } };
@@ -4400,6 +4452,11 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const groupOf=(mn)=>(entries||[]).filter(e=>e.meal===mn);
   const orphanMeals=[...new Set((entries||[]).map(e=>e.meal).filter(mn=>mn&&!mealNames.includes(mn)))];
 
+  const mBar=(label,cls,val,target)=>{ const has=target&&target>0; const pct=has?Math.min(100,Math.round(val/target*100)):0;
+    return <div className="nut-macrorow" key={label}>
+      <div className="nut-macrorow-top"><span className="nut-mr-lbl">{label}</span><span className="nut-mr-v">{nutR1(val)}{has?" / "+target:""} g</span></div>
+      <div className="nut-mbar">{has?<div className={"nut-mbar-fill "+cls} style={{width:pct+"%"}}/>:<div className={"nut-mbar-fill "+cls} style={{width:"100%",opacity:.18}}/>}</div>
+    </div>; };
   return <div className="mbody">
     <div className="nut-datebar">
       <button className="nut-navbtn" onClick={()=>setDate(dstr(addDays(new Date(date+"T00:00:00"),-1)))}>‹</button>
@@ -4408,16 +4465,17 @@ function NutritionTracking({clientId,role,toast,onConfig}){
     </div>
 
     <div className="nut-hero">
-      <div className="nut-hero-top">
-        <div><div className="nut-hero-kcal">{nutR(dayTot.kcal)}</div><div className="nut-hero-lbl">kcal heute</div></div>
+      <div className="nut-hero-krow">
+        <div className="nut-hero-kcal">{nutR(dayTot.kcal)}<em>{targets&&targets.kcal?" / "+targets.kcal+" kcal":" kcal"}</em></div>
+        {targets&&targets.kcal>0 && <div className="nut-hero-pct">{Math.round(dayTot.kcal/targets.kcal*100)}%</div>}
       </div>
-      <div className="nut-hero-macros">
-        <div className="nut-hm"><b>{nutR1(dayTot.protein)}<i>g</i></b><span>Eiweiß</span></div>
-        <div className="nut-hm"><b>{nutR1(dayTot.carbs)}<i>g</i></b><span>Kohlenh.</span></div>
-        <div className="nut-hm"><b>{nutR1(dayTot.fat)}<i>g</i></b><span>Fett</span></div>
-        <div className="nut-hm"><b>{nutR1(dayTot.sugar)}<i>g</i></b><span>Zucker</span></div>
-        <div className="nut-hm"><b>{nutR1(dayTot.fiber)}<i>g</i></b><span>Ballastst.</span></div>
+      {targets&&targets.kcal>0 && <div className="nut-kbar"><div style={{width:Math.min(100,Math.round(dayTot.kcal/targets.kcal*100))+"%"}}/></div>}
+      <div className="nut-bars">
+        {mBar("Eiweiß","p",dayTot.protein,targets&&targets.protein)}
+        {mBar("Kohlenhydrate","c",dayTot.carbs,targets&&targets.carbs)}
+        {mBar("Fett","f",dayTot.fat,targets&&targets.fat)}
       </div>
+      <div className="nut-hero-sub"><span>Zucker <b>{nutR1(dayTot.sugar)} g</b></span><span>Ballaststoffe <b>{nutR1(dayTot.fiber)} g</b></span></div>
     </div>
 
     {entries===null && <div className="muted">Lädt…</div>}
@@ -4441,17 +4499,11 @@ function NutritionTracking({clientId,role,toast,onConfig}){
       </div>;
     })}
 
-    {addMealOpen
-      ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
-          <input className="setinput" value={newMeal} onChange={e=>setNewMeal(e.target.value)} placeholder="z.B. Frühstück 2" autoFocus/>
-          <button className="btn" style={{width:"auto",padding:"10px 16px"}} onClick={addMealSlot}>OK</button>
-          <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
-        </div>
-      : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Weitere Mahlzeit</button>}
-    {meals.length>0 && <div className="nut-mealmgmt"><span className="nut-mm-lbl">Mahlzeiten verwalten:</span>{meals.map(m=><button key={m.id} className="nut-mealtag" onClick={()=>delMealSlot(m)}>{m.name} ×</button>)}</div>}
+    <button className="nut-addmeal" onClick={()=>setMealMgrOpen(true)}><Icon name="plus"/>Mahlzeiten verwalten</button>
 
     {onConfig && <button className="link" style={{display:"block",margin:"22px auto 0"}} onClick={onConfig}>Vorgaben & Checkliste öffnen ›</button>}
 
+    {mealMgrOpen && <MealManager clientId={clientId} meals={meals} toast={toast} onClose={()=>setMealMgrOpen(false)} onChanged={loadMeals}/>}
     {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onCreateFood={()=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({reopenMeal:pm}); }} onCreateRecipe={()=>{ const pm=picker.presetMeal; setPicker(null); setRecForm({reopenMeal:pm}); }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
     {amount && amount.item && <AmountSheet item={amount.item} meals={meals} presetMeal={amount.presetMeal} toast={toast} onClose={()=>setAmount(null)} onConfirm={addEntry}/>}
     {amount && amount.edit && <EditEntrySheet entry={amount.edit} meals={meals} toast={toast} onClose={()=>setAmount(null)} onSave={(g,m)=>updEntry(amount.edit,g,m)} onDelete={()=>{ delEntry(amount.edit.id); setAmount(null); }}/>}
