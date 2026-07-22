@@ -986,6 +986,55 @@
   .dctrl:disabled{opacity:.28;}
   .daydup{width:32px;height:32px;border:1px solid var(--line-2);background:var(--bg-3);border-radius:8px;color:var(--text);flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
   .daydup svg{width:15px;height:15px;}
+  /* ===== Plan Editor (Ein-Tag-Ansicht) ===== */
+  .pe-titlecard{padding:16px 18px;}
+  .pe-eyebrow{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px;}
+  .pe-title{width:100%;border:none;background:transparent;font-family:"Bricolage Grotesque";font-weight:800;font-size:24px;letter-spacing:-0.03em;color:var(--text);outline:none;padding:0;line-height:1.12;}
+  .pe-navcard{padding:16px 18px;}
+  .pe-navtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+  .pe-dayname{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;letter-spacing:-0.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pe-dayname-in{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;letter-spacing:-0.02em;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--text);outline:none;padding:0 0 2px;flex:1;min-width:0;}
+  .pe-iconbtn{width:34px;height:34px;border-radius:10px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;color:var(--dim);cursor:pointer;flex-shrink:0;}
+  .pe-iconbtn svg{width:20px;height:20px;}
+  .pe-daymenu-wrap{position:relative;flex-shrink:0;}
+  .pe-menuscrim{position:fixed;inset:0;z-index:40;}
+  .pe-menu{position:absolute;right:0;top:38px;z-index:41;background:var(--bg-2);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(11,12,15,.18);padding:6px;min-width:180px;}
+  .pe-menu button{display:block;width:100%;text-align:left;background:none;border:none;padding:11px 12px;font-size:14px;color:var(--text);border-radius:9px;cursor:pointer;}
+  .pe-menu button:active{background:var(--bg-3);}
+  .pe-menu button:disabled{opacity:.32;}
+  .pe-menu .pe-menu-del{color:#DC2626;}
+  .pe-navctrls{display:flex;align-items:center;gap:10px;}
+  .pe-navarrow{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--text);font-size:19px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 2px rgba(11,12,15,.04);flex-shrink:0;}
+  .pe-navarrow:disabled{opacity:.3;}
+  .pe-dots{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;}
+  .pe-dot{width:8px;height:8px;border-radius:50%;background:var(--line-2);cursor:pointer;transition:background .15s,transform .15s;}
+  .pe-dot.on{background:var(--accent);transform:scale(1.2);}
+  .pe-addday{width:44px;height:44px;border-radius:12px;background:var(--accent);color:var(--on-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 5px 14px rgba(11,12,15,.20);}
+  .pe-addday svg{width:20px;height:20px;}
+  .pe-excard{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 5px 14px rgba(11,12,15,.05);margin-bottom:12px;overflow:hidden;transition:box-shadow .18s;}
+  .pe-excard.open{box-shadow:0 1px 2px rgba(11,12,15,.05),0 8px 20px rgba(11,12,15,.08);}
+  .pe-exhead{display:flex;align-items:center;gap:12px;padding:15px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .pe-exnum{width:30px;height:30px;border-radius:50%;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--dim);flex-shrink:0;transition:background .2s,color .2s;}
+  .pe-excard.open .pe-exnum{background:var(--accent);color:var(--on-accent);}
+  .pe-exname{flex:1;min-width:0;border:none;background:transparent;font-weight:700;font-size:16px;color:var(--text);outline:none;padding:0;}
+  .pe-exname-static{flex:1;min-width:0;font-weight:700;font-size:16px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pe-exname-static.empty{color:var(--faint);font-weight:600;}
+  .pe-exctrls{display:flex;gap:1px;flex-shrink:0;}
+  .pe-arrow{width:30px;height:30px;border:none;background:transparent;color:var(--faint);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:8px;padding:0;}
+  .pe-arrow:active{background:var(--bg-3);color:var(--text);}
+  .pe-arrow:disabled{opacity:.22;}
+  .pe-arrow svg{width:18px;height:18px;}
+  .pe-exchev{width:28px;height:28px;border:none;background:transparent;color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .25s;padding:0;}
+  .pe-exchev.open{transform:rotate(180deg);}
+  .pe-exchev svg{width:18px;height:18px;}
+  .pe-exbody-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.4,0,.2,1);}
+  .pe-exbody-wrap.open{grid-template-rows:1fr;}
+  .pe-exbody-inner{overflow:hidden;}
+  .pe-exbody{padding:2px 15px 16px;}
+  .pe-exdel{margin-top:14px;background:none;border:none;color:#DC2626;font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;}
+  .pe-addex{width:100%;border:1.5px dashed var(--line-2);background:transparent;border-radius:16px;padding:16px;font-weight:700;font-size:15px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .pe-addex svg{width:18px;height:18px;}
+  .pe-imgpick{margin-bottom:14px;}
 </style>
 </head>
 <body>
@@ -1193,6 +1242,7 @@ function Icon({name}){
     muscle:<g {...s}><path d="M6.5 9v6M4.5 10.2v3.6M17.5 9v6M19.5 10.2v3.6M7.5 12h9"/></g>,
     wheat:<g {...s}><path d="M12 22V10"/><path d="M12 10C12 7 10.2 5.2 7.7 5.2 7.7 8 9.5 10 12 10z"/><path d="M12 10c0-3 1.8-4.8 4.3-4.8C16.3 8 14.5 10 12 10z"/><path d="M12 15c0-2.6-1.7-4.3-4-4.3C8 13.3 9.7 15 12 15z"/><path d="M12 15c0-2.6 1.7-4.3 4-4.3C16 13.3 14.3 15 12 15z"/></g>,
     droplet:<g {...s}><path d="M12 3.5c2.8 3.8 5 6.1 5 9.4a5 5 0 0 1-10 0c0-3.3 2.2-5.6 5-9.4z"/></g>,
+    plus:<g {...s}><path d="M12 5v14M5 12h14"/></g>,
     more:<g fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></g>,
     bell:<g {...s}><path d="M6 9.5a6 6 0 0 1 12 0c0 4 1.6 5.5 2 6H4c.4-.5 2-2 2-6z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></g>,
     vidcam:<g {...s}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></g>,
@@ -3166,6 +3216,10 @@ function LivePlanTab({clientId,role,toast}){
   const [templates,setTemplates]=useState(null);  // null = noch nicht geladen
   const [newMenu,setNewMenu]=useState(false);      // "Neuer Plan"-Auswahl (leer | aus Template)
   const [saveTmplOpen,setSaveTmplOpen]=useState(false); // "Als Template speichern"-Blatt im Editor
+  const [editDayIdx,setEditDayIdx]=useState(0);
+  const [expandedEx,setExpandedEx]=useState(()=>new Set());
+  const [dayMenu,setDayMenu]=useState(false);
+  const [renamingDay,setRenamingDay]=useState(false);
   const [tmplMode,setTmplMode]=useState(null);     // null | "load"
   const [tmplName,setTmplName]=useState("");
   const [tmplBusy,setTmplBusy]=useState(false);
@@ -3297,6 +3351,12 @@ function LivePlanTab({clientId,role,toast}){
   const moveDay=(idx,dir)=>dUpd(d=>{ const days=[...d.days]; const j=idx+dir; if(j<0||j>=days.length) return d; const tmp=days[idx]; days[idx]=days[j]; days[j]=tmp; return {...d,days}; });
   const dupDay=(dayId)=>dUpd(d=>{ const idx=d.days.findIndex(x=>x.id===dayId); if(idx<0) return d; const src=d.days[idx]; const copy={ ...src, id:"tmp"+nid(), name:(src.name||"Tag")+" (Kopie)", exercises:(src.exercises||[]).map(e=>({...e,id:"tmp"+nid()})) }; const days=[...d.days]; days.splice(idx+1,0,copy); return {...d,days}; });
   const moveEx=(dayId,exIdx,dir)=>dUpd(d=>({...d,days:d.days.map(x=>{ if(x.id!==dayId) return x; const ex=[...x.exercises]; const j=exIdx+dir; if(j<0||j>=ex.length) return x; const tmp=ex[exIdx]; ex[exIdx]=ex[j]; ex[j]=tmp; return {...x,exercises:ex}; })}));
+  const toggleEx=(exId)=>setExpandedEx(s=>{ const n=new Set(s); n.has(exId)?n.delete(exId):n.add(exId); return n; });
+  const addDayNav=()=>{ const idx=draft.days.length; addDay(); setEditDayIdx(idx); setRenamingDay(false); };
+  const dupDayNav=(dayId)=>{ const idx=draft.days.findIndex(d=>d.id===dayId); dupDay(dayId); setEditDayIdx(idx+1); };
+  const delDayNav=async(dayId)=>{ if(!await askConfirm({title:"Tag löschen?",message:"Dieser Trainingstag und seine Übungen werden entfernt.",confirmText:"Löschen",danger:true})) return; const idx=draft.days.findIndex(d=>d.id===dayId); delDay(dayId); setEditDayIdx(Math.max(0,Math.min(idx,draft.days.length-2))); };
+  const moveDayNav=(idx,dir)=>{ moveDay(idx,dir); const j=idx+dir; if(j>=0&&j<draft.days.length) setEditDayIdx(j); };
+  const addExHere=(dayId)=>{ const newId="tmp"+nid(); dUpd(d=>({...d,days:d.days.map(x=>x.id===dayId?{...x,exercises:[...x.exercises,{id:newId,name:"",sets:"3",reps:"8",note:"",scheme:"standard",goal:null,intensity:"none",intensity_target:""}]}:x)})); setExpandedEx(s=>{ const n=new Set(s); n.add(newId); return n; }); };
 
   // ---- Speichern: Entwurf -> Datenbank ----
   const save=async()=>{
@@ -3446,64 +3506,106 @@ function LivePlanTab({clientId,role,toast}){
     </div>;
   }
 
-  // Editor (Coach) – Kunde bearbeitet Pläne nicht, sieht sie nur (kommt in Etappe B)
+  // Editor (Coach) – Ein-Tag-Ansicht mit Blätter-Navigation
   const isActive=draft && draft.id===activeId;
+  const AUp=<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>;
+  const ADn=<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v13M6 12l6 6 6-6"/></svg>;
+  const Chev=<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
+  const dIdx=draft.days.length?Math.min(editDayIdx,draft.days.length-1):0;
+  const curDay=draft.days.length?draft.days[dIdx]:null;
   return <div className="mbody">
     <button className="link" style={{marginBottom:12}} onClick={async()=>{ if(dirty && !await askConfirm({title:"Änderungen verwerfen?",message:"Du hast ungespeicherte Änderungen an diesem Plan.",confirmText:"Verwerfen",cancelText:"Weiter bearbeiten",danger:true})) return; if(draft.id){ setEditing(false); setDirty(false); } else { setOpenPlanId(null); setDraft(null); setDirty(false); } }}>‹ {draft.id?"Zurück":"Alle Pläne"}</button>
-    <div className="mcard" style={{padding:"6px 14px"}}>
-      <input className="titlein" value={draft.title} onChange={(e)=>dUpd(d=>({...d,title:e.target.value}))} placeholder="Plan-Titel"/>
+
+    <div className="mcard pe-titlecard">
+      <div className="pe-eyebrow">Trainingsplan</div>
+      <input className="pe-title" value={draft.title} onChange={(e)=>dUpd(d=>({...d,title:e.target.value}))} placeholder="Plan-Titel"/>
+      {draft.id && (isActive
+        ? <span className="badge" style={{marginTop:12,display:"inline-block"}}>Aktueller Plan</span>
+        : <button className="link" style={{marginTop:12,display:"inline-block"}} onClick={()=>setActive(draft.id)}>Als aktuellen Plan setzen</button>)}
     </div>
-    {draft.id && <div style={{display:"flex",alignItems:"center",gap:10,margin:"10px 2px 14px"}}>
-      {isActive ? <span className="badge">Aktueller Plan</span> : <button className="link" onClick={()=>setActive(draft.id)}>Als aktuellen Plan setzen</button>}
-    </div>}
-    {draft.days.map((day,dayIdx)=>(<div key={day.id} className="mcard">
-      <div style={{display:"flex",alignItems:"center",marginBottom:8,gap:6}}>
-        <input className="dayin" value={day.name} onChange={(e)=>renameDay(day.id,e.target.value)} style={{flex:1,minWidth:0}}/>
-        <button className="dctrl" disabled={dayIdx===0} onClick={()=>moveDay(dayIdx,-1)} aria-label="Tag nach oben">▲</button>
-        <button className="dctrl" disabled={dayIdx===draft.days.length-1} onClick={()=>moveDay(dayIdx,1)} aria-label="Tag nach unten">▼</button>
-        <button className="daydup" onClick={()=>dupDay(day.id)} aria-label="Tag duplizieren"><Icon name="file"/></button>
-        <button className="delx" onClick={()=>delDay(day.id)}>×</button></div>
-      <button className="imgpick" onClick={()=>setPickDayId(day.id)}>
-        {day.imagePath ? <img className="imgpick-thumb" src={imgUrl(day.imagePath)} alt=""/> : <span className="imgpick-ph"><Icon name="photo"/></span>}
-        <span className="imgpick-lab">{day.imagePath ? (imgLib.find(i=>i.path===day.imagePath)||{}).label || "Bild gewählt" : "Bild wählen"}</span>
+
+    <div className="mcard pe-navcard">
+      <div className="pe-navtop">
+        {curDay && (renamingDay
+          ? <input className="pe-dayname-in" value={curDay.name} autoFocus onChange={(e)=>renameDay(curDay.id,e.target.value)} onBlur={()=>setRenamingDay(false)} onKeyDown={(e)=>{ if(e.key==="Enter") setRenamingDay(false); }}/>
+          : <div className="pe-dayname">{curDay.name}</div>)}
+        {!curDay && <div className="pe-dayname" style={{color:"var(--faint)"}}>Kein Tag</div>}
+        {curDay && <div className="pe-daymenu-wrap">
+          <button className="pe-iconbtn" onClick={()=>setDayMenu(m=>!m)} aria-label="Tag-Optionen"><Icon name="more"/></button>
+          {dayMenu && <>
+            <div className="pe-menuscrim" onClick={()=>setDayMenu(false)}/>
+            <div className="pe-menu">
+              <button onClick={()=>{ setRenamingDay(true); setDayMenu(false); }}>Umbenennen</button>
+              <button onClick={()=>{ setDayMenu(false); dupDayNav(curDay.id); }}>Duplizieren</button>
+              <button disabled={dIdx===0} onClick={()=>{ setDayMenu(false); moveDayNav(dIdx,-1); }}>Nach vorne schieben</button>
+              <button disabled={dIdx===draft.days.length-1} onClick={()=>{ setDayMenu(false); moveDayNav(dIdx,1); }}>Nach hinten schieben</button>
+              <button className="pe-menu-del" onClick={()=>{ setDayMenu(false); delDayNav(curDay.id); }}>Löschen</button>
+            </div>
+          </>}
+        </div>}
+      </div>
+      <div className="pe-navctrls">
+        <button className="pe-navarrow" disabled={dIdx===0} onClick={()=>{ setEditDayIdx(dIdx-1); setRenamingDay(false); }} aria-label="Voriger Tag">‹</button>
+        <div className="pe-dots">{draft.days.length?draft.days.map((_,i)=><span key={i} className={"pe-dot"+(i===dIdx?" on":"")} onClick={()=>{ setEditDayIdx(i); setRenamingDay(false); }}/>):<span className="muted" style={{fontSize:13}}>Noch kein Tag</span>}</div>
+        <button className="pe-navarrow" disabled={dIdx>=draft.days.length-1} onClick={()=>{ setEditDayIdx(dIdx+1); setRenamingDay(false); }} aria-label="Nächster Tag">›</button>
+        <button className="pe-addday" onClick={addDayNav} aria-label="Trainingstag hinzufügen"><Icon name="plus"/></button>
+      </div>
+    </div>
+
+    {curDay && <>
+      <button className="imgpick pe-imgpick" onClick={()=>setPickDayId(curDay.id)}>
+        {curDay.imagePath ? <img className="imgpick-thumb" src={imgUrl(curDay.imagePath)} alt=""/> : <span className="imgpick-ph"><Icon name="photo"/></span>}
+        <span className="imgpick-lab">{curDay.imagePath ? (imgLib.find(i=>i.path===curDay.imagePath)||{}).label || "Bild gewählt" : "Bild wählen"}</span>
         <span className="imgpick-chev">›</span>
       </button>
-      {day.exercises.map((ex,exIdx)=>{ const sch=ex.scheme||"standard"; const intens=ex.intensity||(ex.track_rir?"rir":(ex.track_pct?"pct":"none"));
-        return <div key={ex.id} className="exedit">
-        <div className="exf-row">
-          <input className="exname" value={ex.name} onChange={(e)=>setEx(day.id,ex.id,"name",e.target.value)} placeholder="Übungsname"/>
-          <button className="dctrl" disabled={exIdx===0} onClick={()=>moveEx(day.id,exIdx,-1)} aria-label="Übung nach oben">▲</button>
-          <button className="dctrl" disabled={exIdx===day.exercises.length-1} onClick={()=>moveEx(day.id,exIdx,1)} aria-label="Übung nach unten">▼</button>
-          <button className="delx" onClick={()=>delEx(day.id,ex.id)}>×</button>
-        </div>
-        <div className="exf-grid">
-          <label className="exf exf-full"><span className="exf-l">Schema</span>
-            <select className="exin" value={sch} onChange={(e)=>setEx(day.id,ex.id,"scheme",e.target.value)}>
-              <option value="standard">Sätze × Wiederholungen</option>
-              <option value="rep_goal">Rep Goal (so wenig Sätze wie möglich)</option>
-            </select>
-          </label>
-          {sch==="rep_goal" ? (
-            <label className="exf exf-full"><span className="exf-l">Ziel-Wiederholungen</span><input className="exin" inputMode="numeric" value={ex.goal||""} onChange={(e)=>setEx(day.id,ex.id,"goal",e.target.value)} placeholder="25"/></label>
-          ) : (<>
-            <label className="exf"><span className="exf-l">Sätze</span><input className="exin" inputMode="numeric" value={ex.sets} onChange={(e)=>setEx(day.id,ex.id,"sets",e.target.value)} placeholder="3"/></label>
-            <label className="exf"><span className="exf-l">Wiederholungen</span><input className="exin" value={ex.reps} onChange={(e)=>setEx(day.id,ex.id,"reps",e.target.value)} placeholder="8"/></label>
-          </>)}
-          <label className={"exf"+(intens==="none"?" exf-full":"")}><span className="exf-l">Intensität</span>
-            <select className="exin" value={intens} onChange={(e)=>setEx(day.id,ex.id,"intensity",e.target.value)}>
-              <option value="none">Aus</option>
-              <option value="rir">RIR</option>
-              <option value="pct">% von 1RM</option>
-            </select>
-          </label>
-          {intens!=="none" && <label className="exf"><span className="exf-l">Vorgabe ({intens==="pct"?"%":"RIR"})</span><input className="exin" inputMode="numeric" value={ex.intensity_target||""} onChange={(e)=>setEx(day.id,ex.id,"intensity_target",e.target.value)} placeholder={intens==="pct"?"75":"2"}/></label>}
-        </div>
-        <ExNote value={ex.note} onChange={(v)=>setEx(day.id,ex.id,"note",v)}/>
-      </div>;})}
-      <button className="addex" onClick={()=>addEx(day.id,"","3","8")}>+ Übung</button>
-    </div>))}
-    {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(p)=>{ setDayImage(pickDayId,p); setPickDayId(null); }}/>}
-    <button className="btn btn-ghost" onClick={addDay}>+ Trainingstag</button>
+
+      {curDay.exercises.map((ex,exIdx)=>{ const open=expandedEx.has(ex.id); const sch=ex.scheme||"standard"; const intens=ex.intensity||(ex.track_rir?"rir":(ex.track_pct?"pct":"none"));
+        return <div key={ex.id} className={"pe-excard"+(open?" open":"")}>
+          <div className="pe-exhead" onClick={()=>toggleEx(ex.id)}>
+            <div className="pe-exnum">{exIdx+1}</div>
+            {open
+              ? <input className="pe-exname" value={ex.name} onClick={(e)=>e.stopPropagation()} onChange={(e)=>setEx(curDay.id,ex.id,"name",e.target.value)} placeholder="Übungsname"/>
+              : <div className={"pe-exname-static"+(ex.name?"":" empty")}>{ex.name||"Unbenannte Übung"}</div>}
+            <div className="pe-exctrls" onClick={(e)=>e.stopPropagation()}>
+              <button className="pe-arrow" disabled={exIdx===0} onClick={()=>moveEx(curDay.id,exIdx,-1)} aria-label="Übung nach oben">{AUp}</button>
+              <button className="pe-arrow" disabled={exIdx===curDay.exercises.length-1} onClick={()=>moveEx(curDay.id,exIdx,1)} aria-label="Übung nach unten">{ADn}</button>
+            </div>
+            <button className={"pe-exchev"+(open?" open":"")} onClick={(e)=>{ e.stopPropagation(); toggleEx(ex.id); }} aria-label={open?"Zuklappen":"Aufklappen"}>{Chev}</button>
+          </div>
+          <div className={"pe-exbody-wrap"+(open?" open":"")}>
+            <div className="pe-exbody-inner"><div className="pe-exbody">
+              <div className="exf-grid">
+                <label className="exf exf-full"><span className="exf-l">Schema</span>
+                  <select className="exin" value={sch} onChange={(e)=>setEx(curDay.id,ex.id,"scheme",e.target.value)}>
+                    <option value="standard">Sätze × Wiederholungen</option>
+                    <option value="rep_goal">Rep Goal (so wenig Sätze wie möglich)</option>
+                  </select>
+                </label>
+                {sch==="rep_goal" ? (
+                  <label className="exf exf-full"><span className="exf-l">Ziel-Wiederholungen</span><input className="exin" inputMode="numeric" value={ex.goal||""} onChange={(e)=>setEx(curDay.id,ex.id,"goal",e.target.value)} placeholder="25"/></label>
+                ) : (<>
+                  <label className="exf"><span className="exf-l">Sätze</span><input className="exin" inputMode="numeric" value={ex.sets} onChange={(e)=>setEx(curDay.id,ex.id,"sets",e.target.value)} placeholder="3"/></label>
+                  <label className="exf"><span className="exf-l">Wiederholungen</span><input className="exin" value={ex.reps} onChange={(e)=>setEx(curDay.id,ex.id,"reps",e.target.value)} placeholder="8"/></label>
+                </>)}
+                <label className={"exf"+(intens==="none"?" exf-full":"")}><span className="exf-l">Intensität</span>
+                  <select className="exin" value={intens} onChange={(e)=>setEx(curDay.id,ex.id,"intensity",e.target.value)}>
+                    <option value="none">Aus</option>
+                    <option value="rir">RIR</option>
+                    <option value="pct">% von 1RM</option>
+                  </select>
+                </label>
+                {intens!=="none" && <label className="exf"><span className="exf-l">Vorgabe ({intens==="pct"?"%":"RIR"})</span><input className="exin" inputMode="numeric" value={ex.intensity_target||""} onChange={(e)=>setEx(curDay.id,ex.id,"intensity_target",e.target.value)} placeholder={intens==="pct"?"75":"2"}/></label>}
+              </div>
+              <ExNote value={ex.note} onChange={(v)=>setEx(curDay.id,ex.id,"note",v)}/>
+              <button className="pe-exdel" onClick={()=>delEx(curDay.id,ex.id)}>Übung entfernen</button>
+            </div></div>
+          </div>
+        </div>;
+      })}
+      <button className="pe-addex" onClick={()=>addExHere(curDay.id)}><Icon name="plus"/>Übung hinzufügen</button>
+    </>}
+
+    {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(pp)=>{ setDayImage(pickDayId,pp); setPickDayId(null); }}/>}
     <button className="btn" style={{marginTop:12}} disabled={saving||!dirty} onClick={save}>{saving?"Speichert…":(dirty?"Plan speichern":"Gespeichert ✓")}</button>
     <button className="link" style={{display:"block",margin:"16px auto 0"}} disabled={!draft.days.length} onClick={()=>{ setTmplName(draft.title||""); setSaveTmplOpen(true); }}>Als Template speichern</button>
     {draft.id && <button className="link" style={{display:"block",margin:"12px auto 0",color:"var(--faint)"}} onClick={()=>deletePlan(draft.id)}>Plan löschen</button>}
