@@ -1136,6 +1136,50 @@
   .nut-scanbtn svg{width:16px;height:16px;}
   .nut-scanbtn.ghost{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);}
   .nut-brand{color:var(--faint);font-weight:500;font-size:13px;}
+  /* Ernährung Overlays (über der Kopfzeile) */
+  .nut-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;animation:fade .18s ease;}
+  .nut-page{position:fixed;inset:0;z-index:301;background:var(--bg);display:flex;flex-direction:column;animation:fade .18s ease;}
+  .nut-page-top{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0;}
+  .nut-page-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:19px;letter-spacing:-0.02em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .nut-back{width:38px;height:38px;border-radius:11px;background:var(--bg-3);border:none;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text);cursor:pointer;flex-shrink:0;line-height:1;}
+  .nut-page-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px calc(env(safe-area-inset-bottom) + 28px);max-width:560px;margin:0 auto;width:100%;box-sizing:border-box;}
+  .nut-bsheet{position:fixed;left:0;right:0;bottom:0;z-index:301;background:var(--bg-2);border-top:1px solid var(--line-2);border-radius:22px 22px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);animation:sheetup .26s cubic-bezier(.2,.8,.2,1) forwards;box-shadow:0 -20px 50px rgba(0,0,0,.4);}
+  /* Ernährung – neues Diary-Design */
+  .nut-datebar{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .nut-navbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);font-size:19px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 1px 2px rgba(11,12,15,.04);}
+  .nut-navbtn:disabled{opacity:.3;}
+  .nut-date{flex:1;text-align:center;font-weight:700;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .nut-today{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;background:var(--ok);color:#fff;border-radius:99px;padding:3px 8px;}
+  [data-theme="dark"] .nut-today{color:#0F0F11;}
+  .nut-hero{background:var(--bg-2);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:22px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 8px 22px rgba(11,12,15,.06);}
+  .nut-hero-kcal{font-family:"Bricolage Grotesque";font-weight:800;font-size:44px;letter-spacing:-0.04em;line-height:1;}
+  .nut-hero-lbl{font-size:13px;color:var(--faint);margin-top:2px;}
+  .nut-hero-macros{display:flex;gap:8px;margin-top:18px;}
+  .nut-hm{flex:1;background:var(--bg-3);border-radius:12px;padding:10px 6px;text-align:center;}
+  .nut-hm b{font-family:"Bricolage Grotesque";font-weight:800;font-size:15px;display:block;letter-spacing:-0.02em;}
+  .nut-hm b i{font-style:normal;font-size:10px;color:var(--faint);font-weight:600;margin-left:1px;}
+  .nut-hm span{font-size:9.5px;color:var(--faint);letter-spacing:.01em;}
+  .nut-mealcard{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:6px;margin-bottom:12px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 4px 12px rgba(11,12,15,.04);}
+  .nut-mealcard-head{display:flex;justify-content:space-between;align-items:baseline;padding:12px 12px 8px;}
+  .nut-mealcard-name{font-family:"Bricolage Grotesque";font-weight:800;font-size:17px;letter-spacing:-0.02em;}
+  .nut-mealcard-kcal{font-family:"IBM Plex Mono";font-size:11.5px;color:var(--dim);}
+  .nut-entry{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .nut-entry:active{background:var(--bg-3);}
+  .nut-entry-main{flex:1;min-width:0;}
+  .nut-entry-name{font-weight:600;font-size:14.5px;}
+  .nut-entry-sub{font-size:11px;color:var(--faint);margin-top:2px;}
+  .nut-entry-chev{color:var(--line-2);font-size:17px;flex-shrink:0;}
+  .nut-addentry{width:100%;background:transparent;border:none;border-top:1px solid var(--line);color:var(--accent-2);font-weight:700;font-size:13.5px;padding:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;}
+  .nut-addentry svg{width:15px;height:15px;}
+  .nut-addmeal{width:100%;border:1.5px dashed var(--line-2);background:transparent;border-radius:14px;padding:14px;font-weight:700;font-size:14px;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:4px;}
+  .nut-addmeal svg{width:16px;height:16px;}
+  .nut-mealmgmt{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px;align-items:center;}
+  .nut-mm-lbl{font-size:11.5px;color:var(--faint);width:100%;}
+  .nut-mealtag{font-size:12px;color:var(--faint);background:var(--bg-3);border:1px solid var(--line-2);border-radius:99px;padding:4px 10px;cursor:pointer;}
+  .nut-pick-actions{display:flex;gap:8px;margin-bottom:16px;}
+  .nut-createbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--accent);color:var(--on-accent);border:none;border-radius:12px;padding:12px;font-weight:700;font-size:13.5px;cursor:pointer;}
+  .nut-createbtn.ghost{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);}
+  .nut-createbtn svg{width:15px;height:15px;}
 </style>
 </head>
 <body>
@@ -4039,25 +4083,31 @@ function BarcodeScanner({onDetected,onClose,toast}){
     ).catch(()=>{ setErr("Kamera konnte nicht gestartet werden. Erlaube den Kamerazugriff in den Einstellungen oder gib den Code manuell ein."); });
     return ()=>{ stopped=true; try{ if(scannerRef.current){ scannerRef.current.stop().then(()=>scannerRef.current.clear()).catch(()=>{}); } }catch(e){} };
   },[]);
-  return <>
-    <div className="scrim" onClick={onClose}/>
-    <div className="sheet sheet-full">
-      <div className="sheet-grab"/>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontFamily:'"Bricolage Grotesque"',fontWeight:800,fontSize:20}}>Barcode scannen</div>
-        <button className="pe-iconbtn" onClick={onClose} style={{color:"var(--dim)"}}>✕</button>
-      </div>
+  return <div className="nut-page">
+    <div className="nut-page-top">
+      <button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button>
+      <div className="nut-page-title">Barcode scannen</div>
+    </div>
+    <div className="nut-page-body">
       {err ? <div className="mcard"><div className="muted" style={{fontSize:13,lineHeight:1.5}}>{err}</div></div>
         : <div className="bcscan-wrap"><div id={idRef.current} className="bcscan-view"/></div>}
       <div className="enote" style={{fontSize:12,marginTop:12,textAlign:"center"}}>Halte den Barcode ruhig und mittig ins Bild.</div>
     </div>
-  </>;
+  </div>;
 }
 
-function NutSheet({onClose,children,title,full}){
+function NutSheet({onClose,children,title,full,footer}){
+  if(full) return <div className="nut-page">
+    <div className="nut-page-top">
+      <button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button>
+      <div className="nut-page-title">{title}</div>
+    </div>
+    <div className="nut-page-body">{children}</div>
+    {footer}
+  </div>;
   return <>
-    <div className="scrim" onClick={onClose}/>
-    <div className={"sheet"+(full?" sheet-full":"")}>
+    <div className="nut-ov" onClick={onClose}/>
+    <div className="nut-bsheet">
       <div className="sheet-grab"/>
       {title && <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
         <div style={{fontFamily:'"Bricolage Grotesque"',fontWeight:800,fontSize:20,letterSpacing:"-0.02em"}}>{title}</div>
@@ -4200,7 +4250,7 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
 }
 
 // ---- Such-Picker (Lebensmittel + Rezepte) ----
-function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound}){
+function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,onCreateRecipe}){
   const [q,setQ]=useState("");
   const [foods,setFoods]=useState([]);
   const [recipes,setRecipes]=useState([]);
@@ -4219,10 +4269,14 @@ function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound}){
   const fRecipes=recipes.filter(r=>!ql||r.name.toLowerCase().includes(ql));
   const onScan=(code)=>{ setScanOpen(false); const hit=foods.find(f=>f.barcode&&String(f.barcode)===String(code)); if(hit){ onPick({type:"food",food:hit}); } else { toast("Kein Produkt mit diesem Barcode gefunden"); if(onScanNotFound) onScanNotFound(code); else setQ(code); } };
   return <NutSheet full title={foodsOnly?"Zutat wählen":"Lebensmittel wählen"} onClose={onClose}>
-    <div style={{display:"flex",gap:8,marginBottom:14}}>
+    <div style={{display:"flex",gap:8,marginBottom:12}}>
       <input className="setinput" value={q} onChange={e=>setQ(e.target.value)} placeholder="Suchen…" autoFocus/>
       <button className="nut-scanbtn" onClick={()=>setScanOpen(true)} aria-label="Barcode scannen"><Icon name="scan"/></button>
     </div>
+    {(onCreateFood||onCreateRecipe) && <div className="nut-pick-actions">
+      {onCreateFood && <button className="nut-createbtn" onClick={onCreateFood}><Icon name="plus"/>Neues Lebensmittel</button>}
+      {!foodsOnly && onCreateRecipe && <button className="nut-createbtn ghost" onClick={onCreateRecipe}><Icon name="plus"/>Neues Rezept</button>}
+    </div>}
     {loading && <div className="muted">Lädt…</div>}
     {!loading && fFoods.length===0 && fRecipes.length===0 && <div className="muted" style={{fontSize:13}}>Nichts gefunden. Lege es zuerst in der Datenbank an.</div>}
     {!foodsOnly && fRecipes.length>0 && <div className="ci-flabel" style={{margin:"4px 0 8px"}}>Rezepte</div>}
@@ -4346,90 +4400,63 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const groupOf=(mn)=>(entries||[]).filter(e=>e.meal===mn);
   const orphanMeals=[...new Set((entries||[]).map(e=>e.meal).filter(mn=>mn&&!mealNames.includes(mn)))];
 
-  const Seg=({v,children})=><button className={"nut-seg"+(sub===v?" on":"")} onClick={()=>setSub(v)}>{children}</button>;
-
   return <div className="mbody">
-    <div className="nut-segs">
-      <Seg v="diary">Tagebuch</Seg><Seg v="db">Datenbank</Seg><Seg v="recipes">Rezepte</Seg>
+    <div className="nut-datebar">
+      <button className="nut-navbtn" onClick={()=>setDate(dstr(addDays(new Date(date+"T00:00:00"),-1)))}>‹</button>
+      <div className="nut-date">{fmtFull(date)}{date===today()&&<span className="nut-today">Heute</span>}</div>
+      <button className="nut-navbtn" disabled={date>=today()} onClick={()=>{ if(date<today()) setDate(dstr(addDays(new Date(date+"T00:00:00"),1))); }}>›</button>
     </div>
 
-    {sub==="diary" && <>
-      <div className="nut-datebar">
-        <button className="pe-navarrow" onClick={()=>setDate(dstr(addDays(new Date(date+"T00:00:00"),-1)))}>‹</button>
-        <div className="nut-date">{fmtFull(date)}{date===today()&&<span className="nut-today">Heute</span>}</div>
-        <button className="pe-navarrow" disabled={date>=today()} onClick={()=>{ if(date<today()) setDate(dstr(addDays(new Date(date+"T00:00:00"),1))); }}>›</button>
+    <div className="nut-hero">
+      <div className="nut-hero-top">
+        <div><div className="nut-hero-kcal">{nutR(dayTot.kcal)}</div><div className="nut-hero-lbl">kcal heute</div></div>
       </div>
-      <div className="nut-totcard">
-        <div className="nut-tot-kcal"><span>{nutR(dayTot.kcal)}</span><small>kcal gesamt</small></div>
-        <div className="nut-tot-macros">
-          <div className="nut-tm"><b>{nutR1(dayTot.protein)}g</b><span>Eiweiß</span></div>
-          <div className="nut-tm"><b>{nutR1(dayTot.carbs)}g</b><span>Kohlenh.</span></div>
-          <div className="nut-tm"><b>{nutR1(dayTot.fat)}g</b><span>Fett</span></div>
+      <div className="nut-hero-macros">
+        <div className="nut-hm"><b>{nutR1(dayTot.protein)}<i>g</i></b><span>Eiweiß</span></div>
+        <div className="nut-hm"><b>{nutR1(dayTot.carbs)}<i>g</i></b><span>Kohlenh.</span></div>
+        <div className="nut-hm"><b>{nutR1(dayTot.fat)}<i>g</i></b><span>Fett</span></div>
+        <div className="nut-hm"><b>{nutR1(dayTot.sugar)}<i>g</i></b><span>Zucker</span></div>
+        <div className="nut-hm"><b>{nutR1(dayTot.fiber)}<i>g</i></b><span>Ballastst.</span></div>
+      </div>
+    </div>
+
+    {entries===null && <div className="muted">Lädt…</div>}
+    {entries!==null && meals.map(m=>{ const list=groupOf(m.name); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
+      return <div key={m.id} className="nut-mealcard">
+        <div className="nut-mealcard-head"><span className="nut-mealcard-name">{m.name}</span>{list.length>0&&<span className="nut-mealcard-kcal">{nutR(mt)} kcal</span>}</div>
+        {list.map(e=><div key={e.id} className="nut-entry" onClick={()=>setAmount({edit:e})}>
+          <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div></div>
+          <span className="nut-entry-chev">›</span>
+        </div>)}
+        <button className="nut-addentry" onClick={()=>setPicker({presetMeal:m.name})}><Icon name="plus"/>Hinzufügen</button>
+      </div>;
+    })}
+    {entries!==null && orphanMeals.map(mn=>{ const list=groupOf(mn); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
+      return <div key={mn} className="nut-mealcard">
+        <div className="nut-mealcard-head"><span className="nut-mealcard-name">{mn}</span><span className="nut-mealcard-kcal">{nutR(mt)} kcal</span></div>
+        {list.map(e=><div key={e.id} className="nut-entry" onClick={()=>setAmount({edit:e})}>
+          <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
+          <span className="nut-entry-chev">›</span>
+        </div>)}
+      </div>;
+    })}
+
+    {addMealOpen
+      ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
+          <input className="setinput" value={newMeal} onChange={e=>setNewMeal(e.target.value)} placeholder="z.B. Frühstück 2" autoFocus/>
+          <button className="btn" style={{width:"auto",padding:"10px 16px"}} onClick={addMealSlot}>OK</button>
+          <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
         </div>
-        <div className="nut-tot-sub"><span>Zucker {nutR1(dayTot.sugar)}g</span><span>Ballaststoffe {nutR1(dayTot.fiber)}g</span></div>
-      </div>
+      : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Weitere Mahlzeit</button>}
+    {meals.length>0 && <div className="nut-mealmgmt"><span className="nut-mm-lbl">Mahlzeiten verwalten:</span>{meals.map(m=><button key={m.id} className="nut-mealtag" onClick={()=>delMealSlot(m)}>{m.name} ×</button>)}</div>}
 
-      {entries===null && <div className="muted">Lädt…</div>}
-      {entries!==null && meals.map(m=>{ const list=groupOf(m.name); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
-        return <div key={m.id} className="nut-meal">
-          <div className="nut-meal-head"><span className="nut-meal-name">{m.name}</span><span className="nut-meal-kcal">{nutR(mt)} kcal</span></div>
-          {list.map(e=><div key={e.id} className="nut-entry">
-            <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E {nutR1(e.protein)} / K {nutR1(e.carbs)} / F {nutR1(e.fat)}</div></div>
-            <button className="jny-icobtn" style={{width:30,height:30}} onClick={()=>setAmount({edit:e})}><Icon name="pencil"/></button>
-            <button className="delx" onClick={()=>delEntry(e.id)}>×</button>
-          </div>)}
-          <button className="nut-addentry" onClick={()=>setPicker({presetMeal:m.name})}>+ Eintrag</button>
-        </div>;
-      })}
-      {orphanMeals.map(mn=>{ const list=groupOf(mn); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
-        return <div key={mn} className="nut-meal">
-          <div className="nut-meal-head"><span className="nut-meal-name">{mn}</span><span className="nut-meal-kcal">{nutR(mt)} kcal</span></div>
-          {list.map(e=><div key={e.id} className="nut-entry">
-            <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
-            <button className="jny-icobtn" style={{width:30,height:30}} onClick={()=>setAmount({edit:e})}><Icon name="pencil"/></button>
-            <button className="delx" onClick={()=>delEntry(e.id)}>×</button>
-          </div>)}
-        </div>;
-      })}
-      {addMealOpen
-        ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
-            <input className="setinput" value={newMeal} onChange={e=>setNewMeal(e.target.value)} placeholder="z.B. Frühstück 2" autoFocus/>
-            <button className="btn" style={{width:"auto",padding:"10px 16px"}} onClick={addMealSlot}>OK</button>
-            <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
-          </div>
-        : <button className="btn btn-ghost" style={{marginTop:6}} onClick={()=>setAddMealOpen(true)}>+ Mahlzeit hinzufügen</button>}
-      {meals.length>0 && <div className="nut-mealmgmt">{meals.map(m=><button key={m.id} className="nut-mealtag" onClick={()=>delMealSlot(m)}>{m.name} ×</button>)}</div>}
-    </>}
+    {onConfig && <button className="link" style={{display:"block",margin:"22px auto 0"}} onClick={onConfig}>Vorgaben & Checkliste öffnen ›</button>}
 
-    {sub==="db" && <>
-      <button className="btn" style={{marginBottom:14}} onClick={()=>setFoodForm({})}>+ Neues Lebensmittel</button>
-      {dbFoods===null && <div className="muted">Lädt…</div>}
-      {dbFoods!==null && dbFoods.length===0 && <div className="muted" style={{fontSize:13}}>Noch keine Lebensmittel. Lege das erste an — die Datenbank ist für alle Nutzer gemeinsam.</div>}
-      {(dbFoods||[]).map(f=><button key={f.id} className="nut-pickrow" onClick={()=>f.mine?openFoodForEdit(f):toast("Nur der Ersteller kann dieses Lebensmittel bearbeiten")}>
-        <div className="nut-pick-ic">{f.image_path?<img src={foodImgUrl(f.image_path)} alt=""/>:<Icon name="food"/>}</div>
-        <div className="nut-pick-main"><div className="nut-pick-name">{f.name}{f.brand?<span className="nut-brand"> · {f.brand}</span>:""}</div><div className="nut-pick-sub">{nutR(f.kcal)} kcal · E{nutR1(f.protein)} K{nutR1(f.carbs)} F{nutR1(f.fat)}{f.category?" · "+f.category:""}</div></div>
-        {f.mine ? <Icon name="pencil"/> : <span className="dr-chev" style={{opacity:.4}}>·</span>}
-      </button>)}
-    </>}
-
-    {sub==="recipes" && <>
-      <button className="btn" style={{marginBottom:14}} onClick={()=>setRecForm({})}>+ Neues Rezept</button>
-      {dbRecipes===null && <div className="muted">Lädt…</div>}
-      {dbRecipes!==null && dbRecipes.length===0 && <div className="muted" style={{fontSize:13}}>Noch keine Rezepte. Baue eins aus Lebensmitteln deiner Datenbank.</div>}
-      {(dbRecipes||[]).map(r=><button key={r.id} className="nut-pickrow" onClick={()=>r.mine?openRecForEdit(r):toast("Nur der Ersteller kann dieses Rezept bearbeiten")}>
-        <div className="nut-pick-ic">{r.image_path?<img src={foodImgUrl(r.image_path)} alt=""/>:<Icon name="food"/>}</div>
-        <div className="nut-pick-main"><div className="nut-pick-name">{r.name}</div><div className="nut-pick-sub">{nutR(r.cooked_weight)} g gekocht</div></div>
-        {r.mine ? <Icon name="pencil"/> : <span className="dr-chev" style={{opacity:.4}}>·</span>}
-      </button>)}
-    </>}
-
-    {onConfig && <button className="link" style={{display:"block",margin:"20px auto 0"}} onClick={onConfig}>Vorgaben & Checkliste öffnen ›</button>}
-
-    {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
+    {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onCreateFood={()=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({reopenMeal:pm}); }} onCreateRecipe={()=>{ const pm=picker.presetMeal; setPicker(null); setRecForm({reopenMeal:pm}); }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
     {amount && amount.item && <AmountSheet item={amount.item} meals={meals} presetMeal={amount.presetMeal} toast={toast} onClose={()=>setAmount(null)} onConfirm={addEntry}/>}
     {amount && amount.edit && <EditEntrySheet entry={amount.edit} meals={meals} toast={toast} onClose={()=>setAmount(null)} onSave={(g,m)=>updEntry(amount.edit,g,m)} onDelete={()=>{ delEntry(amount.edit.id); setAmount(null); }}/>}
     {foodForm && <FoodForm initial={foodForm.initial} presetBarcode={foodForm.presetBarcode} toast={toast} onClose={()=>setFoodForm(null)} onSaved={()=>{ const rm=foodForm.reopenMeal; setFoodForm(null); loadDb(); if(rm!==undefined) setPicker({presetMeal:rm}); }} onDeleted={()=>{ setFoodForm(null); loadDb(); }}/>}
-    {recForm && <RecipeForm initial={recForm.initial} toast={toast} onClose={()=>setRecForm(null)} onSaved={()=>{ setRecForm(null); loadRecipes(); }} onDeleted={()=>{ setRecForm(null); loadRecipes(); }}/>}
+    {recForm && <RecipeForm initial={recForm.initial} toast={toast} onClose={()=>setRecForm(null)} onSaved={()=>{ const rm=recForm.reopenMeal; setRecForm(null); loadRecipes(); if(rm!==undefined) setPicker({presetMeal:rm}); }} onDeleted={()=>{ setRecForm(null); loadRecipes(); }}/>}
   </div>;
 }
 
@@ -4446,7 +4473,7 @@ function LiveFoodTab({clientId,role,toast}){
   const [editingMealId,setEditingMealId]=useState(null);
   const [foodView,setFoodView]=useState("track");
 
-  const DEF={macros_enabled:false,checks_enabled:false,meals_enabled:false,kcal:2000,protein:160,carbs:180,fat:65};
+  const DEF={tracking_enabled:true,macros_enabled:false,checks_enabled:false,meals_enabled:false,kcal:2000,protein:160,carbs:180,fat:65};
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
   const weekStart=addDays(mondayOf(new Date()), weekOffset*7);
   const weekDates=Array.from({length:7}).map((_,i)=>dstr(addDays(weekStart,i)));
@@ -4456,7 +4483,7 @@ function LiveFoodTab({clientId,role,toast}){
   const loadBase=async()=>{
     try{
       const { data:st } = await window.supa.from("nutrition_settings").select("*").eq("client_id",clientId).maybeSingle();
-      setSettings(st?{macros_enabled:st.macros_enabled,checks_enabled:st.checks_enabled,meals_enabled:!!st.meals_enabled,kcal:st.kcal,protein:st.protein,carbs:st.carbs,fat:st.fat}:{...DEF});
+      setSettings(st?{tracking_enabled:st.tracking_enabled!==false,macros_enabled:st.macros_enabled,checks_enabled:st.checks_enabled,meals_enabled:!!st.meals_enabled,kcal:st.kcal,protein:st.protein,carbs:st.carbs,fat:st.fat}:{...DEF});
       const { data:cl } = await window.supa.from("nutrition_checklist").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true});
       setChecklist((cl||[]).map(i=>({id:i.id,name:i.name})));
     }catch(e){ toast("Ernährung konnte nicht geladen werden"); setSettings({...DEF}); }
@@ -4510,7 +4537,8 @@ function LiveFoodTab({clientId,role,toast}){
 
   if(settings===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
   const macrosOn=settings.macros_enabled, checksOn=settings.checks_enabled, mealsOn=settings.meals_enabled;
-  if(foodView==="track") return <NutritionTracking clientId={clientId} role={role} toast={toast} onConfig={()=>setFoodView("config")}/>;
+  const canTrack = settings.tracking_enabled!==false;
+  if(foodView==="track" && canTrack) return <NutritionTracking clientId={clientId} role={role} toast={toast} onConfig={()=>setFoodView("config")}/>;
 
   // Punkte unter Tagen: Tag hat Makro-Eintrag, gesetztes Häkchen oder Mahlzeit
   const dots={}; weekDates.forEach(d=>{ const hasM=logs[d]&&logs[d].kcal!=null; const hasC=checks[d]&&Object.keys(checks[d]).length; const hasMl=(meals[d]||[]).length>0; if(hasM||hasC||hasMl) dots[d]=true; });
@@ -4518,10 +4546,12 @@ function LiveFoodTab({clientId,role,toast}){
   // ---------- COACH: Konfiguration + Wochen-Einsicht ----------
   if(role==="coach"){
     return <div className="mbody">
-      <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>
+      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}
       <div className="sectlabel">Ernährung für diesen Kunden</div>
       <div className="mcard" style={{padding:"6px 16px"}}>
-        <div className="tglrow"><div><div className="en">Makros</div><div className="enote">Kalorien & Makronährstoffe mit Tageszielen</div></div>
+        <div className="tglrow"><div><div className="en">Tracking</div><div className="enote">Tagebuch mit Lebensmitteln, Rezepten & Barcode-Scan</div></div>
+          <Toggle on={settings.tracking_enabled!==false} onClick={()=>saveSettings({tracking_enabled:!(settings.tracking_enabled!==false)})}/></div>
+        <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}><div><div className="en">Makros</div><div className="enote">Kalorien & Makronährstoffe mit Tageszielen</div></div>
           <Toggle on={macrosOn} onClick={()=>saveSettings({macros_enabled:!macrosOn})}/></div>
         <div className="tglrow" style={{borderTop:"1px solid var(--line)"}}><div><div className="en">Häkchen</div><div className="enote">Einfache Ja/Nein-Punkte zum Abhaken</div></div>
           <Toggle on={checksOn} onClick={()=>saveSettings({checks_enabled:!checksOn})}/></div>
@@ -4569,7 +4599,7 @@ function LiveFoodTab({clientId,role,toast}){
   }
 
   // ---------- KUNDE ----------
-  if(!macrosOn && !checksOn && !mealsOn) return <div className="mbody"><button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button><div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
+  if(!macrosOn && !checksOn && !mealsOn) return <div className="mbody">{canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}<div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
 
   const saveMacros=async(d,vals)=>{
     try{ const { error } = await window.supa.from("nutrition_logs").upsert({ client_id:clientId, date:d, ...vals },{onConflict:"client_id,date"}); if(error) throw error; toast("Makros gespeichert"); await loadWeek(); }
@@ -4586,7 +4616,7 @@ function LiveFoodTab({clientId,role,toast}){
   };
 
   return <div className="mbody">
-      <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>
+      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}
     <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
     {macrosOn && <MacroWeek settings={settings} weekDates={weekDates} logs={logs} t={t} onSave={saveMacros} openDate={selDate} setOpenDate={setSelDate}/>}
     {checksOn && <>
@@ -6380,6 +6410,52 @@ function AdminMenu({modes,onSwitch,onClose,theme,setTheme,onSignOut}){
     </div>
   </>;
 }
+function AdminFoodDB({onClose,toast}){
+  const [sub,setSub]=useState("foods");
+  const [foods,setFoods]=useState(null);
+  const [recipes,setRecipes]=useState(null);
+  const [q,setQ]=useState("");
+  const [foodForm,setFoodForm]=useState(null);
+  const [recForm,setRecForm]=useState(null);
+  const loadFoods=async()=>{ try{ const {data}=await window.supa.from("foods").select("id,name,brand,category,barcode,image_path,kcal,protein,carbs,fiber,sugar,fat").order("name",{ascending:true}); setFoods(data||[]); }catch(e){ setFoods([]); toast("Fehler beim Laden"); } };
+  const loadRecipes=async()=>{ try{ const {data}=await window.supa.from("recipes").select("id,name,image_path,cooked_weight").order("name",{ascending:true}); setRecipes(data||[]); }catch(e){ setRecipes([]); } };
+  useEffect(()=>{ loadFoods(); loadRecipes(); },[]);
+  const openFood=async(f)=>{ try{ const {data:ps}=await window.supa.from("food_portions").select("id,label,grams,position").eq("food_id",f.id).order("position",{ascending:true}); setFoodForm({initial:{...f,portions:ps||[]}}); }catch(e){ setFoodForm({initial:{...f,portions:[]}}); } };
+  const openRec=async(r)=>{ try{ const {data:ri}=await window.supa.from("recipe_ingredients").select("grams,food_id,position").eq("recipe_id",r.id).order("position",{ascending:true}); const ids=[...new Set((ri||[]).map(x=>x.food_id))]; let fmap={}; if(ids.length){ const {data:fs}=await window.supa.from("foods").select("id,name,kcal,protein,carbs,fiber,sugar,fat").in("id",ids); (fs||[]).forEach(f=>fmap[f.id]=f);} setRecForm({initial:{...r,ingredients:(ri||[]).map(x=>({food:fmap[x.food_id]||{name:"?"},grams:x.grams}))}}); }catch(e){ setRecForm({initial:{...r,ingredients:[]}}); } };
+  const ql=q.trim().toLowerCase();
+  const fFoods=(foods||[]).filter(f=>!ql||f.name.toLowerCase().includes(ql)||(f.brand&&f.brand.toLowerCase().includes(ql))||(f.barcode&&String(f.barcode).includes(ql)));
+  const fRecipes=(recipes||[]).filter(r=>!ql||r.name.toLowerCase().includes(ql));
+  return <div className="nut-page">
+    <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
+    <div className="nut-page-body">
+      <div className="nut-segs"><button className={"nut-seg"+(sub==="foods"?" on":"")} onClick={()=>setSub("foods")}>Lebensmittel</button><button className={"nut-seg"+(sub==="recipes"?" on":"")} onClick={()=>setSub("recipes")}>Rezepte</button></div>
+      <input className="setinput" style={{marginBottom:14}} value={q} onChange={e=>setQ(e.target.value)} placeholder="Suchen…"/>
+      {sub==="foods" && <>
+        <button className="btn" style={{marginBottom:14}} onClick={()=>setFoodForm({})}>+ Neues Lebensmittel</button>
+        {foods===null && <div className="muted">Lädt…</div>}
+        {foods!==null && fFoods.length===0 && <div className="muted" style={{fontSize:13}}>Keine Lebensmittel.</div>}
+        {fFoods.map(f=><button key={f.id} className="nut-pickrow" onClick={()=>openFood(f)}>
+          <div className="nut-pick-ic">{f.image_path?<img src={foodImgUrl(f.image_path)} alt=""/>:<Icon name="food"/>}</div>
+          <div className="nut-pick-main"><div className="nut-pick-name">{f.name}{f.brand?<span className="nut-brand"> · {f.brand}</span>:""}</div><div className="nut-pick-sub">{nutR(f.kcal)} kcal · E{nutR1(f.protein)} K{nutR1(f.carbs)} F{nutR1(f.fat)}{f.category?" · "+f.category:""}</div></div>
+          <Icon name="pencil"/>
+        </button>)}
+      </>}
+      {sub==="recipes" && <>
+        <button className="btn" style={{marginBottom:14}} onClick={()=>setRecForm({})}>+ Neues Rezept</button>
+        {recipes===null && <div className="muted">Lädt…</div>}
+        {recipes!==null && fRecipes.length===0 && <div className="muted" style={{fontSize:13}}>Keine Rezepte.</div>}
+        {fRecipes.map(r=><button key={r.id} className="nut-pickrow" onClick={()=>openRec(r)}>
+          <div className="nut-pick-ic">{r.image_path?<img src={foodImgUrl(r.image_path)} alt=""/>:<Icon name="food"/>}</div>
+          <div className="nut-pick-main"><div className="nut-pick-name">{r.name}</div><div className="nut-pick-sub">{nutR(r.cooked_weight)} g gekocht</div></div>
+          <Icon name="pencil"/>
+        </button>)}
+      </>}
+    </div>
+    {foodForm && <FoodForm initial={foodForm.initial} toast={toast} onClose={()=>setFoodForm(null)} onSaved={()=>{ setFoodForm(null); loadFoods(); }} onDeleted={()=>{ setFoodForm(null); loadFoods(); }}/>}
+    {recForm && <RecipeForm initial={recForm.initial} toast={toast} onClose={()=>setRecForm(null)} onSaved={()=>{ setRecForm(null); loadRecipes(); }} onDeleted={()=>{ setRecForm(null); loadRecipes(); }}/>}
+  </div>;
+}
+
 function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
   const [users,setUsers]=useState(null);
   const [loading,setLoading]=useState(true);
@@ -6387,6 +6463,7 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
   const [creating,setCreating]=useState(false);
   const [menu,setMenu]=useState(false);
   const [err,setErr]=useState(null);
+  const [dbOpen,setDbOpen]=useState(false);
   const load=async()=>{
     setLoading(true); setErr(null);
     try{
@@ -6432,7 +6509,8 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
       <button className="iconbtn" onClick={()=>setMenu(true)} aria-label="Menü"><Icon name="menu"/></button>
     </div>
     <div className="work"><div className="mbody">
-      <button className="btn" style={{marginBottom:16}} onClick={()=>setCreating(true)}>+ Account anlegen</button>
+      <button className="btn" style={{marginBottom:10}} onClick={()=>setCreating(true)}>+ Account anlegen</button>
+      <button className="btn btn-ghost" style={{marginBottom:16}} onClick={()=>setDbOpen(true)}>Ernährungs-Datenbank verwalten</button>
       <div className="sectlabel">Accounts{users?" ("+users.length+")":""}</div>
       {loading && <div className="muted" style={{padding:24,textAlign:"center"}}>Lädt…</div>}
       {err && <div className="mcard" style={{color:"var(--accent)",fontSize:13.5}}>{err}</div>}
@@ -6450,6 +6528,7 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
     {edit && <AdminEditSheet user={edit} coaches={coaches} onClose={()=>setEdit(null)} onSave={save} onDelete={del}/>}
     {creating && <AdminCreateSheet coaches={coaches} onClose={()=>setCreating(false)} onCreate={create}/>}
     {menu && <AdminMenu modes={modes} onSwitch={onSwitch} onClose={()=>setMenu(false)} theme={theme} setTheme={setTheme} onSignOut={onSignOut}/>}
+    {dbOpen && <AdminFoodDB onClose={()=>setDbOpen(false)} toast={toast}/>}
   </div>;
 }
 // ======== InstallGate (PWA-only) ========
