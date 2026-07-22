@@ -1243,6 +1243,9 @@
   .nut-pick-edit svg{width:15px;height:15px;}
   .dash-trk-add{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:var(--on-accent);border:none;border-radius:9px;padding:7px 12px;font-weight:700;font-size:12.5px;cursor:pointer;}
   .dash-trk-add svg{width:14px;height:14px;}
+  .nut-page-top{position:sticky;top:0;z-index:2;}
+  .nut-back{width:auto;min-width:38px;height:38px;padding:0 12px 0 8px;gap:3px;font-weight:700;font-size:14px;color:var(--text);}
+  .nut-back span{font-size:13.5px;}
 </style>
 </head>
 <body>
@@ -4164,7 +4167,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
   },[]);
   return <div className="nut-page">
     <div className="nut-page-top">
-      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button>
       <div className="nut-page-title">Barcode scannen</div>
     </div>
     <div className="nut-page-body">
@@ -4178,7 +4181,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
 function NutSheet({onClose,children,title,full,footer}){
   if(full) return <div className="nut-page">
     <div className="nut-page-top">
-      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button>
       <div className="nut-page-title">{title}</div>
     </div>
     <div className="nut-page-body">{children}</div>
@@ -4226,7 +4229,7 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); } finally{ setBusy(false); }
   };
   const del=async()=>{ if(!initial) return; if(!await askConfirm({title:"Lebensmittel löschen?",message:"Wird aus der Datenbank entfernt. Bereits getrackte Einträge bleiben erhalten.",confirmText:"Löschen",danger:true})) return;
-    try{ const { error }=await window.supa.from("foods").delete().eq("id",initial.id); if(error) throw error; toast("Gelöscht"); onDeleted&&onDeleted(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
+    try{ const { error }=await window.supa.from("foods").delete().eq("id",initial.id); if(error) throw error; toast("Gelöscht"); onDeleted&&onDeleted(); }catch(e){ toast("Löschen fehlgeschlagen: "+((e&&e.message)||"evtl. in einem Rezept verwendet")); } };
   const NF=({k,label})=><label key={k} className="exf"><span className="exf-l">{label}</span><input className="exin" inputMode="decimal" value={vals[k]} onChange={e=>setV(k,e.target.value)} placeholder="0"/></label>;
   return <NutSheet full title={initial?"Lebensmittel bearbeiten":"Neues Lebensmittel"} onClose={onClose}>
     <div className="nut-imgrow">
@@ -4297,7 +4300,7 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); } finally{ setBusy(false); }
   };
   const del=async()=>{ if(!initial) return; if(!await askConfirm({title:"Rezept löschen?",message:"Wird entfernt. Getrackte Einträge bleiben erhalten.",confirmText:"Löschen",danger:true})) return;
-    try{ await window.supa.from("recipes").delete().eq("id",initial.id); toast("Gelöscht"); onDeleted&&onDeleted(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
+    try{ const {error}=await window.supa.from("recipes").delete().eq("id",initial.id); if(error) throw error; toast("Gelöscht"); onDeleted&&onDeleted(); }catch(e){ toast("Löschen fehlgeschlagen: "+((e&&e.message)||"")); } };
   return <NutSheet full title={initial?"Rezept bearbeiten":"Neues Rezept"} onClose={onClose}>
     <div className="nut-imgrow">
       <label className="nut-imgpick">
@@ -4381,12 +4384,14 @@ function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,o
 // ---- Mengen-Sheet (Portion/Gramm wählen + Mahlzeit) ----
 function AmountSheet({item,meals,presetMeal,initialGrams,initialMeal,toast,onClose,onConfirm}){
   const isRecipe=item.type==="recipe";
+  const [foodPorts,setFoodPorts]=useState((!isRecipe && item.food && item.food.portions)?item.food.portions:[]);
+  useEffect(()=>{ if(isRecipe) return; const f=item.food; if(f && f.id && (!f.portions || !f.portions.length)){ (async()=>{ try{ const {data}=await window.supa.from("food_portions").select("label,grams,position").eq("food_id",f.id).order("position",{ascending:true}); if(data&&data.length) setFoodPorts(data); }catch(e){} })(); } },[]);
   const [grams,setGrams]=useState(initialGrams!=null?String(initialGrams):"");
   const [meal,setMeal]=useState(initialMeal||presetMeal||(meals[0]?meals[0].name:""));
   const [ings,setIngs]=useState(null); // recipe ingredients
   useEffect(()=>{ if(isRecipe){ (async()=>{ try{ const { data:ri }=await window.supa.from("recipe_ingredients").select("grams,food_id").eq("recipe_id",item.recipe.id); const ids=[...new Set((ri||[]).map(x=>x.food_id))]; let fmap={}; if(ids.length){ const { data:fs }=await window.supa.from("foods").select("id,kcal,protein,carbs,fiber,sugar,fat,name").in("id",ids); (fs||[]).forEach(f=>fmap[f.id]=f); } setIngs((ri||[]).map(x=>({food:fmap[x.food_id]||{},grams:x.grams}))); }catch(e){ setIngs([]); } })(); } },[]);
   const food=isRecipe?null:item.food;
-  const ports=(!isRecipe && item.food.portions)?item.food.portions:[];
+  const ports=foodPorts;
   const g=parseFloat(grams)||0;
   const mac=isRecipe ? (ings?recipeConsumedMacros(ings,item.recipe.cooked_weight,g):{...NUT_ZERO}) : foodMacros(food,g);
   const name=isRecipe?item.recipe.name:item.food.name;
@@ -4489,8 +4494,19 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const [checkDone,setCheckDone]=useState({});
   const [checksOn,setChecksOn]=useState(false);
 
-  const loadMeals=async()=>{ try{ const { data:ms }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setMeals(ms||[]); if(!ms||!ms.length){ // Standard-Mahlzeiten anlegen
-      const defs=["Frühstück","Mittagessen","Abendessen","Snacks"].map((n,i)=>({client_id:clientId,name:n,position:i})); await window.supa.from("nutrition_meals").insert(defs); const { data:ms2 }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}); setMeals(ms2||[]); } }catch(e){ setMeals([]); } };
+  const loadMeals=async()=>{ try{ const { data:ms }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setMeals(ms||[]);
+      if(!ms||!ms.length){
+        // Standard-Mahlzeiten NUR beim allerersten Mal anlegen (danach bleiben Löschungen bestehen)
+        let initialized=false;
+        try{ const { data:st }=await window.supa.from("nutrition_settings").select("meals_initialized").eq("client_id",clientId).maybeSingle(); initialized=!!(st&&st.meals_initialized===true); }catch(_){}
+        if(!initialized){
+          const defs=["Frühstück","Mittagessen","Abendessen","Snacks"].map((n,i)=>({client_id:clientId,name:n,position:i}));
+          await window.supa.from("nutrition_meals").insert(defs);
+          try{ await window.supa.from("nutrition_settings").upsert({client_id:clientId, meals_initialized:true},{onConflict:"client_id"}); }catch(_){}
+          const { data:ms2 }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}); setMeals(ms2||[]);
+        }
+      }
+    }catch(e){ setMeals([]); } };
   const loadEntries=async()=>{ setEntries(null); try{ const { data:es }=await window.supa.from("food_log").select("*").eq("client_id",clientId).eq("date",date).order("created_at",{ascending:true}); setEntries(es||[]); }catch(e){ toast("Tagebuch konnte nicht geladen werden"); setEntries([]); } };
   useEffect(()=>{ if(clientId) loadMeals(); },[clientId]);
   useEffect(()=>{ if(clientId) loadEntries(); },[clientId,date]);
@@ -4511,7 +4527,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
     const oldG=parseFloat(entry.grams)||0; const f=oldG>0?((parseFloat(grams)||0)/oldG):0;
     const row={ grams:parseFloat(grams)||0, meal, kcal:(entry.kcal||0)*f, protein:(entry.protein||0)*f, carbs:(entry.carbs||0)*f, fiber:(entry.fiber||0)*f, sugar:(entry.sugar||0)*f, fat:(entry.fat||0)*f };
     const { error }=await window.supa.from("food_log").update(row).eq("id",entry.id); if(error) throw error; setAmount(null); await loadEntries(); }catch(e){ toast("Änderung fehlgeschlagen"); } };
-  const delEntry=async(id)=>{ try{ const { error }=await window.supa.from("food_log").delete().eq("id",id); if(error) throw error; await loadEntries(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
+  const delEntry=async(id,name)=>{ if(!await askConfirm({title:"Eintrag löschen?",message:(name?("„"+name+"\" wird"):"Der Eintrag wird")+" aus dem Tagebuch entfernt.",confirmText:"Löschen",danger:true})) return; try{ const { error }=await window.supa.from("food_log").delete().eq("id",id); if(error) throw error; await loadEntries(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
   const addMealSlot=async()=>{ const nm=newMeal.trim(); if(!nm){ return; } try{ const { error }=await window.supa.from("nutrition_meals").insert({ client_id:clientId, name:nm, position:meals.length }); if(error) throw error; setNewMeal(""); setAddMealOpen(false); await loadMeals(); }catch(e){ toast("Mahlzeit konnte nicht angelegt werden"); } };
   const delMealSlot=async(m)=>{ if(!await askConfirm({title:"Mahlzeit entfernen?",message:"Die Mahlzeit \""+m.name+"\" wird entfernt. Bereits getrackte Einträge bleiben im Tagebuch.",confirmText:"Entfernen",danger:true})) return; try{ await window.supa.from("nutrition_meals").delete().eq("id",m.id); await loadMeals(); }catch(e){ toast("Fehler"); } };
 
@@ -4614,7 +4630,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
                 <div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div>
               </div>
               {isRec && <button className={"nut-entry-exp"+(open?" open":"")} onClick={()=>toggleEntry(e)} aria-label="Zutaten">{CHEV}</button>}
-              <button className="nut-entry-del" onClick={()=>delEntry(e.id)} aria-label="Löschen">×</button>
+              <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>
             </div>
             {isRec && open && <div className="nut-bd">
               {!bd ? <div className="muted" style={{fontSize:12,padding:"4px 2px"}}>Lädt…</div>
@@ -4631,7 +4647,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
         <div className="nut-mealcard-head"><span className="nut-mealcard-name">{mn}</span><span className="nut-mealcard-kcal">{nutR(mt)} kcal</span></div>
         {list.map(e=><div key={e.id} className="nut-entrywrap"><div className="nut-entry">
           <div className="nut-entry-main" onClick={()=>setAmount({edit:e})}><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
-          <button className="nut-entry-del" onClick={()=>delEntry(e.id)} aria-label="Löschen">×</button>
+          <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>
         </div></div>)}
       </div>;
     })}
@@ -6620,7 +6636,7 @@ function AdminFoodDB({onClose,toast}){
   const fFoods=(foods||[]).filter(f=>!ql||f.name.toLowerCase().includes(ql)||(f.brand&&f.brand.toLowerCase().includes(ql))||(f.barcode&&String(f.barcode).includes(ql)));
   const fRecipes=(recipes||[]).filter(r=>!ql||r.name.toLowerCase().includes(ql));
   return <div className="nut-page">
-    <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
+    <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
     <div className="nut-page-body">
       <div className="nut-segs"><button className={"nut-seg"+(sub==="foods"?" on":"")} onClick={()=>setSub("foods")}>Lebensmittel</button><button className={"nut-seg"+(sub==="recipes"?" on":"")} onClick={()=>setSub("recipes")}>Rezepte</button></div>
       <input className="setinput" style={{marginBottom:14}} value={q} onChange={e=>setQ(e.target.value)} placeholder="Suchen…"/>
