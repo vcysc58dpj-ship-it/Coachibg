@@ -1202,6 +1202,47 @@
   .nut-hero-sub b{color:var(--text);font-weight:700;}
   /* Datums-Balken feiner */
   .nut-navbtn{border-radius:50%;width:40px;height:40px;}
+  /* Zurück-Button klar sichtbar */
+  .nut-back{border:1px solid var(--line-2);box-shadow:0 1px 2px rgba(11,12,15,.05);}
+  .nut-back svg{width:20px;height:20px;}
+  /* Checkliste im Tracking */
+  .nut-checkcard{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:14px 14px 6px;margin-bottom:16px;box-shadow:0 1px 2px rgba(11,12,15,.04),0 4px 12px rgba(11,12,15,.04);}
+  .nut-check-h{font-family:"Bricolage Grotesque";font-weight:800;font-size:16px;margin-bottom:8px;letter-spacing:-0.02em;padding:0 2px;}
+  .nut-check-row{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;padding:10px 4px;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;}
+  .nut-check-box{width:24px;height:24px;border-radius:8px;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+  .nut-check-box svg{width:13px;height:13px;color:#fff;}
+  [data-theme="dark"] .nut-check-box svg{color:#0F0F11;}
+  .nut-check-row.done .nut-check-box{background:var(--ok);border-color:var(--ok);}
+  .nut-check-name{font-size:14.5px;font-weight:500;}
+  .nut-check-row.done .nut-check-name{color:var(--faint);text-decoration:line-through;}
+  /* Mahlzeit-Kopf Steuerung */
+  .nut-mealhead-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .nut-mc-menu{width:30px;height:30px;border-radius:8px;border:none;background:transparent;color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .nut-mc-menu svg{width:20px;height:20px;}
+  .nut-mc-menu:active{background:var(--bg-3);}
+  .nut-mealrename{flex:1;min-width:0;font-family:"Bricolage Grotesque";font-weight:800;font-size:17px;letter-spacing:-0.02em;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--text);outline:none;padding:0 0 3px;}
+  /* Eintrag: löschen + Rezept aufklappen */
+  .nut-entrywrap{border-radius:11px;}
+  .nut-entry{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:11px;}
+  .nut-entry-main{flex:1;min-width:0;cursor:pointer;}
+  .nut-entry-main:active{opacity:.6;}
+  .nut-entry-exp{width:30px;height:30px;border:none;background:transparent;color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .25s;padding:0;}
+  .nut-entry-exp.open{transform:rotate(180deg);}
+  .nut-entry-exp svg{width:16px;height:16px;}
+  .nut-entry-del{width:28px;height:28px;border:none;background:var(--bg-3);color:var(--dim);border-radius:8px;font-size:18px;line-height:1;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0;}
+  .nut-entry-del:active{background:var(--line-2);}
+  .nut-rec-tag{font-family:"IBM Plex Mono";font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;background:var(--bg-3);color:var(--dim);border-radius:5px;padding:2px 5px;margin-left:7px;vertical-align:middle;}
+  .nut-bd{background:var(--bg-3);border-radius:10px;margin:0 8px 10px;padding:8px 12px;}
+  .nut-bd-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;}
+  .nut-bd-row:last-child{border-bottom:none;}
+  .nut-bd-name{font-weight:600;min-width:0;}
+  .nut-bd-name em{font-style:normal;color:var(--faint);font-weight:500;margin-left:6px;}
+  .nut-bd-mac{color:var(--faint);white-space:nowrap;flex-shrink:0;}
+  .nut-pick-hit{flex:1;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .nut-pick-edit{width:34px;height:34px;border-radius:9px;border:1px solid var(--line-2);background:var(--bg-3);color:var(--dim);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;}
+  .nut-pick-edit svg{width:15px;height:15px;}
+  .dash-trk-add{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:var(--on-accent);border:none;border-radius:9px;padding:7px 12px;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .dash-trk-add svg{width:14px;height:14px;}
 </style>
 </head>
 <body>
@@ -1563,6 +1604,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   const [habitDone,setHabitDone]=useState({}); // {id:true} für selDate
   const [settings,setSettings]=useState(null);
   const [todayMacro,setTodayMacro]=useState(null);
+  const [trkToday,setTrkToday]=useState(null);
   const [trainDates,setTrainDates]=useState({}); // {date:true} angezeigte Woche
   const [weekKcal,setWeekKcal]=useState({}); // {date: kcal} angezeigte Woche
   const [weekOffset,setWeekOffset]=useState(0);
@@ -1644,6 +1686,8 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   const habDone=habits.filter(h=>habitDone[h.id]).length;
   const m=settings;
   const macrosOn=settings&&settings.macros_enabled;
+  const trackingOn=settings&&settings.tracking_enabled!==false;
+  useEffect(()=>{ if(!clientId||!trackingOn){ setTrkToday(null); return; } (async()=>{ try{ const {data}=await window.supa.from("food_log").select("kcal,protein,carbs,fiber,sugar,fat").eq("client_id",clientId).eq("date",t); const tot=(data||[]).reduce((acc,e)=>({kcal:acc.kcal+(e.kcal||0),protein:acc.protein+(e.protein||0),carbs:acc.carbs+(e.carbs||0),fiber:acc.fiber+(e.fiber||0),sugar:acc.sugar+(e.sugar||0),fat:acc.fat+(e.fat||0)}),{kcal:0,protein:0,carbs:0,fiber:0,sugar:0,fat:0}); setTrkToday(tot); }catch(e){ setTrkToday(null); } })(); },[clientId,trackingOn]);
   const kcalTarget=m?m.kcal:0;
   // Kalorien pro Tag der angezeigten Woche
   const dayKcals=weekDates.map(d=>weekKcal[d]||0);
@@ -1695,7 +1739,20 @@ function LiveDashboard({clientId,toast,go,name,unread}){
     <JourneyMiniCard clientId={clientId} go={go}/>
 
     {/* Kalorien */}
-    {macrosOn && <div className="card" onClick={()=>go("food")} style={{cursor:"pointer"}}>
+    {trackingOn && (()=>{ const tg=macrosOn?settings:null; const T=trkToday||{kcal:0,protein:0,carbs:0,fat:0,sugar:0,fiber:0}; const r1=(n)=>Math.round((n||0)*10)/10; const R=(n)=>Math.round(n||0);
+      const mb=(label,cls,val,target)=>{ const has=target&&target>0; const pct=has?Math.min(100,Math.round(val/target*100)):0; return <div className="nut-macrorow" key={label}><div className="nut-macrorow-top"><span className="nut-mr-lbl">{label}</span><span className="nut-mr-v">{r1(val)}{has?" / "+target:""} g</span></div><div className="nut-mbar">{has?<div className={"nut-mbar-fill "+cls} style={{width:pct+"%"}}/>:<div className={"nut-mbar-fill "+cls} style={{width:"100%",opacity:.18}}/>}</div></div>; };
+      return <div className="card">
+        <div className="card-h"><span className="ch-l"><Icon name="food"/>Ernährung heute</span><button className="dash-trk-add" onClick={()=>go("food")}><Icon name="plus"/>Eintragen</button></div>
+        <div className="nut-hero-krow" style={{marginTop:4}}>
+          <div className="nut-hero-kcal">{R(T.kcal)}<em>{tg&&tg.kcal?" / "+tg.kcal+" kcal":" kcal"}</em></div>
+          {tg&&tg.kcal>0 && <div className="nut-hero-pct">{Math.round(T.kcal/tg.kcal*100)}%</div>}
+        </div>
+        {tg&&tg.kcal>0 && <div className="nut-kbar"><div style={{width:Math.min(100,Math.round(T.kcal/tg.kcal*100))+"%"}}/></div>}
+        <div className="nut-bars">{mb("Eiweiß","p",T.protein,tg&&tg.protein)}{mb("Kohlenhydrate","c",T.carbs,tg&&tg.carbs)}{mb("Fett","f",T.fat,tg&&tg.fat)}</div>
+        <div className="nut-hero-sub" style={{marginTop:14}}><span>Zucker <b>{r1(T.sugar)} g</b></span><span>Ballaststoffe <b>{r1(T.fiber)} g</b></span></div>
+      </div>;
+    })()}
+    {macrosOn && !trackingOn && <div className="card" onClick={()=>go("food")} style={{cursor:"pointer"}}>
       <div className="card-h"><span className="ch-l"><Icon name="food"/>Kalorien</span></div>
       <div className="calhead">
         <div className="cal-l">
@@ -4107,7 +4164,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
   },[]);
   return <div className="nut-page">
     <div className="nut-page-top">
-      <button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button>
+      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
       <div className="nut-page-title">Barcode scannen</div>
     </div>
     <div className="nut-page-body">
@@ -4121,7 +4178,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
 function NutSheet({onClose,children,title,full,footer}){
   if(full) return <div className="nut-page">
     <div className="nut-page-top">
-      <button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button>
+      <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
       <div className="nut-page-title">{title}</div>
     </div>
     <div className="nut-page-body">{children}</div>
@@ -4221,6 +4278,7 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
   const [ings,setIngs]=useState(initial&&initial.ingredients?initial.ingredients.map(x=>({food:x.food,grams:String(x.grams)})):[]);
   const [busy,setBusy]=useState(false);
   const [pickOpen,setPickOpen]=useState(false);
+  const [newFoodOpen,setNewFoodOpen]=useState(false);
   const pickImg=async(file)=>{ if(!file) return; try{ const path=await uploadFoodImage(file); setImg(path); }catch(e){ toast("Bild-Upload fehlgeschlagen"); } };
   const fullMac=(()=>{ let t={...NUT_ZERO}; ings.forEach(x=>{ t=addMac(t, foodMacros(x.food, x.grams)); }); return t; })();
   const save=async()=>{
@@ -4267,12 +4325,13 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
     </div>
     <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(initial?"Speichern":"Rezept anlegen")}</button>
     {initial && <button className="pe-exdel" style={{marginTop:10}} onClick={del}>Rezept löschen</button>}
-    {pickOpen && <NutPicker toast={toast} foodsOnly onClose={()=>setPickOpen(false)} onPick={(item)=>{ setIngs(a=>[...a,{food:item.food,grams:""}]); setPickOpen(false); }}/>}
+    {pickOpen && <NutPicker toast={toast} foodsOnly onCreateFood={()=>{ setPickOpen(false); setNewFoodOpen(true); }} onClose={()=>setPickOpen(false)} onPick={(item)=>{ setIngs(a=>[...a,{food:item.food,grams:""}]); setPickOpen(false); }}/>}
+    {newFoodOpen && <FoodForm toast={toast} onClose={()=>{ setNewFoodOpen(false); setPickOpen(true); }} onSaved={()=>{ setNewFoodOpen(false); setPickOpen(true); }}/>}
   </NutSheet>;
 }
 
 // ---- Such-Picker (Lebensmittel + Rezepte) ----
-function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,onCreateRecipe}){
+function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,onCreateRecipe,onEditRecipe}){
   const [q,setQ]=useState("");
   const [foods,setFoods]=useState([]);
   const [recipes,setRecipes]=useState([]);
@@ -4302,11 +4361,13 @@ function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,o
     {loading && <div className="muted">Lädt…</div>}
     {!loading && fFoods.length===0 && fRecipes.length===0 && <div className="muted" style={{fontSize:13}}>Nichts gefunden. Lege es zuerst in der Datenbank an.</div>}
     {!foodsOnly && fRecipes.length>0 && <div className="ci-flabel" style={{margin:"4px 0 8px"}}>Rezepte</div>}
-    {!foodsOnly && fRecipes.map(r=><button key={r.id} className="nut-pickrow" onClick={()=>onPick({type:"recipe",recipe:r})}>
-      <div className="nut-pick-ic">{r.image_path?<img src={foodImgUrl(r.image_path)} alt=""/>:<Icon name="food"/>}</div>
-      <div className="nut-pick-main"><div className="nut-pick-name">{r.name}</div><div className="nut-pick-sub">Rezept · {nutR(r.cooked_weight)} g gekocht</div></div>
-      <div className="dr-chev">›</div>
-    </button>)}
+    {!foodsOnly && fRecipes.map(r=><div key={r.id} className="nut-pickrow">
+      <div className="nut-pick-hit" onClick={()=>onPick({type:"recipe",recipe:r})}>
+        <div className="nut-pick-ic">{r.image_path?<img src={foodImgUrl(r.image_path)} alt=""/>:<Icon name="food"/>}</div>
+        <div className="nut-pick-main"><div className="nut-pick-name">{r.name}</div><div className="nut-pick-sub">Rezept · {nutR(r.cooked_weight)} g gekocht</div></div>
+      </div>
+      {onEditRecipe && <button className="nut-pick-edit" onClick={()=>onEditRecipe(r)} aria-label="Bearbeiten"><Icon name="pencil"/></button>}
+    </div>)}
     {fFoods.length>0 && <div className="ci-flabel" style={{margin:"12px 0 8px"}}>Lebensmittel</div>}
     {fFoods.map(f=><button key={f.id} className="nut-pickrow" onClick={()=>onPick({type:"food",food:f})}>
       <div className="nut-pick-ic">{f.image_path?<img src={foodImgUrl(f.image_path)} alt=""/>:<Icon name="food"/>}</div>
@@ -4419,13 +4480,22 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const [newMeal,setNewMeal]=useState("");
   const [mealMgrOpen,setMealMgrOpen]=useState(false);
   const [targets,setTargets]=useState(null);
+  const [weekOff,setWeekOff]=useState(0);
+  const [mealMenu,setMealMenu]=useState(null);
+  const [renamingMeal,setRenamingMeal]=useState(null);
+  const [expandedEntry,setExpandedEntry]=useState(()=>new Set());
+  const [breakdowns,setBreakdowns]=useState({});
+  const [checkItems,setCheckItems]=useState([]);
+  const [checkDone,setCheckDone]=useState({});
+  const [checksOn,setChecksOn]=useState(false);
 
   const loadMeals=async()=>{ try{ const { data:ms }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}).order("created_at",{ascending:true}); setMeals(ms||[]); if(!ms||!ms.length){ // Standard-Mahlzeiten anlegen
       const defs=["Frühstück","Mittagessen","Abendessen","Snacks"].map((n,i)=>({client_id:clientId,name:n,position:i})); await window.supa.from("nutrition_meals").insert(defs); const { data:ms2 }=await window.supa.from("nutrition_meals").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}); setMeals(ms2||[]); } }catch(e){ setMeals([]); } };
   const loadEntries=async()=>{ setEntries(null); try{ const { data:es }=await window.supa.from("food_log").select("*").eq("client_id",clientId).eq("date",date).order("created_at",{ascending:true}); setEntries(es||[]); }catch(e){ toast("Tagebuch konnte nicht geladen werden"); setEntries([]); } };
   useEffect(()=>{ if(clientId) loadMeals(); },[clientId]);
   useEffect(()=>{ if(clientId) loadEntries(); },[clientId,date]);
-  useEffect(()=>{ if(!clientId) return; (async()=>{ try{ const {data}=await window.supa.from("nutrition_settings").select("kcal,protein,carbs,fat,macros_enabled").eq("client_id",clientId).maybeSingle(); if(data&&data.macros_enabled) setTargets({kcal:data.kcal,protein:data.protein,carbs:data.carbs,fat:data.fat}); else setTargets(null); }catch(e){ setTargets(null); } })(); },[clientId]);
+  useEffect(()=>{ if(!clientId) return; (async()=>{ try{ const {data:st}=await window.supa.from("nutrition_settings").select("kcal,protein,carbs,fat,macros_enabled,checks_enabled").eq("client_id",clientId).maybeSingle(); if(st&&st.macros_enabled) setTargets({kcal:st.kcal,protein:st.protein,carbs:st.carbs,fat:st.fat}); else setTargets(null); setChecksOn(!!(st&&st.checks_enabled)); if(st&&st.checks_enabled){ const {data:items}=await window.supa.from("nutrition_checklist").select("id,name,position").eq("client_id",clientId).order("position",{ascending:true}); setCheckItems(items||[]); } else setCheckItems([]); }catch(e){ setTargets(null); } })(); },[clientId]);
+  useEffect(()=>{ if(!clientId||!checksOn){ setCheckDone({}); return; } (async()=>{ try{ const ids=checkItems.map(i=>i.id); if(!ids.length){ setCheckDone({}); return; } const {data:logs}=await window.supa.from("nutrition_check_logs").select("item_id,done").in("item_id",ids).eq("date",date); const mp={}; (logs||[]).forEach(l=>{ if(l.done) mp[l.item_id]=true; }); setCheckDone(mp); }catch(e){} })(); },[clientId,date,checksOn,checkItems]);
 
   const loadDb=async()=>{ try{ const { data:me }=await window.supa.auth.getUser(); const uid=me?.user?.id;
     const { data:fs }=await window.supa.from("foods").select("id,name,brand,category,barcode,image_path,kcal,protein,carbs,fiber,sugar,fat,created_by").order("name",{ascending:true}); setDbFoods((fs||[]).map(f=>({...f,mine:f.created_by===uid}))); }catch(e){ setDbFoods([]); } };
@@ -4445,6 +4515,23 @@ function NutritionTracking({clientId,role,toast,onConfig}){
   const addMealSlot=async()=>{ const nm=newMeal.trim(); if(!nm){ return; } try{ const { error }=await window.supa.from("nutrition_meals").insert({ client_id:clientId, name:nm, position:meals.length }); if(error) throw error; setNewMeal(""); setAddMealOpen(false); await loadMeals(); }catch(e){ toast("Mahlzeit konnte nicht angelegt werden"); } };
   const delMealSlot=async(m)=>{ if(!await askConfirm({title:"Mahlzeit entfernen?",message:"Die Mahlzeit \""+m.name+"\" wird entfernt. Bereits getrackte Einträge bleiben im Tagebuch.",confirmText:"Entfernen",danger:true})) return; try{ await window.supa.from("nutrition_meals").delete().eq("id",m.id); await loadMeals(); }catch(e){ toast("Fehler"); } };
 
+  const moveMeal=async(idx,dir)=>{ const j=idx+dir; if(j<0||j>=meals.length) return; const a=meals[idx],b=meals[j]; try{ await window.supa.from("nutrition_meals").update({position:j}).eq("id",a.id); await window.supa.from("nutrition_meals").update({position:idx}).eq("id",b.id); await loadMeals(); }catch(e){ toast("Verschieben fehlgeschlagen"); } };
+  const renameMeal=async(m,name)=>{ const nm=(name||"").trim(); setRenamingMeal(null); if(!nm||nm===m.name) return; try{ await window.supa.from("nutrition_meals").update({name:nm}).eq("id",m.id); await loadMeals(); await loadEntries(); }catch(e){} };
+  const delMeal=async(m)=>{ if(!await askConfirm({title:"Mahlzeit löschen?",message:"Die Mahlzeit wird entfernt. Bereits getrackte Einträge bleiben erhalten.",confirmText:"Löschen",danger:true})) return; try{ await window.supa.from("nutrition_meals").delete().eq("id",m.id); await loadMeals(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
+  const toggleEntry=async(e)=>{ setExpandedEntry(sset=>{ const n=new Set(sset); n.has(e.id)?n.delete(e.id):n.add(e.id); return n; });
+    if(!breakdowns[e.id] && e.item_type==="recipe" && e.recipe_id){ try{
+      const {data:rec}=await window.supa.from("recipes").select("cooked_weight").eq("id",e.recipe_id).maybeSingle();
+      const {data:ri}=await window.supa.from("recipe_ingredients").select("grams,food_id,position").eq("recipe_id",e.recipe_id).order("position",{ascending:true});
+      const ids=[...new Set((ri||[]).map(x=>x.food_id))]; let fmap={}; if(ids.length){ const {data:fs}=await window.supa.from("foods").select("id,name,kcal,protein,carbs,fiber,sugar,fat").in("id",ids); (fs||[]).forEach(f=>fmap[f.id]=f); }
+      const cw=(rec&&rec.cooked_weight)||0; const ratio=cw>0?(e.grams/cw):0;
+      const rows=(ri||[]).map(x=>{ const f=fmap[x.food_id]||{name:"?"}; const g=(x.grams||0)*ratio; return {name:f.name,grams:g,...foodMacros(f,g)}; });
+      setBreakdowns(b=>({...b,[e.id]:rows}));
+    }catch(err){ setBreakdowns(b=>({...b,[e.id]:[]})); } } };
+  const toggleCheck=async(id)=>{ const next=!checkDone[id]; setCheckDone(mp=>({...mp,[id]:next})); try{ if(next){ await window.supa.from("nutrition_check_logs").upsert({client_id:clientId,item_id:id,date,done:true},{onConflict:"item_id,date"}); } else { await window.supa.from("nutrition_check_logs").delete().eq("item_id",id).eq("date",date); } }catch(e){ toast("Konnte nicht speichern"); } };
+  // Kalender-Woche (Mo-basiert), wie im Dashboard
+  const nutWeek=(()=>{ const now=new Date(); const dow=(now.getDay()+6)%7; const mon=new Date(now); mon.setDate(now.getDate()-dow+weekOff*7); const arr=[]; for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); arr.push(dstr(d)); } return arr; })();
+  const nutMonth=new Date(nutWeek[0]+"T00:00:00").toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+
   // Tagessummen
   const dayTot=(entries||[]).reduce((a,e)=>addMac(a,{kcal:e.kcal||0,protein:e.protein||0,carbs:e.carbs||0,fiber:e.fiber||0,sugar:e.sugar||0,fat:e.fat||0}),{...NUT_ZERO});
   // Einträge nach Mahlzeit gruppieren (inkl. Einträge, deren Mahlzeit nicht mehr existiert)
@@ -4457,11 +4544,19 @@ function NutritionTracking({clientId,role,toast,onConfig}){
       <div className="nut-macrorow-top"><span className="nut-mr-lbl">{label}</span><span className="nut-mr-v">{nutR1(val)}{has?" / "+target:""} g</span></div>
       <div className="nut-mbar">{has?<div className={"nut-mbar-fill "+cls} style={{width:pct+"%"}}/>:<div className={"nut-mbar-fill "+cls} style={{width:"100%",opacity:.18}}/>}</div>
     </div>; };
+  const CHEV=<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
   return <div className="mbody">
-    <div className="nut-datebar">
-      <button className="nut-navbtn" onClick={()=>setDate(dstr(addDays(new Date(date+"T00:00:00"),-1)))}>‹</button>
-      <div className="nut-date">{fmtFull(date)}{date===today()&&<span className="nut-today">Heute</span>}</div>
-      <button className="nut-navbtn" disabled={date>=today()} onClick={()=>{ if(date<today()) setDate(dstr(addDays(new Date(date+"T00:00:00"),1))); }}>›</button>
+    <div className="card wkcal" style={{marginBottom:18}}>
+      <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
+        <div className="calnav"><button className="cnav" onClick={()=>setWeekOff(w=>w-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{nutMonth}</span><button className="cnav" disabled={weekOff>=0} onClick={()=>{ if(weekOff<0) setWeekOff(w=>w+1); }} aria-label="Woche vor">›</button></div>
+      </div>
+      <div className="calstrip">{nutWeek.map(d=>{ const isSel=d===date; const isToday=d===today();
+        return <button key={d} className="calcol" onClick={()=>setDate(d)}>
+          <div className="cwd">{["MO","DI","MI","DO","FR","SA","SO"][(new Date(d+"T00:00:00").getDay()+6)%7]}</div>
+          <div className={"cdate"+(isSel?" sel":"")+(isToday&&!isSel?" today":"")}>{d.split("-")[2]}</div>
+          <div className="cdot"/>
+        </button>;
+      })}</div>
     </div>
 
     <div className="nut-hero">
@@ -4478,39 +4573,86 @@ function NutritionTracking({clientId,role,toast,onConfig}){
       <div className="nut-hero-sub"><span>Zucker <b>{nutR1(dayTot.sugar)} g</b></span><span>Ballaststoffe <b>{nutR1(dayTot.fiber)} g</b></span></div>
     </div>
 
+    {checksOn && checkItems.length>0 && <div className="nut-checkcard">
+      <div className="nut-check-h">Checkliste</div>
+      {checkItems.map(it=>{ const done=!!checkDone[it.id];
+        return <button key={it.id} className={"nut-check-row"+(done?" done":"")} onClick={()=>toggleCheck(it.id)}>
+          <span className="nut-check-box">{done?<Icon name="habits"/>:null}</span>
+          <span className="nut-check-name">{it.name}</span>
+        </button>;
+      })}
+    </div>}
+
     {entries===null && <div className="muted">Lädt…</div>}
-    {entries!==null && meals.map(m=>{ const list=groupOf(m.name); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
+    {entries!==null && meals.map((m,i)=>{ const list=groupOf(m.name); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
       return <div key={m.id} className="nut-mealcard">
-        <div className="nut-mealcard-head"><span className="nut-mealcard-name">{m.name}</span>{list.length>0&&<span className="nut-mealcard-kcal">{nutR(mt)} kcal</span>}</div>
-        {list.map(e=><div key={e.id} className="nut-entry" onClick={()=>setAmount({edit:e})}>
-          <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div></div>
-          <span className="nut-entry-chev">›</span>
-        </div>)}
+        <div className="nut-mealcard-head">
+          {renamingMeal===m.id
+            ? <input className="nut-mealrename" defaultValue={m.name} autoFocus onBlur={ev=>renameMeal(m,ev.target.value)} onKeyDown={ev=>{ if(ev.key==="Enter") renameMeal(m,ev.target.value); }}/>
+            : <span className="nut-mealcard-name">{m.name}</span>}
+          <div className="nut-mealhead-right">
+            {list.length>0 && renamingMeal!==m.id && <span className="nut-mealcard-kcal">{nutR(mt)} kcal</span>}
+            <div className="pe-daymenu-wrap">
+              <button className="nut-mc-menu" onClick={()=>setMealMenu(mealMenu===m.id?null:m.id)} aria-label="Optionen"><Icon name="more"/></button>
+              {mealMenu===m.id && <>
+                <div className="pe-menuscrim" onClick={()=>setMealMenu(null)}/>
+                <div className="pe-menu">
+                  <button onClick={()=>{ setRenamingMeal(m.id); setMealMenu(null); }}>Umbenennen</button>
+                  <button disabled={i===0} onClick={()=>{ setMealMenu(null); moveMeal(i,-1); }}>Nach oben</button>
+                  <button disabled={i===meals.length-1} onClick={()=>{ setMealMenu(null); moveMeal(i,1); }}>Nach unten</button>
+                  <button className="pe-menu-del" onClick={()=>{ setMealMenu(null); delMeal(m); }}>Löschen</button>
+                </div>
+              </>}
+            </div>
+          </div>
+        </div>
+        {list.map(e=>{ const isRec=e.item_type==="recipe"; const open=expandedEntry.has(e.id); const bd=breakdowns[e.id];
+          return <div key={e.id} className="nut-entrywrap">
+            <div className="nut-entry">
+              <div className="nut-entry-main" onClick={()=>setAmount({edit:e})}>
+                <div className="nut-entry-name">{e.name}{isRec&&<span className="nut-rec-tag">Rezept</span>}</div>
+                <div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div>
+              </div>
+              {isRec && <button className={"nut-entry-exp"+(open?" open":"")} onClick={()=>toggleEntry(e)} aria-label="Zutaten">{CHEV}</button>}
+              <button className="nut-entry-del" onClick={()=>delEntry(e.id)} aria-label="Löschen">×</button>
+            </div>
+            {isRec && open && <div className="nut-bd">
+              {!bd ? <div className="muted" style={{fontSize:12,padding:"4px 2px"}}>Lädt…</div>
+               : bd.length===0 ? <div className="muted" style={{fontSize:12,padding:"4px 2px"}}>Keine Zutaten gefunden.</div>
+               : bd.map((r,ri)=><div key={ri} className="nut-bd-row"><span className="nut-bd-name">{r.name}<em>{nutR(r.grams)} g</em></span><span className="nut-bd-mac">{nutR(r.kcal)} kcal · E{nutR1(r.protein)} K{nutR1(r.carbs)} F{nutR1(r.fat)}</span></div>)}
+            </div>}
+          </div>;
+        })}
         <button className="nut-addentry" onClick={()=>setPicker({presetMeal:m.name})}><Icon name="plus"/>Hinzufügen</button>
       </div>;
     })}
     {entries!==null && orphanMeals.map(mn=>{ const list=groupOf(mn); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
       return <div key={mn} className="nut-mealcard">
         <div className="nut-mealcard-head"><span className="nut-mealcard-name">{mn}</span><span className="nut-mealcard-kcal">{nutR(mt)} kcal</span></div>
-        {list.map(e=><div key={e.id} className="nut-entry" onClick={()=>setAmount({edit:e})}>
-          <div className="nut-entry-main"><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
-          <span className="nut-entry-chev">›</span>
-        </div>)}
+        {list.map(e=><div key={e.id} className="nut-entrywrap"><div className="nut-entry">
+          <div className="nut-entry-main" onClick={()=>setAmount({edit:e})}><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
+          <button className="nut-entry-del" onClick={()=>delEntry(e.id)} aria-label="Löschen">×</button>
+        </div></div>)}
       </div>;
     })}
 
-    <button className="nut-addmeal" onClick={()=>setMealMgrOpen(true)}><Icon name="plus"/>Mahlzeiten verwalten</button>
-
-    {onConfig && <button className="link" style={{display:"block",margin:"22px auto 0"}} onClick={onConfig}>Vorgaben & Checkliste öffnen ›</button>}
+    {addMealOpen
+      ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
+          <input className="setinput" value={newMeal} onChange={ev=>setNewMeal(ev.target.value)} placeholder="z.B. Frühstück 2" autoFocus onKeyDown={ev=>{ if(ev.key==="Enter") addMealSlot(); }}/>
+          <button className="btn" style={{width:"auto",padding:"11px 18px",flexShrink:0}} onClick={addMealSlot}>Hinzufügen</button>
+          <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
+        </div>
+      : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Mahlzeit hinzufügen</button>}
 
     {mealMgrOpen && <MealManager clientId={clientId} meals={meals} toast={toast} onClose={()=>setMealMgrOpen(false)} onChanged={loadMeals}/>}
-    {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onCreateFood={()=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({reopenMeal:pm}); }} onCreateRecipe={()=>{ const pm=picker.presetMeal; setPicker(null); setRecForm({reopenMeal:pm}); }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
+    {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onCreateFood={()=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({reopenMeal:pm}); }} onCreateRecipe={()=>{ const pm=picker.presetMeal; setPicker(null); setRecForm({reopenMeal:pm}); }} onEditRecipe={async(r)=>{ const pm=picker.presetMeal; setPicker(null); try{ const {data:ri}=await window.supa.from("recipe_ingredients").select("grams,food_id,position").eq("recipe_id",r.id).order("position",{ascending:true}); const ids=[...new Set((ri||[]).map(x=>x.food_id))]; let fmap={}; if(ids.length){ const {data:fs}=await window.supa.from("foods").select("id,name,kcal,protein,carbs,fiber,sugar,fat").in("id",ids); (fs||[]).forEach(f=>fmap[f.id]=f); } setRecForm({initial:{...r,ingredients:(ri||[]).map(x=>({food:fmap[x.food_id]||{name:"?"},grams:x.grams}))}, reopenMeal:pm}); }catch(e){ setRecForm({initial:{...r,ingredients:[]}, reopenMeal:pm}); } }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
     {amount && amount.item && <AmountSheet item={amount.item} meals={meals} presetMeal={amount.presetMeal} toast={toast} onClose={()=>setAmount(null)} onConfirm={addEntry}/>}
-    {amount && amount.edit && <EditEntrySheet entry={amount.edit} meals={meals} toast={toast} onClose={()=>setAmount(null)} onSave={(g,m)=>updEntry(amount.edit,g,m)} onDelete={()=>{ delEntry(amount.edit.id); setAmount(null); }}/>}
+    {amount && amount.edit && <EditEntrySheet entry={amount.edit} meals={meals} toast={toast} onClose={()=>setAmount(null)} onSave={(g,mm)=>updEntry(amount.edit,g,mm)} onDelete={()=>{ delEntry(amount.edit.id); setAmount(null); }}/>}
     {foodForm && <FoodForm initial={foodForm.initial} presetBarcode={foodForm.presetBarcode} toast={toast} onClose={()=>setFoodForm(null)} onSaved={()=>{ const rm=foodForm.reopenMeal; setFoodForm(null); loadDb(); if(rm!==undefined) setPicker({presetMeal:rm}); }} onDeleted={()=>{ setFoodForm(null); loadDb(); }}/>}
     {recForm && <RecipeForm initial={recForm.initial} toast={toast} onClose={()=>setRecForm(null)} onSaved={()=>{ const rm=recForm.reopenMeal; setRecForm(null); loadRecipes(); if(rm!==undefined) setPicker({presetMeal:rm}); }} onDeleted={()=>{ setRecForm(null); loadRecipes(); }}/>}
   </div>;
 }
+
 
 
 function LiveFoodTab({clientId,role,toast}){
@@ -6478,7 +6620,7 @@ function AdminFoodDB({onClose,toast}){
   const fFoods=(foods||[]).filter(f=>!ql||f.name.toLowerCase().includes(ql)||(f.brand&&f.brand.toLowerCase().includes(ql))||(f.barcode&&String(f.barcode).includes(ql)));
   const fRecipes=(recipes||[]).filter(r=>!ql||r.name.toLowerCase().includes(ql));
   return <div className="nut-page">
-    <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück">‹</button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
+    <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
     <div className="nut-page-body">
       <div className="nut-segs"><button className={"nut-seg"+(sub==="foods"?" on":"")} onClick={()=>setSub("foods")}>Lebensmittel</button><button className={"nut-seg"+(sub==="recipes"?" on":"")} onClick={()=>setSub("recipes")}>Rezepte</button></div>
       <input className="setinput" style={{marginBottom:14}} value={q} onChange={e=>setQ(e.target.value)} placeholder="Suchen…"/>
