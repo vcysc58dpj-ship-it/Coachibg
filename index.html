@@ -1605,6 +1605,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   const [settings,setSettings]=useState(null);
   const [todayMacro,setTodayMacro]=useState(null);
   const [trkToday,setTrkToday]=useState(null);
+  useEffect(()=>{ const trkOn=settings&&settings.tracking_enabled!==false; if(!clientId||!trkOn){ setTrkToday(null); return; } (async()=>{ try{ const {data}=await window.supa.from("food_log").select("kcal,protein,carbs,fiber,sugar,fat").eq("client_id",clientId).eq("date",t); const tot=(data||[]).reduce((acc,e)=>({kcal:acc.kcal+(e.kcal||0),protein:acc.protein+(e.protein||0),carbs:acc.carbs+(e.carbs||0),fiber:acc.fiber+(e.fiber||0),sugar:acc.sugar+(e.sugar||0),fat:acc.fat+(e.fat||0)}),{kcal:0,protein:0,carbs:0,fiber:0,sugar:0,fat:0}); setTrkToday(tot); }catch(e){ setTrkToday(null); } })(); },[clientId,settings,t]);
   const [trainDates,setTrainDates]=useState({}); // {date:true} angezeigte Woche
   const [weekKcal,setWeekKcal]=useState({}); // {date: kcal} angezeigte Woche
   const [weekOffset,setWeekOffset]=useState(0);
@@ -1676,6 +1677,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   };
 
   if(plan===undefined) return <div className="mbody"><div className="muted">Lädt…</div></div>;
+  const trackingOn=settings&&settings.tracking_enabled!==false;
 
   let nextIdx=0;
   if(plan && plan.days.length && lastDayId){ const li=plan.days.findIndex(d=>d.id===lastDayId); nextIdx=li>=0?((li+1)%plan.days.length):0; }
@@ -1686,8 +1688,6 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   const habDone=habits.filter(h=>habitDone[h.id]).length;
   const m=settings;
   const macrosOn=settings&&settings.macros_enabled;
-  const trackingOn=settings&&settings.tracking_enabled!==false;
-  useEffect(()=>{ if(!clientId||!trackingOn){ setTrkToday(null); return; } (async()=>{ try{ const {data}=await window.supa.from("food_log").select("kcal,protein,carbs,fiber,sugar,fat").eq("client_id",clientId).eq("date",t); const tot=(data||[]).reduce((acc,e)=>({kcal:acc.kcal+(e.kcal||0),protein:acc.protein+(e.protein||0),carbs:acc.carbs+(e.carbs||0),fiber:acc.fiber+(e.fiber||0),sugar:acc.sugar+(e.sugar||0),fat:acc.fat+(e.fat||0)}),{kcal:0,protein:0,carbs:0,fiber:0,sugar:0,fat:0}); setTrkToday(tot); }catch(e){ setTrkToday(null); } })(); },[clientId,trackingOn]);
   const kcalTarget=m?m.kcal:0;
   // Kalorien pro Tag der angezeigten Woche
   const dayKcals=weekDates.map(d=>weekKcal[d]||0);
