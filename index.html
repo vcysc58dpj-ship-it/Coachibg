@@ -1137,7 +1137,7 @@
      als der Decoder auswertet und breite Codes werden nie erkannt. */
   .bcscan-view video{width:100%!important;height:auto!important;display:block;}
   .bcscan-view canvas{display:none!important;}
-  .bc-frame{position:absolute;left:4%;right:4%;top:50%;transform:translateY(-50%);height:44%;pointer-events:none;}
+  .bc-frame{position:absolute;left:4%;right:4%;top:50%;transform:translateY(-50%);height:40%;pointer-events:none;}
   .bc-frame i{position:absolute;width:26px;height:26px;border:3px solid rgba(255,255,255,.95);border-radius:4px;}
   .bc-frame i:nth-child(1){top:0;left:0;border-right:none;border-bottom:none;border-radius:8px 0 0 0;}
   .bc-frame i:nth-child(2){top:0;right:0;border-left:none;border-bottom:none;border-radius:0 8px 0 0;}
@@ -4364,8 +4364,13 @@ function BarcodeScanner({onDetected,onClose,toast}){
     try{ scanner=new window.Html5Qrcode(idRef.current, ctorCfg); }
     catch(e){ try{ scanner=new window.Html5Qrcode(idRef.current); }catch(e2){ setErr("Scanner konnte nicht gestartet werden."); return; } }
     scannerRef.current=scanner;
-    // Kein qrbox: das GESAMTE Kamerabild wird ausgewertet.
-    // Ein Ausschnitt schneidet breite EAN-13-Codes ab -> werden nie erkannt.
+    // Auswertung auf ein breites, flaches Mittelband begrenzen.
+    // Grund: Der Decoder legt pro Bild nur ~15 waagerechte Suchlinien an.
+    // Über das ganze Bild verteilt treffen die meisten den Barcode nicht.
+    // Im Band liegen ALLE Linien auf dem Code -> viel höhere Trefferquote,
+    // und weniger Pixel pro Bild -> deutlich mehr Versuche pro Sekunde.
+    // (Zulässig, seit die Vorschau nicht mehr beschnitten wird: Band = sichtbarer Rahmen.)
+    const qrbox=(vw,vh)=>({ width:Math.max(160,Math.floor(vw*0.92)), height:Math.max(80,Math.floor(vh*0.40)) });
     const afterStart=()=>{
       setReady(true);
       try{
@@ -4384,14 +4389,16 @@ function BarcodeScanner({onDetected,onClose,toast}){
     };
     const camFail=()=>setErr("Kamerazugriff nicht möglich. Erlaube die Kamera in den iPhone-Einstellungen unter Safari, oder gib den Code unten ein.");
     // Auflösung VOR dem Start anfordern (nachträglich würde der Decoder-Bereich nicht mehr passen)
-    const cfgHi={ fps:10, videoConstraints:{ facingMode:"environment", width:{ideal:1920}, height:{ideal:1080} } };
+    // 25 statt 10 Bilder/s: Mehr Versuche schlagen mehr Pixel, wenn der Code
+    // nur kurz durchs Bild zieht. 720p reicht dafür locker (EAN-13 = 95 Striche).
+    const cfgHi={ fps:25, qrbox, disableFlip:true, videoConstraints:{ facingMode:"environment", width:{ideal:1280}, height:{ideal:720} } };
     try{
       scanner.start({facingMode:"environment"}, cfgHi,
         (decoded)=>{ finish(decoded); },
         ()=>{}
       ).then(afterStart).catch(()=>{
         try{
-          scanner.start({facingMode:"environment"}, {fps:10}, (d)=>finish(d), ()=>{})
+          scanner.start({facingMode:"environment"}, {fps:25, qrbox, disableFlip:true}, (d)=>finish(d), ()=>{})
             .then(afterStart).catch(camFail);
         }catch(e){ camFail(); }
       });
@@ -4438,7 +4445,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
             {!ready && !hit && <div className="bc-status">Kamera wird gestartet…</div>}
             {hit && <div className="bc-found"><span className="bc-found-ic"><Icon name="check"/></span><b>Erkannt</b><code>{hit}</code></div>}
           </div>}
-      {!err && !hit && <div className="bc-hint">Halte den Barcode waagerecht und möglichst bildfüllend vor die Kamera.</div>}
+      {!err && !hit && <div className="bc-hint">Nur der Bereich im Rahmen wird ausgewertet – Code waagerecht und formatfüllend hineinhalten.</div>}
       {!hit && <>
         <label className="bc-photobtn">
           <Icon name="photo"/>{photoBusy?"Foto wird ausgewertet…":"Stattdessen Foto aufnehmen"}
