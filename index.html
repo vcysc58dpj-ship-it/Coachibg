@@ -1256,6 +1256,111 @@
   .nut-ro{display:flex;align-items:center;gap:9px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:13px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--dim);}
   .nut-ro svg{width:16px;height:16px;flex-shrink:0;}
   .nut-check-row.ro{cursor:default;opacity:.85;}
+
+  /* ═══ Einheitliche Icon-Größen (Professionalisierung) ═══ */
+  .delx,.jny-sub-del{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:transparent;border:none;color:var(--faint);cursor:pointer;padding:0;flex:none;font-size:0;transition:background .15s,color .15s;}
+  .delx:active,.jny-sub-del:active{background:var(--bg-3);color:var(--text);}
+  .delx svg,.jny-sub-del svg{width:15px;height:15px;}
+  .nut-entry-del svg{width:14px;height:14px;}
+  .iconbtn svg{width:16px;height:16px;}
+  .imgcell-x{font-size:0;}
+  .imgcell-x svg{width:22px;height:22px;}
+  .reccancel{font-size:0;}
+  .reccancel svg{width:19px;height:19px;}
+  .mb-x{display:flex;align-items:center;justify-content:center;font-size:0;border:none;background:transparent;cursor:pointer;}
+  .mb-x svg{width:15px;height:15px;}
+  .del{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .del svg{width:14px;height:14px;}
+  .rb-clear{display:inline-flex;align-items:center;gap:6px;}
+  .rb-clear svg{width:13px;height:13px;}
+  /* Navigation */
+  .cnav{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;font-size:0;}
+  .cnav svg{width:18px;height:18px;}
+  .cnav:disabled{opacity:.3;}
+  .ds-nav{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .ds-nav svg{width:19px;height:19px;}
+  .pe-navarrow{font-size:0;}
+  .pe-navarrow svg{width:18px;height:18px;}
+  .nut-navbtn{font-size:0;}
+  .nut-navbtn svg{width:18px;height:18px;}
+  .back{display:inline-flex;align-items:center;justify-content:center;font-size:0;background:none;border:none;cursor:pointer;}
+  .back svg{width:22px;height:22px;}
+  /* Zeilen-Chevrons */
+  .chev,.dr-chev,.ch-chev,.imgpick-chev{display:inline-flex;align-items:center;justify-content:center;font-size:0;color:var(--line-2);flex:none;}
+  .chev svg,.dr-chev svg,.ch-chev svg,.imgpick-chev svg{width:17px;height:17px;}
+  .crsep{display:inline-flex;align-items:center;font-size:0;}
+  .crsep svg{width:13px;height:13px;}
+  .cir-toggle{display:inline-flex;align-items:center;justify-content:center;font-size:0;color:var(--line-2);}
+  .cir-toggle svg{width:15px;height:15px;}
+  .dctrl{font-size:0;}
+  .dctrl svg{width:14px;height:14px;}
+  .dctrl:disabled{opacity:.32;}
+  .jny-move button{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .jny-move button svg{width:14px;height:14px;}
+  /* Häkchen */
+  .check{font-size:0;}
+  .check svg{width:15px;height:15px;color:inherit;}
+  .dot7{font-size:0;}
+  .dot7 svg{width:13px;height:13px;}
+  .hl-check{font-size:0;}
+  .hl-check svg{width:14px;height:14px;}
+  .jny-circ{font-size:0;}
+  .jny-circ svg{width:16px;height:16px;}
+  .jny-scheck{display:flex;align-items:center;justify-content:center;font-size:0;}
+  .jny-scheck svg{width:12px;height:12px;}
+  .jny-echeck{display:flex;align-items:center;justify-content:center;font-size:0;}
+  .jny-echeck svg{width:15px;height:15px;}
+  .jny-cdate{display:inline-flex;align-items:center;gap:5px;}
+  .jny-cdate svg{width:12px;height:12px;}
+  /* Zurück-/Alle-Links mit Icon */
+  .link{display:inline-flex;align-items:center;gap:5px;}
+  .link svg{width:15px;height:15px;}
+  .btn-ghost svg{width:16px;height:16px;}
+  /* Erfolgs-Kreis statt Riesen-Häkchen */
+  .okcircle{width:66px;height:66px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+  .okcircle svg{width:32px;height:32px;stroke-width:2.4;}
+  .setcheck{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--faint);cursor:pointer;justify-self:center;padding:0;display:flex;align-items:center;justify-content:center;font-size:0;transition:background .15s,border-color .15s;}
+  .setcheck.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+  .setcheck svg{width:16px;height:16px;}
+
+  /* Icon-Container aus der Bereinigung */
+  .photopick svg{width:16px;height:16px;flex:none;}
+  .photopick span{display:inline-flex;align-items:center;gap:7px;}
+  .send{display:flex;align-items:center;justify-content:center;font-size:0;}
+  .send svg{width:19px;height:19px;}
+  .stateicon{width:64px;height:64px;border-radius:50%;background:var(--bg-3);color:var(--dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+  .stateicon svg{width:28px;height:28px;}
+  .gate-desktop-icon{display:flex;align-items:center;justify-content:center;color:var(--dim);}
+  .gate-desktop-icon svg{width:46px;height:46px;}
+  .jny-circ.goal svg{width:18px;height:18px;}
+  .cmp-arrow{display:inline-flex;align-items:center;font-size:0;vertical-align:middle;margin-left:5px;}
+  .cmp-arrow svg{width:13px;height:13px;}
+  .stepper button{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .stepper button svg{width:15px;height:15px;}
+  .wiz-back svg,.wiz-fwd svg{width:16px;height:16px;}
+  .muted svg{width:15px;height:15px;vertical-align:middle;}
+  .cr-menu{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .cr-menu svg{width:19px;height:19px;}
+  .ci-haq svg{width:15px;height:15px;vertical-align:-2px;margin-right:5px;}
+  .wiz-photo-ico{display:flex;align-items:center;justify-content:center;color:var(--dim);}
+  .wiz-photo-ico svg{width:30px;height:30px;}
+  .gate-arrow{display:inline-flex;align-items:center;gap:4px;}
+  .gate-arrow svg{width:14px;height:14px;}
+
+  /* Nachgezogene Icon-Größen */
+  .cir-note{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--faint);margin-top:3px;}
+  .cir-note svg{width:12px;height:12px;}
+  .wiz-sum-a span{display:inline-flex;align-items:center;gap:6px;}
+  .wiz-sum-a svg{width:15px;height:15px;flex:none;}
+  .wiz-stepper{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .wiz-stepper svg{width:16px;height:16px;}
+  .pagepick button{display:inline-flex;align-items:center;justify-content:center;font-size:0;}
+  .pagepick button svg{width:15px;height:15px;}
+  .da-edit,.da-del{display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  .da-edit svg,.da-del svg{width:15px;height:15px;flex:none;}
+  .dav svg{width:20px;height:20px;}
+  .chip svg{width:12px;height:12px;vertical-align:-1px;margin-right:4px;}
+  .call-remote-ph svg{width:40px;height:40px;}
 </style>
 </head>
 <body>
@@ -1325,7 +1430,7 @@ async function enablePush(toast){
     if(!user){ say("Bitte zuerst einloggen"); return; }
     const { error }=await window.supa.from("push_subscriptions").upsert({ user_id:user.id, endpoint:j.endpoint, p256dh:j.keys.p256dh, auth:j.keys.auth }, { onConflict:"endpoint" });
     if(error) throw error;
-    say("Mitteilungen aktiviert ✓");
+    say("Mitteilungen aktiviert");
   }catch(e){ say("Konnte Mitteilungen nicht aktivieren: "+(e.message||"")); }
 }
 async function disablePush(toast){
@@ -1465,6 +1570,16 @@ function Icon({name}){
     wheat:<g {...s}><path d="M12 22V10"/><path d="M12 10C12 7 10.2 5.2 7.7 5.2 7.7 8 9.5 10 12 10z"/><path d="M12 10c0-3 1.8-4.8 4.3-4.8C16.3 8 14.5 10 12 10z"/><path d="M12 15c0-2.6-1.7-4.3-4-4.3C8 13.3 9.7 15 12 15z"/><path d="M12 15c0-2.6 1.7-4.3 4-4.3C16 13.3 14.3 15 12 15z"/></g>,
     droplet:<g {...s}><path d="M12 3.5c2.8 3.8 5 6.1 5 9.4a5 5 0 0 1-10 0c0-3.3 2.2-5.6 5-9.4z"/></g>,
     scan:<g {...s}><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8" strokeWidth="1.6"/></g>,
+    minus:<g {...s}><path d="M5 12h14"/></g>,
+    send:<g {...s}><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></g>,
+    monitor:<g {...s}><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></g>,
+    signal:<g {...s}><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></g>,
+    x:<g {...s}><path d="M18 6 6 18M6 6l12 12"/></g>,
+    check:<g {...s}><polyline points="20 6 9 17 4 12"/></g>,
+    chevL:<g {...s}><polyline points="15 18 9 12 15 6"/></g>,
+    chevR:<g {...s}><polyline points="9 18 15 12 9 6"/></g>,
+    chevU:<g {...s}><polyline points="18 15 12 9 6 15"/></g>,
+    chevD:<g {...s}><polyline points="6 9 12 15 18 9"/></g>,
     eye:<g {...s}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g>,
     plus:<g {...s}><path d="M12 5v14M5 12h14"/></g>,
     more:<g fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></g>,
@@ -1586,7 +1701,7 @@ function ChatTab({cdata,upd,role}){
         : <textarea ref={taRef} rows="1" value={text} placeholder="Nachricht…" onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>}
       {(isCoach && !text.trim())
         ? <button className={"mic"+(recording?" rec":"")} onClick={recording?stopRec:startRec} aria-label="Sprachnachricht">{recording?<span className="recdot"/>:<Icon name="mic"/>}</button>
-        : <button className="send" onClick={send} disabled={!text.trim()}>↑</button>}
+        : <button className="send" onClick={send} disabled={!text.trim()}><Icon name="send"/></button>}
     </div>
   </>;
 }
@@ -1595,7 +1710,7 @@ function WeekCalendar({weekDates,selDate,setSelDate,weekOffset,changeWeek,dots,t
   const monthLabel=new Date(weekDates[0]+"T00:00:00").toLocaleDateString("de-DE",{month:"long",year:"numeric"});
   return <div className="card wkcal">
     <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
-      <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{monthLabel}</span><button className="cnav" disabled={weekOffset>=0} onClick={()=>changeWeek(1)} aria-label="Woche vor">›</button></div>
+      <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück"><Icon name="chevL"/></button><span className="cmonth">{monthLabel}</span><button className="cnav" disabled={weekOffset>=0} onClick={()=>changeWeek(1)} aria-label="Woche vor"><Icon name="chevR"/></button></div>
     </div>
     <div className="calstrip">{weekDates.map(d=>{ const isSel=d===selDate; const isToday=d===t; const dot=dots&&dots[d]; const future=d>t;
       return <button key={d} className={"calcol"+(future?" fut":"")} disabled={future} onClick={()=>setSelDate(d)}>
@@ -1727,7 +1842,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
       <div className="hablist">{habits.map(h=>{ const on=habitDone[h.id];
         return <div key={h.id} className="habline" onClick={()=>toggleHabit(h.id)}>
           <span className="hl-name">{h.name}</span>
-          <span className={"hl-check"+(on?" on":"")}>{on?"✓":""}</span>
+          <span className={"hl-check"+(on?" on":"")}>{on?<Icon name="check"/>:null}</span>
         </div>;
       })}</div>
       <div className="habbars"><div className="hb-fill" style={{width:(habDone/(habits.length||1)*100)+"%"}}/></div>
@@ -1735,7 +1850,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
 
     {/* Nächste Trainingseinheit */}
     {plan && nextDay && !trainedToday && <div className="card cardtap" onClick={()=>go("plan")}>
-      <div className="card-h"><span className="ch-l"><Icon name="plan"/>Nächste Trainingseinheit</span><span className="ch-chev">›</span></div>
+      <div className="card-h"><span className="ch-l"><Icon name="plan"/>Nächste Trainingseinheit</span><span className="ch-chev"><Icon name="chevR"/></span></div>
       <div className="trainrow">
         <div className="tr-meta"><div className="trm"><Icon name="habits"/>{nextDay.exCount} Übungen</div>{plan.days.length>1 && <div className="trm"><Icon name="plan"/>Tag {nextIdx+1} / {plan.days.length}</div>}</div>
         <div className="tr-main"><div className="tr-title">{nextDay.name}</div><div className="tr-sub">{plan.title}</div>
@@ -1744,7 +1859,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
     </div>}
     {plan && trainedToday && <div className="card" style={{borderColor:"var(--ok)"}}>
       <div className="card-h"><span className="ch-l"><Icon name="plan"/>Nächste Trainingseinheit</span></div>
-      <div style={{fontWeight:800,fontSize:15,margin:"2px 0 2px"}}>Stark, schon erledigt! 💪</div>
+      <div style={{fontWeight:800,fontSize:15,margin:"2px 0 2px"}}>Stark, schon erledigt!</div>
       <div className="muted" style={{fontSize:13}}>Du hast heute trainiert. Erholung ist jetzt auch Training.</div>
     </div>}
     {!plan && <div className="card"><div style={{fontWeight:700,marginBottom:3}}>Noch kein aktiver Plan</div><div className="muted" style={{fontSize:13}}>Sobald dein Coach einen Plan aktiviert, siehst du hier dein nächstes Training.</div></div>}
@@ -1999,16 +2114,16 @@ function LiveChatTab({clientId,role,toast}){
     <div className="composer" ref={composerRef}>
       {recording
         ? <>
-            <button className="reccancel" onClick={cancelRec} aria-label="Aufnahme abbrechen">×</button>
+            <button className="reccancel" onClick={cancelRec} aria-label="Aufnahme abbrechen"><Icon name="x"/></button>
             <div className="recbar"><span className="recdot"/>Aufnahme… {fmtDur(recSecs)}</div>
-            <button className="send" onClick={stopRec} aria-label="Sprachnachricht senden">↑</button>
+            <button className="send" onClick={stopRec} aria-label="Sprachnachricht senden"><Icon name="send"/></button>
           </>
         : <>
             <label className="attach" title="Foto oder Video"><Icon name="photo"/><input type="file" accept="image/*,video/*" onChange={onPickMedia}/></label>
             <textarea ref={taRef} rows="1" value={text} placeholder={busy?"Lädt…":"Nachricht…"} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
             {(!text.trim())
               ? <button className="mic" onClick={startRec} aria-label="Sprachnachricht"><Icon name="mic"/></button>
-              : <button className="send" onClick={send} disabled={!text.trim()||busy}>↑</button>}
+              : <button className="send" onClick={send} disabled={!text.trim()||busy}><Icon name="send"/></button>}
           </>}
     </div>
   </>;
@@ -2023,7 +2138,7 @@ function ScaleInput({value,onChange}){
 }
 function CheckinEntry({c,qs,open,onToggle}){
   return <div className="exp">
-    <div className="head" onClick={onToggle}><div style={{fontWeight:600}}>{fmtFull(c.date)}</div><div className="muted">{open?"▾":"▸"}</div></div>
+    <div className="head" onClick={onToggle}><div style={{fontWeight:600}}>{fmtFull(c.date)}</div><div className="muted">{open?<Icon name="chevD"/>:<Icon name="chevR"/>}</div></div>
     {open && <div className="body2">
       {qs.map(q=>{ const a=c.answers[q.id]; let node;
         if(a==null||a==="") node=<span>—</span>;
@@ -2078,7 +2193,7 @@ function QInput({type,val,onText,onFile}){
     <button className={"ynb"+(val.text==="Nein"?" on no":"")} onClick={()=>onText("Nein")}>Nein</button></div>;
   if(type==="text") return <textarea className="ta" value={val.text} onChange={(e)=>onText(e.target.value)} placeholder="Deine Antwort…"/>;
   if(type==="number") return <input className="qin" inputMode="decimal" style={{width:"100%",boxSizing:"border-box"}} value={val.text} onChange={(e)=>onText(e.target.value)} placeholder="Zahl eingeben"/>;
-  if(type==="photo") return <label className="photopick">{val.fileName?<span>📷 {val.fileName}</span>:<span>📷 Foto auswählen</span>}
+  if(type==="photo") return <label className="photopick">{val.fileName?<span><Icon name="photo"/>{val.fileName}</span>:<span><Icon name="photo"/>Foto auswählen</span>}
     <input type="file" accept="image/*" style={{display:"none"}} onChange={(e)=>{ const f=e.target.files[0]; if(f) onFile(f); e.target.value=""; }}/></label>;
   return null;
 }
@@ -2124,7 +2239,7 @@ function AnamneseWizard({clientId,onDone,onSignOut,toast}){
         rows.push({ anamnese_id:anamId, client_id:clientId, question_id:q.id||null, question_label:q.label, answer_text:(q.type==="photo"?null:(v.text||null)), answer_file, position:pos }); pos++;
       }
       if(rows.length){ const { error:ae } = await window.supa.from("anamnese_answers").insert(rows); if(ae) throw ae; }
-      toast("Anamnese gespeichert ✓");
+      toast("Anamnese gespeichert");
       onDone();
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); setBusy(false); }
   };
@@ -2156,7 +2271,7 @@ function AnamneseWizard({clientId,onDone,onSignOut,toast}){
       <div className="anwiz-prog"><div className="anwiz-prog-fill" style={{width:pct+"%"}}/></div>
       <div className="anwiz-prog-label">Seite {pageIdx+1} von {total}</div>
       <div className="anwiz-btns">
-        {pageIdx>0 && <button className="btn btn-ghost" disabled={busy} onClick={goBack}>‹ Zurück</button>}
+        {pageIdx>0 && <button className="btn btn-ghost" disabled={busy} onClick={goBack}><Icon name="chevL"/>Zurück</button>}
         <button className="btn" disabled={busy} onClick={goNext}>{busy?"Speichert…":(last?"Absenden":"Weiter")}</button>
       </div>
     </div>
@@ -2183,7 +2298,7 @@ function AnamneseAnswersCard({clientId,title}){
     {state.answers.length===0 && <div className="muted" style={{fontSize:13}}>Keine Antworten.</div>}
     {state.answers.map((a,i)=>(<div key={i} className="ci-ha">
       <div className="ci-haq">{a.question_label}</div>
-      {a.answer_file ? (a.signedUrl ? <img className="ci-haimg" src={a.signedUrl} alt=""/> : <div className="muted" style={{fontSize:13}}>📷 Foto</div>) : <div className="ci-haa">{a.answer_text||"—"}</div>}
+      {a.answer_file ? (a.signedUrl ? <img className="ci-haimg" src={a.signedUrl} alt=""/> : <div className="muted" style={{fontSize:13}}><Icon name="photo"/> Foto</div>) : <div className="ci-haa">{a.answer_text||"—"}</div>}
     </div>))}
   </div>;
 }
@@ -2235,11 +2350,11 @@ function QuestionEditor({table,idCol,idVal,seedFn,toast,introText}){
           <div key={q.id} className="mcard ci-qrow">
             <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
             <div className="ci-qacts">
-              <button className="iconbtn" disabled={i===0} onClick={()=>swap(q,list[i-1])} aria-label="hoch">↑</button>
-              <button className="iconbtn" disabled={i===list.length-1} onClick={()=>swap(q,list[i+1])} aria-label="runter">↓</button>
-              <button className="iconbtn" disabled={pg<=1} onClick={()=>movePage(q,-1)} aria-label="Seite zurück">‹</button>
-              <button className="iconbtn" onClick={()=>movePage(q,1)} aria-label="Seite vor">›</button>
-              <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+              <button className="iconbtn" disabled={i===0} onClick={()=>swap(q,list[i-1])} aria-label="hoch"><Icon name="send"/></button>
+              <button className="iconbtn" disabled={i===list.length-1} onClick={()=>swap(q,list[i+1])} aria-label="runter"><Icon name="chevD"/></button>
+              <button className="iconbtn" disabled={pg<=1} onClick={()=>movePage(q,-1)} aria-label="Seite zurück"><Icon name="chevL"/></button>
+              <button className="iconbtn" onClick={()=>movePage(q,1)} aria-label="Seite vor"><Icon name="chevR"/></button>
+              <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen"><Icon name="x"/></button>
             </div>
           </div>
         ))}
@@ -2254,7 +2369,7 @@ function QuestionEditor({table,idCol,idVal,seedFn,toast,introText}){
         <div className="typewrap">{ANAM_TYPES.map(tp=>(<button key={tp.v} className={"typebtn"+(newType===tp.v?" on":"")} onClick={()=>setNewType(tp.v)}>{tp.l}</button>))}</div>
       </div>
       <div className="field" style={{marginBottom:14}}><label>Seite</label>
-        <div className="pagepick"><button disabled={newPage<=1} onClick={()=>setNewPage(p=>Math.max(1,p-1))} aria-label="weniger">−</button><span style={{minWidth:70,textAlign:"center",fontWeight:600}}>Seite {newPage}</span><button disabled={newPage>=maxPage+1} onClick={()=>setNewPage(p=>Math.min(maxPage+1,p+1))} aria-label="mehr">+</button></div>
+        <div className="pagepick"><button disabled={newPage<=1} onClick={()=>setNewPage(p=>Math.max(1,p-1))} aria-label="weniger"><Icon name="minus"/></button><span style={{minWidth:70,textAlign:"center",fontWeight:600}}>Seite {newPage}</span><button disabled={newPage>=maxPage+1} onClick={()=>setNewPage(p=>Math.min(maxPage+1,p+1))} aria-label="mehr">+</button></div>
         <div className="muted" style={{fontSize:12,marginTop:6}}>Bisher {maxPage} {maxPage===1?"Seite":"Seiten"}. Eine höhere Zahl legt eine neue Seite an.</div>
       </div>
       <button className="btn" disabled={!newLabel.trim()||busy} onClick={addQ}>{busy?"…":"+ Frage hinzufügen"}</button>
@@ -2358,9 +2473,9 @@ function CoachCheckinTemplate({toast}){
       <div key={q.id} className="mcard ci-qrow">
         <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{anamTypeLabel(q.type)}</div></div>
         <div className="ci-qacts">
-          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button>
-          <button className="iconbtn" disabled={i===rows.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button>
-          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch"><Icon name="send"/></button>
+          <button className="iconbtn" disabled={i===rows.length-1} onClick={()=>move(i,1)} aria-label="runter"><Icon name="chevD"/></button>
+          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen"><Icon name="x"/></button>
         </div>
       </div>
     ))}
@@ -2549,9 +2664,9 @@ function CoachCheckinSettings({clientId,questions,weekday,WD,TYPES,typeLabel,onC
       <div key={q.id} className="mcard ci-qrow">
         <div className="ci-qmain"><div className="ci-qlabel">{q.label}</div><div className="ci-qtype">{typeLabel(q.type)}</div></div>
         <div className="ci-qacts">
-          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch">↑</button>
-          <button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter">↓</button>
-          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen">×</button>
+          <button className="iconbtn" disabled={i===0} onClick={()=>move(i,-1)} aria-label="hoch"><Icon name="send"/></button>
+          <button className="iconbtn" disabled={i===questions.length-1} onClick={()=>move(i,1)} aria-label="runter"><Icon name="chevD"/></button>
+          <button className="iconbtn" onClick={()=>delQ(q.id)} aria-label="löschen"><Icon name="x"/></button>
         </div>
       </div>
     ))}
@@ -2597,7 +2712,7 @@ function ClientCheckinForm({clientId,questions,t,toast,onDone}){
         rows.push({ checkin_id:ci.id, client_id:clientId, question_id:q.id, question_label:q.label, answer_text:(q.type==="photo"?null:(v.text||null)), answer_file });
       }
       if(rows.length){ const { error:ae } = await window.supa.from("checkin_answers").insert(rows); if(ae) throw ae; }
-      toast("Check-in gespeichert ✓");
+      toast("Check-in gespeichert");
       onDone();
     }catch(e){ toast("Speichern fehlgeschlagen: "+(e.message||"")); }
     finally{ setBusy(false); }
@@ -2617,7 +2732,7 @@ function ClientCheckinForm({clientId,questions,t,toast,onDone}){
         {q.type==="text" && <textarea className="ta" value={vals[q.id].text} onChange={(e)=>setText(q.id,e.target.value)} placeholder="Deine Antwort…"/>}
         {q.type==="number" && <input className="qin" inputMode="decimal" style={{width:"100%",boxSizing:"border-box"}} value={vals[q.id].text} onChange={(e)=>setText(q.id,e.target.value)} placeholder="Zahl eingeben"/>}
         {q.type==="photo" && <label className="photopick">
-          {vals[q.id].fileName ? <span>📷 {vals[q.id].fileName}</span> : <span>📷 Foto auswählen</span>}
+          {vals[q.id].fileName ? <span><Icon name="photo"/>{vals[q.id].fileName}</span> : <span><Icon name="photo"/>Foto auswählen</span>}
           <input type="file" accept="image/*" style={{display:"none"}} onChange={(e)=>{ const f=e.target.files[0]; if(f) setFile(q.id,f); e.target.value=""; }}/>
         </label>}
       </div>
@@ -2648,7 +2763,7 @@ function ClientCheckinWizard({clientId,questions,t,toast,onDone,prevCi}){
         rows.push({checkin_id:ci.id,client_id:clientId,question_id:qr.id,question_label:qr.label,answer_text:(qr.type==="photo"?null:(v.text||null)),answer_file});
       }
       if(rows.length){ const {error:ae}=await window.supa.from("checkin_answers").insert(rows); if(ae) throw ae; }
-      toast("Check-in abgeschickt ✓"); onDone();
+      toast("Check-in abgeschickt"); onDone();
     }catch(e){ toast("Fehler: "+(e.message||"")); setBusy(false); }
   };
   /* ---- Zusammenfassung ---- */
@@ -2659,14 +2774,14 @@ function ClientCheckinWizard({clientId,questions,t,toast,onDone,prevCi}){
         {questions.map(qr=>(
           <div key={qr.id} className="wiz-sum-row">
             <div className="wiz-sum-q">{qr.label}</div>
-            <div className="wiz-sum-a">{qr.type==="photo"?(vals[qr.id].file?<span>📷 {vals[qr.id].fileName}</span>:<span className="muted">—</span>):(vals[qr.id].text||<span className="muted">—</span>)}</div>
+            <div className="wiz-sum-a">{qr.type==="photo"?(vals[qr.id].file?<span><Icon name="photo"/>{vals[qr.id].fileName}</span>:<span className="muted">—</span>):(vals[qr.id].text||<span className="muted">—</span>)}</div>
           </div>
         ))}
       </div>
       <div className="wiz-footer">
         <div className="wiz-nav">
-          <button className="btn btn-ghost wiz-back" onClick={()=>setStep(total-1)}>←</button>
-          <button className="btn wiz-fwd" disabled={busy} onClick={save}>{busy?"Sendet…":"Abschicken ✓"}</button>
+          <button className="btn btn-ghost wiz-back" onClick={()=>setStep(total-1)}><Icon name="chevL"/></button>
+          <button className="btn wiz-fwd" disabled={busy} onClick={save}>{busy?"Sendet…":"Abschicken"}</button>
         </div>
       </div>
     </div>
@@ -2689,20 +2804,20 @@ function ClientCheckinWizard({clientId,questions,t,toast,onDone,prevCi}){
         </div>}
         {q.type==="text" && <textarea className="ta wiz-ta" value={vals[q.id].text} onChange={e=>setText(q.id,e.target.value)} placeholder="Kurz in deinen Worten…"/>}
         {q.type==="number" && <div className="wiz-number">
-          <button className="wiz-stepper" onClick={()=>setText(q.id,String(Math.max(0,Math.round((parseFloat(vals[q.id].text)||0)*2-1)/2)))}>−</button>
+          <button className="wiz-stepper" onClick={()=>setText(q.id,String(Math.max(0,Math.round((parseFloat(vals[q.id].text)||0)*2-1)/2)))}><Icon name="minus"/></button>
           <input className="wiz-num-input" inputMode="decimal" value={vals[q.id].text} onChange={e=>setText(q.id,e.target.value)} placeholder="0"/>
           <button className="wiz-stepper" onClick={()=>setText(q.id,String(Math.round(((parseFloat(vals[q.id].text)||0)+0.5)*2)/2))}>+</button>
         </div>}
         {q.type==="photo" && <label className="wiz-photo-lbl">
-          <span style={{fontSize:36}}>📷</span>
+          <span className="wiz-photo-ico"><Icon name="photo"/></span>
           <span>{vals[q.id].fileName||"Foto auswählen"}</span>
           <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f)setFile(q.id,f);e.target.value="";}}/>
         </label>}
       </div>
       <div className="wiz-footer">
         <div className="wiz-nav">
-          {step>0?<button className="btn btn-ghost wiz-back" onClick={()=>setStep(st=>st-1)}>←</button>:<span/>}
-          <button className="btn wiz-fwd" onClick={()=>setStep(st=>st+1)}>{isLast?"Zusammenfassung":"Weiter →"}</button>
+          {step>0?<button className="btn btn-ghost wiz-back" onClick={()=>setStep(st=>st-1)}><Icon name="chevL"/></button>:<span/>}
+          <button className="btn wiz-fwd" onClick={()=>setStep(st=>st+1)}>{isLast?"Zusammenfassung":<>Weiter <Icon name="chevR"/></>}</button>
         </div>
       </div>
     </div>
@@ -2723,7 +2838,7 @@ function CheckinReviewCard({c,clientId,isNew,toast}){
     try{
       const {error}=await window.supa.from("checkins").update({coach_note:note}).eq("id",c.id);
       if(error) throw error;
-      toast("Notiz gespeichert ✓");
+      toast("Notiz gespeichert");
     }catch(e){ toast("Fehler – Migration nötig: ALTER TABLE checkins ADD COLUMN coach_note text"); }
     finally{ setSavingNote(false); }
   };
@@ -2732,15 +2847,15 @@ function CheckinReviewCard({c,clientId,isNew,toast}){
       <div className="cir-head" onClick={()=>setOpen(o=>!o)}>
         <div>
           <div className="cir-date">{fmtFull(c.date)}{isNew&&<span className="cir-new-badge">NEU</span>}</div>
-          {c.coachNote&&!open&&<div style={{fontSize:12,color:"var(--faint)",marginTop:3}}>✎ Notiz vorhanden</div>}
+          {c.coachNote&&!open&&<div className="cir-note"><Icon name="pencil"/>Notiz vorhanden</div>}
         </div>
-        <span className="cir-toggle">{open?"▲":"▼"}</span>
+        <span className="cir-toggle">{open?<Icon name="chevU"/>:<Icon name="chevD"/>}</span>
       </div>
       {open && <div className="cir-body">
         {clientAnswers.map((a,i)=>(
           <div key={i} className="cir-ans-row">
             <div className="cir-ans-q">{a.question_label}</div>
-            {a.answer_file?(a.signedUrl?<img className="ci-haimg" src={a.signedUrl} alt=""/>:<div className="muted" style={{fontSize:13}}>📷 Foto</div>)
+            {a.answer_file?(a.signedUrl?<img className="ci-haimg" src={a.signedUrl} alt=""/>:<div className="muted" style={{fontSize:13}}><Icon name="photo"/> Foto</div>)
               :<div className={"cir-ans-a "+SCORE_CLS(a.answer_text)}>{a.answer_text||"—"}</div>}
           </div>
         ))}
@@ -2775,12 +2890,12 @@ function CheckinHistory({history,typeLabel}){
         <div key={i} className="ci-ha">
           <div className="ci-haq">{a.question_label}</div>
           {a.answer_file
-            ? (a.signedUrl ? <img className="ci-haimg" src={a.signedUrl} alt=""/> : <div className="muted" style={{fontSize:13}}>📷 Foto</div>)
+            ? (a.signedUrl ? <img className="ci-haimg" src={a.signedUrl} alt=""/> : <div className="muted" style={{fontSize:13}}><Icon name="photo"/> Foto</div>)
             : <div className="ci-haa">{a.answer_text||"—"}</div>}
         </div>
       ))}
       {c.coachNote && <div className="ci-ha" style={{borderTop:"1px solid var(--line)",marginTop:8,paddingTop:8}}>
-        <div className="ci-haq" style={{color:"var(--ok)",fontWeight:700}}>💬 Coach-Feedback</div>
+        <div className="ci-haq" style={{color:"var(--ok)",fontWeight:700}}><Icon name="mail"/>Coach-Feedback</div>
         <div className="ci-haa">{c.coachNote}</div>
       </div>}
     </div>
@@ -2803,7 +2918,7 @@ function CheckinTab({cdata,upd,role,name,toast}){
       <div className="mcard">
         {qs.map(q=>(<div key={q.id} className="exrow">
           <div><div className="en">{q.label}</div><div className="enote">{typeLabel[q.type]}</div></div>
-          <button className="delx" onClick={()=>upd(c=>({...c,checkinQs:c.checkinQs.filter(x=>x.id!==q.id)}))}>×</button>
+          <button className="delx" onClick={()=>upd(c=>({...c,checkinQs:c.checkinQs.filter(x=>x.id!==q.id)}))}><Icon name="x"/></button>
         </div>))}
         <div style={{display:"flex",gap:8,marginTop:12}}>
           <input className="qin" style={{flex:1}} value={qLabel} onChange={(e)=>setQLabel(e.target.value)} placeholder="Neue Frage…"/>
@@ -2847,7 +2962,7 @@ function WeekStrip({habitId,log}){
   return <div className="weekstrip">{days.map(d=>{
     const done=log[d]&&log[d][habitId];
     return <div key={d} className="daycol"><div className="lbl">{weekdayShort(d)}</div>
-      <div className={"dot7"+(done?" done":"")+(d===t?" today":"")}>{done?"✓":""}</div></div>;
+      <div className={"dot7"+(done?" done":"")+(d===t?" today":"")}>{done?<Icon name="check"/>:null}</div></div>;
   })}</div>;
 }
 function LiveHabitsTab({clientId,role,toast}){
@@ -2927,7 +3042,7 @@ function LiveHabitsTab({clientId,role,toast}){
     return <div key={d} className="daycol">
       <div className="lbl">{weekdayShort(d)}</div>
       <div className={"dot7"+(done?" done":"")+(isToday?" today":"")+(clickable&&!future?" tap":"")+(future?" fut":"")}
-           onClick={clickable&&!future?()=>toggle(hid,d):undefined}>{done?"✓":""}</div>
+           onClick={clickable&&!future?()=>toggle(hid,d):undefined}>{done?<Icon name="check"/>:null}</div>
       <div className="dnum">{d.split("-")[2]}</div>
     </div>;
   })}</div>;
@@ -2946,7 +3061,7 @@ function LiveHabitsTab({clientId,role,toast}){
       <div className="sectlabel">Habits bearbeiten</div>
       <div className="mcard">
         {habits.map(h=>(<div key={h.id} className="exrow"><div className="en">{h.name}</div>
-          <button className="delx" onClick={()=>delHabit(h.id)}>×</button></div>))}
+          <button className="delx" onClick={()=>delHabit(h.id)}><Icon name="x"/></button></div>))}
         <div className="mini" style={{marginTop:12}}><input value={newH} onChange={(e)=>setNewH(e.target.value)} placeholder="Neue Gewohnheit…"/></div>
         <button className="addbtn" onClick={addHabit}>+ Hinzufügen</button>
       </div>
@@ -2981,7 +3096,7 @@ function HabitsTab({cdata,upd,role,toast}){
       <div className="sectlabel">Habits bearbeiten</div>
       <div className="mcard">
         {cdata.habits.map(h=>(<div key={h.id} className="exrow"><div className="en">{h.name}</div>
-          <button className="delx" onClick={()=>upd(c=>({...c,habits:c.habits.filter(x=>x.id!==h.id)}))}>×</button></div>))}
+          <button className="delx" onClick={()=>upd(c=>({...c,habits:c.habits.filter(x=>x.id!==h.id)}))}><Icon name="x"/></button></div>))}
         <div className="mini" style={{marginTop:12}}><input value={newH} onChange={(e)=>setNewH(e.target.value)} placeholder="Neue Gewohnheit…"/></div>
         <button className="addbtn" onClick={()=>{ if(!newH.trim())return; upd(c=>({...c,habits:[...c.habits,{id:"h"+nid(),name:newH.trim()}]})); setNewH(""); }}>+ Hinzufügen</button>
       </div>
@@ -2992,7 +3107,7 @@ function HabitsTab({cdata,upd,role,toast}){
     <div className="sectlabel">Heute · {todayDone}/{cdata.habits.length} erledigt</div>
     {cdata.habits.map(h=>(<div key={h.id} className="mcard" style={{padding:14}}>
       <div className="habrow" style={{marginBottom:12}} onClick={()=>toggle(h.id)}>
-        <div className={"check"+((log[t]&&log[t][h.id])?" on":"")}>✓</div><div className="hn">{h.name}</div></div>
+        <div className={"check"+((log[t]&&log[t][h.id])?" on":"")}><Icon name="check"/></div><div className="hn">{h.name}</div></div>
       <WeekStrip habitId={h.id} log={log}/>
     </div>))}
   </div>;
@@ -3033,7 +3148,7 @@ function DayLogger({day,last,onSave,onCancel,mode,initialSets,initialDate,initia
   };
 
   return <div className="mbody logview">
-    <button className="link" style={{marginBottom:10}} onClick={onCancel}>‹ Alle Pläne</button>
+    <button className="link" style={{marginBottom:10}} onClick={onCancel}><Icon name="chevL"/>Alle Pläne</button>
     <div className="logtop">
       <div><div className="logtitle">{day.name}</div>{last && <div className="logsub">zuletzt: {fmtFull(last.date)}</div>}</div>
     </div>
@@ -3101,7 +3216,7 @@ function ExerciseAdder({onAdd}){
 }
 function SetsStepper({value,onChange}){
   const v=Math.max(1,parseInt(value)||1);
-  return <div className="stepper"><button onClick={()=>onChange(String(Math.max(1,v-1)))}>−</button><span>{v} Sätze</span><button onClick={()=>onChange(String(v+1))}>+</button></div>;
+  return <div className="stepper"><button onClick={()=>onChange(String(Math.max(1,v-1)))}><Icon name="minus"/></button><span>{v} Sätze</span><button onClick={()=>onChange(String(v+1))}>+</button></div>;
 }
 // Live-Logger: jeder abgehakte Satz wird SOFORT gespeichert (kein Datenverlust bei Reload)
 function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitExercise,onNoteCommit,onFinish,image,toast}){
@@ -3135,7 +3250,7 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
   const lastPerf=(exId)=>{ const prev=last&&last.sets&&last.sets[exId]; if(!prev||!prev.length) return null; return prev.map(r=>{ const kg=(r.kg&&r.kg!=="-"&&r.kg!=="")?(r.kg+"kg×"):""; return kg+(r.reps||"–"); }).join(",  "); };
 
   return <div className="mbody logview">
-    <button className="link" style={{marginBottom:10}} onClick={onFinish}>‹ Alle Pläne</button>
+    <button className="link" style={{marginBottom:10}} onClick={onFinish}><Icon name="chevL"/>Alle Pläne</button>
     <div className="logtop"><div><div className="logtitle">{day.name}</div>{last&&<div className="logsub">zuletzt: {fmtFull(last.date)}</div>}</div></div>
     <div className="loginfo">
       <div className="li-ico">{image?<img src={image} alt=""/>:<Icon name="chest"/>}</div>
@@ -3170,7 +3285,7 @@ function LiveDayLogger({day,last,initialSaved,initialDate,onDateChange,onCommitE
               <input className="setin" inputMode="numeric" value={row.reps} placeholder="–" onChange={(e)=>edit(ex.id,i,"reps",e.target.value)}/>
               <input className="setin" inputMode="decimal" value={row.kg} placeholder="–" onChange={(e)=>edit(ex.id,i,"kg",e.target.value)}/>
               {hasIt&&<input className="setin" inputMode="numeric" value={row[itField]} placeholder={ex.intensity_target||"–"} onChange={(e)=>edit(ex.id,i,itField,e.target.value)}/>}
-              <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" style={{width:34,height:34,borderRadius:9,border:"1px solid var(--line)",background:row.done?"var(--accent)":"transparent",color:row.done?"#fff":"var(--faint)",fontSize:17,lineHeight:1,cursor:"pointer",justifySelf:"center",padding:0}}>{row.done?"✓":""}</button>
+              <button onClick={()=>toggle(ex.id,i)} aria-label="erledigt" className={"setcheck"+(row.done?" on":"")}>{row.done?<Icon name="check"/>:null}</button>
             </div>
           ))}
           {isGoal && <button className="addbtn" style={{marginTop:6}} onClick={()=>addSet(ex.id)}>+ Satz</button>}
@@ -3223,7 +3338,7 @@ function SessionCompare({cur,prev,plan}){
       let arrow=null;
       if(cs.length&&ps.length){ const a=exVolume(cs), b=exVolume(ps); if(a.type===b.type){ if(a.val>b.val) arrow="up"; else if(a.val<b.val) arrow="down"; else arrow="eq"; } }
       return <div key={k.id} className="cmp-ex">
-        <div className="cmp-exname">{k.name}{arrow&&<span className={"cmp-arrow "+arrow}>{arrow==="up"?"▲":arrow==="down"?"▼":"="}</span>}</div>
+        <div className="cmp-exname">{k.name}{arrow&&<span className={"cmp-arrow "+arrow}>{arrow==="up"?<Icon name="chevU"/>:arrow==="down"?<Icon name="chevD"/>:<Icon name="minus"/>}</span>}</div>
         <div className="cmp-cols">
           <div className="cmp-col now">
             {cs.length?cs.map((r,i)=><div key={i} className="cmp-set"><span className="cmp-sn">{i+1}</span><span className="cmp-sv">{fmtSetCompact(r)}</span></div>):<div className="cmp-empty">–</div>}
@@ -3435,7 +3550,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
   const targetSets=(dayId)=>{ const d=plan.days.find(x=>x.id===dayId); return d?d.exercises.reduce((n,ex)=>n+(parseInt(ex.sets)||0),0):0; };
 
   return <div className="mbody">
-    <button className="link" style={{marginBottom:12}} onClick={onBack}>‹ Alle Pläne</button>
+    <button className="link" style={{marginBottom:12}} onClick={onBack}><Icon name="chevL"/>Alle Pläne</button>
 
     <div className="planhero">
       <div className="ph-text">
@@ -3451,7 +3566,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
       return <button key={day.id} className={"dayrow"+(isNext?" next":"")} onClick={()=>openSession(day)}>
         <div className="dr-ico">{day.imagePath && imgResolve && imgResolve(day.imagePath) ? <img src={imgResolve(day.imagePath)} alt=""/> : <Icon name="chest"/>}</div>
         <div className="dr-main"><div className="dr-name">{day.name}</div><div className="dr-sub">{last?("zuletzt: "+fmtFull(last.date)):(day.exercises.length+" Übungen")}</div></div>
-        <div className="dr-chev">›</div>
+        <div className="dr-chev"><Icon name="chevR"/></div>
       </button>;
     })}
 
@@ -3474,7 +3589,7 @@ function ClientPlanView({plan,activeId,clientId,onBack,toast,imgResolve}){
               <button className="done-row" onClick={()=>setOpenWid(open?null:w.id)}>
                 <div className="done-check"><Icon name="habits"/></div>
                 <div className="done-main"><div className="done-name">{day?day.name:"Training"}</div><div className="done-sub">{fmtFull(w.date)} · {total} {total===1?"Satz":"Sätze"}</div></div>
-                <div className="dr-chev">{open?"▾":"›"}</div>
+                <div className="dr-chev">{open?<Icon name="chevD"/>:<Icon name="chevR"/>}</div>
               </button>
               {open && <div className="done-body">
                 <WorkoutSets w={w} plan={plan}/>
@@ -3501,7 +3616,7 @@ function ImagePickerSheet({lib,current,onClose,onPick}){
       {(!lib||lib.length===0)
         ? <div className="muted" style={{padding:"4px 2px 12px"}}>Noch keine Bilder in der Bibliothek. Lade sie in Supabase in den Bucket „workout-images" und trage sie in der Tabelle „workout_images" ein.</div>
         : <div className="imggrid">
-            {current && <button className="imgcell none" onClick={()=>onPick("")}><span className="imgcell-x">×</span><span className="imgcell-lab">Kein Bild</span></button>}
+            {current && <button className="imgcell none" onClick={()=>onPick("")}><span className="imgcell-x"><Icon name="x"/></span><span className="imgcell-lab">Kein Bild</span></button>}
             {lib.map(it=>(
               <button key={it.id} className={"imgcell"+(it.path===current?" sel":"")} onClick={()=>onPick(it.path)}>
                 {it.url ? <img src={it.url} alt=""/> : <span className="imgcell-ph"><Icon name="photo"/></span>}
@@ -3757,7 +3872,7 @@ function LivePlanTab({clientId,role,toast}){
           <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
             <div className="ps">{p.days.length} Tage{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
           {p.id===activeId && <span className="badge">Aktuell</span>}
-          <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+          <div className="chev" style={{color:"var(--faint)",fontSize:20}}><Icon name="chevR"/></div>
         </button>
       ))}
       {role==="coach" && <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>{ setTmplMode(null); setNewMenu(true); }}>+ Neuer Trainingsplan</button>}
@@ -3778,10 +3893,10 @@ function LivePlanTab({clientId,role,toast}){
             {(templates||[]).map(t=>(
               <button key={t.id} className="planrow" style={{marginBottom:4}} onClick={()=>newFromTemplate(t)}>
                 <div className="pi"><div className="pt">{t.title}</div><div className="ps">{t.days.length} Tage</div></div>
-                <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+                <div className="chev" style={{color:"var(--faint)",fontSize:20}}><Icon name="chevR"/></div>
               </button>
             ))}
-            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setTmplMode(null)}>‹ Zurück</button>
+            <button className="btn btn-ghost" style={{width:"100%",marginTop:8}} onClick={()=>setTmplMode(null)}><Icon name="chevL"/>Zurück</button>
           </>}
         </div>
       </>}
@@ -3798,7 +3913,7 @@ function LivePlanTab({clientId,role,toast}){
     const isActiveO=draft && draft.id===activeId;
     return <div className="mbody">
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:12}}>
-        <button className="link" onClick={()=>{ setOpenPlanId(null); setDraft(null); }}>‹ Alle Pläne</button>
+        <button className="link" onClick={()=>{ setOpenPlanId(null); setDraft(null); }}><Icon name="chevL"/>Alle Pläne</button>
         <button className="btn" style={{width:"auto",padding:"8px 16px"}} onClick={()=>setEditing(true)}>Bearbeiten</button>
       </div>
       <div className="mcard" style={{padding:"14px 16px"}}>
@@ -3828,7 +3943,7 @@ function LivePlanTab({clientId,role,toast}){
   const dIdx=draft.days.length?Math.min(editDayIdx,draft.days.length-1):0;
   const curDay=draft.days.length?draft.days[dIdx]:null;
   return <div className="mbody">
-    <button className="link" style={{marginBottom:12}} onClick={async()=>{ if(dirty && !await askConfirm({title:"Änderungen verwerfen?",message:"Du hast ungespeicherte Änderungen an diesem Plan.",confirmText:"Verwerfen",cancelText:"Weiter bearbeiten",danger:true})) return; if(draft.id){ setEditing(false); setDirty(false); } else { setOpenPlanId(null); setDraft(null); setDirty(false); } }}>‹ {draft.id?"Zurück":"Alle Pläne"}</button>
+    <button className="link" style={{marginBottom:12}} onClick={async()=>{ if(dirty && !await askConfirm({title:"Änderungen verwerfen?",message:"Du hast ungespeicherte Änderungen an diesem Plan.",confirmText:"Verwerfen",cancelText:"Weiter bearbeiten",danger:true})) return; if(draft.id){ setEditing(false); setDirty(false); } else { setOpenPlanId(null); setDraft(null); setDirty(false); } }}><Icon name="chevL"/>{draft.id?"Zurück":"Alle Pläne"}</button>
 
     <div className="mcard pe-titlecard">
       <div className="pe-eyebrow">Trainingsplan</div>
@@ -3859,9 +3974,9 @@ function LivePlanTab({clientId,role,toast}){
         </div>}
       </div>
       <div className="pe-navctrls">
-        <button className="pe-navarrow" disabled={dIdx===0} onClick={()=>{ setEditDayIdx(dIdx-1); setRenamingDay(false); }} aria-label="Voriger Tag">‹</button>
+        <button className="pe-navarrow" disabled={dIdx===0} onClick={()=>{ setEditDayIdx(dIdx-1); setRenamingDay(false); }} aria-label="Voriger Tag"><Icon name="chevL"/></button>
         <div className="pe-dots">{draft.days.length?draft.days.map((_,i)=><span key={i} className={"pe-dot"+(i===dIdx?" on":"")} onClick={()=>{ setEditDayIdx(i); setRenamingDay(false); }}/>):<span className="muted" style={{fontSize:13}}>Noch kein Tag</span>}</div>
-        <button className="pe-navarrow" disabled={dIdx>=draft.days.length-1} onClick={()=>{ setEditDayIdx(dIdx+1); setRenamingDay(false); }} aria-label="Nächster Tag">›</button>
+        <button className="pe-navarrow" disabled={dIdx>=draft.days.length-1} onClick={()=>{ setEditDayIdx(dIdx+1); setRenamingDay(false); }} aria-label="Nächster Tag"><Icon name="chevR"/></button>
         <button className="pe-addday" onClick={addDayNav} aria-label="Trainingstag hinzufügen"><Icon name="plus"/></button>
       </div>
     </div>
@@ -3870,7 +3985,7 @@ function LivePlanTab({clientId,role,toast}){
       <button className="imgpick pe-imgpick" onClick={()=>setPickDayId(curDay.id)}>
         {curDay.imagePath ? <img className="imgpick-thumb" src={imgUrl(curDay.imagePath)} alt=""/> : <span className="imgpick-ph"><Icon name="photo"/></span>}
         <span className="imgpick-lab">{curDay.imagePath ? (imgLib.find(i=>i.path===curDay.imagePath)||{}).label || "Bild gewählt" : "Bild wählen"}</span>
-        <span className="imgpick-chev">›</span>
+        <span className="imgpick-chev"><Icon name="chevR"/></span>
       </button>
 
       {curDay.exercises.map((ex,exIdx)=>{ const open=expandedEx.has(ex.id); const sch=ex.scheme||"standard"; const intens=ex.intensity||(ex.track_rir?"rir":(ex.track_pct?"pct":"none"));
@@ -3920,7 +4035,7 @@ function LivePlanTab({clientId,role,toast}){
     </>}
 
     {pickDayId && <ImagePickerSheet lib={imgLib} current={(draft.days.find(d=>d.id===pickDayId)||{}).imagePath||""} onClose={()=>setPickDayId(null)} onPick={(pp)=>{ setDayImage(pickDayId,pp); setPickDayId(null); }}/>}
-    <button className="btn" style={{marginTop:12}} disabled={saving||!dirty} onClick={save}>{saving?"Speichert…":(dirty?"Plan speichern":"Gespeichert ✓")}</button>
+    <button className="btn" style={{marginTop:12}} disabled={saving||!dirty} onClick={save}>{saving?"Speichert…":(dirty?"Plan speichern":"Gespeichert")}</button>
     <button className="link" style={{display:"block",margin:"16px auto 0"}} disabled={!draft.days.length} onClick={()=>{ setTmplName(draft.title||""); setSaveTmplOpen(true); }}>Als Template speichern</button>
     {draft.id && <button className="link" style={{display:"block",margin:"12px auto 0",color:"var(--faint)"}} onClick={()=>deletePlan(draft.id)}>Plan löschen</button>}
     {saveTmplOpen && <>
@@ -3986,7 +4101,7 @@ function CoachWorkoutHistory({plan,clientId,toast}){
                   <div className="done-sub">{fmtFull(w.date)} · {total} {total===1?"Satz":"Sätze"}{prev?" · Vergleich verfügbar":""}</div>
                   {!open && exNames.length>0 && <div className="done-prev">{exNames.join(" · ")}</div>}
                 </div>
-                <div className="dr-chev">{open?"▾":"›"}</div>
+                <div className="dr-chev">{open?<Icon name="chevD"/>:<Icon name="chevR"/>}</div>
               </button>
               {open && <div className="done-body">
                 {prev ? <SessionCompare cur={w} prev={prev} plan={plan}/> : <WorkoutSets w={w} plan={plan}/>}
@@ -4016,7 +4131,7 @@ function PlanTab({cdata,upd,role,toast}){
           <div className="pi"><div className="pt">{p.title||"Ohne Titel"}</div>
             <div className="ps">{p.days.length} Tage · {sess} Einheiten{p.createdAt?" · ab "+fmtFull(p.createdAt):""}</div></div>
           {isActive && <span className="badge">Aktuell</span>}
-          <div className="chev" style={{color:"var(--faint)",fontSize:20}}>›</div>
+          <div className="chev" style={{color:"var(--faint)",fontSize:20}}><Icon name="chevR"/></div>
         </button>;
       })}
       {role==="coach" && <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>{ const id="p"+nid(); upd(c=>({...c,plans:[...c.plans,{id,title:"Neuer Plan",createdAt:today(),days:[]}],activePlanId:id})); setOpenPlanId(id); setOpenDayId(null); toast("Neuer Plan angelegt"); }}>+ Neuer Trainingsplan</button>}
@@ -4029,7 +4144,7 @@ function PlanTab({cdata,upd,role,toast}){
   if(role==="coach"){
     const setEx=(dayId,exId,field,val)=>updPlan(p=>({...p,days:p.days.map(d=>d.id===dayId?{...d,exercises:d.exercises.map(e=>e.id===exId?{...e,[field]:val}:e)}:d)}));
     return <div className="mbody">
-      <button className="link" style={{marginBottom:12}} onClick={()=>setOpenPlanId(null)}>‹ Alle Pläne</button>
+      <button className="link" style={{marginBottom:12}} onClick={()=>setOpenPlanId(null)}><Icon name="chevL"/>Alle Pläne</button>
       <div className="mcard" style={{padding:"6px 14px"}}>
         <input className="titlein" value={openPlan.title} onChange={(e)=>updPlan(p=>({...p,title:e.target.value}))} placeholder="Plan-Titel"/>
       </div>
@@ -4040,11 +4155,11 @@ function PlanTab({cdata,upd,role,toast}){
       {openPlan.days.map(day=>(<div key={day.id} className="mcard">
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,gap:8}}>
           <input className="dayin" value={day.name} onChange={(e)=>updPlan(p=>({...p,days:p.days.map(d=>d.id===day.id?{...d,name:e.target.value}:d)}))}/>
-          <button className="delx" onClick={()=>updPlan(p=>({...p,days:p.days.filter(d=>d.id!==day.id)}))}>×</button></div>
+          <button className="delx" onClick={()=>updPlan(p=>({...p,days:p.days.filter(d=>d.id!==day.id)}))}><Icon name="x"/></button></div>
         {day.exercises.map(ex=>(<div key={ex.id} className="exedit">
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <input className="exname" value={ex.name} onChange={(e)=>setEx(day.id,ex.id,"name",e.target.value)} placeholder="Übung"/>
-            <button className="delx" onClick={()=>updPlan(p=>({...p,days:p.days.map(d=>d.id===day.id?{...d,exercises:d.exercises.filter(e=>e.id!==ex.id)}:d)}))}>×</button>
+            <button className="delx" onClick={()=>updPlan(p=>({...p,days:p.days.map(d=>d.id===day.id?{...d,exercises:d.exercises.filter(e=>e.id!==ex.id)}:d)}))}><Icon name="x"/></button>
           </div>
           <div style={{display:"flex",gap:8,marginTop:7,alignItems:"center"}}>
             <SetsStepper value={ex.sets} onChange={(v)=>setEx(day.id,ex.id,"sets",v)}/>
@@ -4065,7 +4180,7 @@ function PlanTab({cdata,upd,role,toast}){
     toast("Training gespeichert");
   };
   return <div className="mbody">
-    <button className="link" style={{marginBottom:12}} onClick={()=>setOpenPlanId(null)}>‹ Alle Pläne</button>
+    <button className="link" style={{marginBottom:12}} onClick={()=>setOpenPlanId(null)}><Icon name="chevL"/>Alle Pläne</button>
     <div className="mcard" style={{padding:"14px 16px"}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}><div style={{fontWeight:700,fontSize:16}}>{openPlan.title}</div>{isActive && <span className="badge">Aktuell</span>}</div>
       <div className="muted" style={{marginTop:3}}>{openPlan.days.length} Trainingstage · tippe einen Tag an, trag deine Sätze ein</div>
@@ -4074,7 +4189,7 @@ function PlanTab({cdata,upd,role,toast}){
       return <div key={day.id} className="exp">
         <div className="head" onClick={()=>setOpenDayId(open?null:day.id)}>
           <div><div style={{fontWeight:700}}>{day.name}</div>{last && <div className="enote" style={{marginTop:2}}>zuletzt: {fmtFull(last.date)}</div>}</div>
-          <div className="muted">{open?"▾":"▸"}</div></div>
+          <div className="muted">{open?<Icon name="chevD"/>:<Icon name="chevR"/>}</div></div>
         {open && (day.exercises.length===0
           ? <div className="body2"><div className="muted">Für diesen Tag sind noch keine Übungen hinterlegt.</div></div>
           : <DayLogger day={day} last={last} onSave={(sets,date)=>saveDay(day,sets,date)}/>)}
@@ -4097,7 +4212,7 @@ function ChecklistEditor({cdata,upd}){
   const [n,setN]=useState("");
   return <div className="mcard"><div className="sectlabel" style={{margin:"0 0 10px"}}>Ernährungs-Häkchen</div>
     {cdata.nutChecklist.map(i=>(<div key={i.id} className="exrow"><div className="en">{i.name}</div>
-      <button className="delx" onClick={()=>upd(c=>({...c,nutChecklist:c.nutChecklist.filter(x=>x.id!==i.id)}))}>×</button></div>))}
+      <button className="delx" onClick={()=>upd(c=>({...c,nutChecklist:c.nutChecklist.filter(x=>x.id!==i.id)}))}><Icon name="x"/></button></div>))}
     <div className="mini" style={{marginTop:12}}><input value={n} onChange={(e)=>setN(e.target.value)} placeholder="Neuer Punkt…"/></div>
     <button className="addbtn" onClick={()=>{ if(!n.trim())return; upd(c=>({...c,nutChecklist:[...c.nutChecklist,{id:"n"+nid(),name:n.trim()}]})); setN(""); }}>+ Hinzufügen</button>
   </div>;
@@ -4139,7 +4254,7 @@ function ChecklistClientBlock({cdata,upd}){
   return <>
     <div className="sectlabel">Häkchen heute · {done}/{cdata.nutChecklist.length}</div>
     {cdata.nutChecklist.map(i=>{ const on=entry.checked && entry.checked[i.id];
-      return <div key={i.id} className="mcard" style={{padding:14}}><div className="habrow" onClick={()=>toggle(i.id)}><div className={"check"+(on?" on":"")}>✓</div><div className="hn">{i.name}</div></div></div>; })}
+      return <div key={i.id} className="mcard" style={{padding:14}}><div className="habrow" onClick={()=>toggle(i.id)}><div className={"check"+(on?" on":"")}><Icon name="check"/></div><div className="hn">{i.name}</div></div></div>; })}
   </>;
 }
 // ═══════════════════════════════════════════════════════════════════
@@ -4192,7 +4307,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
     <div className="nut-page-body">
       {err ? <div className="mcard"><div className="muted" style={{fontSize:13,lineHeight:1.5}}>{err}</div></div>
         : <div className="bcscan-wrap"><div id={idRef.current} className="bcscan-view"/></div>}
-      <div className="enote" style={{fontSize:12,marginTop:12,textAlign:"center"}}>Halte den Barcode ruhig und mittig ins Bild.</div>
+      
     </div>
   </div></NutPortal>;
 }
@@ -4212,7 +4327,7 @@ function NutSheet({onClose,children,title,full,footer}){
       <div className="sheet-grab"/>
       {title && <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
         <div style={{fontFamily:'"Bricolage Grotesque"',fontWeight:800,fontSize:20,letterSpacing:"-0.02em"}}>{title}</div>
-        <button className="pe-iconbtn" onClick={onClose} aria-label="Schließen" style={{color:"var(--dim)"}}>✕</button>
+        <button className="pe-iconbtn" onClick={onClose} aria-label="Schließen" className="pe-iconbtn"><Icon name="x"/></button>
       </div>}
       {children}
     </div>
@@ -4259,7 +4374,7 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
       <div style={{flex:1}}>
         <div className="ci-flabel" style={{marginBottom:4}}>Name</div>
         <input className="setinput" value={name} onChange={e=>setName(e.target.value)} placeholder="z.B. Magerquark"/>
-        <div className="enote" style={{marginTop:6,fontSize:12}}>{imgBusy?"Bild wird hochgeladen…":"Tippe das Feld links an für ein Foto"}</div>
+        {imgBusy && <div className="enote" style={{marginTop:6,fontSize:12}}>Bild wird hochgeladen…</div>}
       </div>
     </div>
     <div className="exf-grid" style={{marginTop:14}}>
@@ -4271,7 +4386,7 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
       <input className="setinput" inputMode="numeric" value={barcode} onChange={e=>setBarcode(e.target.value)} placeholder="EAN / UPC"/>
       <button className="nut-scanbtn" onClick={()=>setScanOpen(true)}><Icon name="scan"/>Scannen</button>
     </div>
-    <div className="enote" style={{fontSize:12,marginBottom:2}}>Damit findest du das Produkt später per Scan wieder.</div>
+    
     <div className="ci-flabel" style={{margin:"16px 0 7px"}}>Nährwerte pro 100 g</div>
     <div className="exf-grid">
       {NF({k:"kcal",label:"kcal"})}{NF({k:"protein",label:"Eiweiß (g)"})}
@@ -4279,11 +4394,11 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
       {NF({k:"fat",label:"Fett (g)"})}{NF({k:"fiber",label:"Ballaststoffe (g)"})}
     </div>
     <div className="ci-flabel" style={{margin:"16px 0 7px"}}>Portions-Shortcuts (optional)</div>
-    <div className="enote" style={{fontSize:12,marginBottom:8}}>z.B. „Portion" = 30 g oder „Paprika groß" = 150 g</div>
+    
     {ports.map((p,i)=><div key={i} className="nut-portrow">
       <input className="setinput" value={p.label} onChange={e=>setPorts(a=>a.map((x,j)=>j===i?{...x,label:e.target.value}:x))} placeholder="Bezeichnung"/>
       <input className="setinput" inputMode="decimal" style={{width:78}} value={p.grams} onChange={e=>setPorts(a=>a.map((x,j)=>j===i?{...x,grams:e.target.value}:x))} placeholder="g"/>
-      <button className="jny-sub-del" onClick={()=>setPorts(a=>a.filter((_,j)=>j!==i))}>×</button>
+      <button className="jny-sub-del" onClick={()=>setPorts(a=>a.filter((_,j)=>j!==i))}><Icon name="x"/></button>
     </div>)}
     <button className="jny-addsub" style={{marginBottom:14}} onClick={()=>setPorts(a=>[...a,{label:"",grams:""}])}>+ Portion</button>
     <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(initial?"Speichern":"Hinzufügen")}</button>
@@ -4335,11 +4450,11 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
     {ings.map((x,i)=><div key={i} className="nut-ingrow">
       <div className="nut-ing-main"><div className="nut-ing-name">{x.food.name}</div><div className="nut-ing-mac">{nutR(foodMacros(x.food,x.grams).kcal)} kcal</div></div>
       <input className="setinput" inputMode="decimal" style={{width:74}} value={x.grams} onChange={e=>setIngs(a=>a.map((y,j)=>j===i?{...y,grams:e.target.value}:y))} placeholder="g"/>
-      <button className="jny-sub-del" onClick={()=>setIngs(a=>a.filter((_,j)=>j!==i))}>×</button>
+      <button className="jny-sub-del" onClick={()=>setIngs(a=>a.filter((_,j)=>j!==i))}><Icon name="x"/></button>
     </div>)}
     <button className="jny-addsub" style={{marginBottom:14}} onClick={()=>setPickOpen(true)}>+ Zutat aus Datenbank</button>
     <div className="ci-flabel" style={{margin:"4px 0 7px"}}>Gesamtgewicht gekocht (g)</div>
-    <div className="enote" style={{fontSize:12,marginBottom:8}}>Alles zusammen im gekochten Zustand — damit du später deinen Teller abwiegen kannst.</div>
+    
     <input className="setinput" inputMode="decimal" value={cooked} onChange={e=>setCooked(e.target.value)} placeholder="z.B. 2000"/>
     <div className="nut-recsum">
       <div className="nut-recsum-row"><span>Rezept gesamt</span><b>{nutR(fullMac.kcal)} kcal</b></div>
@@ -4394,7 +4509,7 @@ function NutPicker({onPick,onClose,toast,foodsOnly,onScanNotFound,onCreateFood,o
     {fFoods.map(f=><button key={f.id} className="nut-pickrow" onClick={()=>onPick({type:"food",food:f})}>
       <div className="nut-pick-ic">{f.image_path?<img src={foodImgUrl(f.image_path)} alt=""/>:<Icon name="food"/>}</div>
       <div className="nut-pick-main"><div className="nut-pick-name">{f.name}{f.brand?<span className="nut-brand"> · {f.brand}</span>:""}</div><div className="nut-pick-sub">{nutR(f.kcal)} kcal · {nutR1(f.protein)}g E / 100g{f.category?" · "+f.category:""}</div></div>
-      <div className="dr-chev">›</div>
+      <div className="dr-chev"><Icon name="chevR"/></div>
     </button>)}
     {scanOpen && <BarcodeScanner toast={toast} onClose={()=>setScanOpen(false)} onDetected={onScan}/>}
   </NutSheet>;
@@ -4477,15 +4592,15 @@ function MealManager({clientId,meals,onClose,onChanged,toast}){
       {renaming===m.id
         ? <input className="setinput" defaultValue={m.name} autoFocus onBlur={e=>rename(m,e.target.value)} onKeyDown={e=>{ if(e.key==="Enter") rename(m,e.target.value); }}/>
         : <div className="mm-name" onClick={()=>setRenaming(m.id)}>{m.name}</div>}
-      <button className="dctrl" disabled={i===0} onClick={()=>move(i,-1)} aria-label="nach oben">▲</button>
-      <button className="dctrl" disabled={i===list.length-1} onClick={()=>move(i,1)} aria-label="nach unten">▼</button>
-      <button className="delx" onClick={()=>del(m)} aria-label="löschen">×</button>
+      <button className="dctrl" disabled={i===0} onClick={()=>move(i,-1)} aria-label="nach oben"><Icon name="chevU"/></button>
+      <button className="dctrl" disabled={i===list.length-1} onClick={()=>move(i,1)} aria-label="nach unten"><Icon name="chevD"/></button>
+      <button className="delx" onClick={()=>del(m)} aria-label="löschen"><Icon name="x"/></button>
     </div>)}
     <div style={{display:"flex",gap:8,marginTop:14}}>
       <input className="setinput" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="z.B. Frühstück 2" onKeyDown={e=>{ if(e.key==="Enter") add(); }}/>
       <button className="btn" style={{width:"auto",padding:"12px 18px",flexShrink:0}} onClick={add}>Hinzufügen</button>
     </div>
-    <div className="enote" style={{fontSize:12,marginTop:8}}>Tippe einen Namen an zum Umbenennen. Pfeile zum Verschieben.</div>
+    
   </NutSheet>;
 }
 
@@ -4583,7 +4698,7 @@ function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
   return <div className="mbody">
     <div className="card wkcal" style={{marginBottom:18}}>
       <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
-        <div className="calnav"><button className="cnav" onClick={()=>setWeekOff(w=>w-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{nutMonth}</span><button className="cnav" disabled={weekOff>=0} onClick={()=>{ if(weekOff<0) setWeekOff(w=>w+1); }} aria-label="Woche vor">›</button></div>
+        <div className="calnav"><button className="cnav" onClick={()=>setWeekOff(w=>w-1)} aria-label="Woche zurück"><Icon name="chevL"/></button><span className="cmonth">{nutMonth}</span><button className="cnav" disabled={weekOff>=0} onClick={()=>{ if(weekOff<0) setWeekOff(w=>w+1); }} aria-label="Woche vor"><Icon name="chevR"/></button></div>
       </div>
       <div className="calstrip">{nutWeek.map(d=>{ const isSel=d===date; const isToday=d===today();
         return <button key={d} className="calcol" onClick={()=>setDate(d)}>
@@ -4594,7 +4709,7 @@ function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
       })}</div>
     </div>
 
-    {readOnly && <div className="nut-ro"><Icon name="eye"/>Beobachtungs-Modus: Du siehst das Tagebuch deines Kunden, kannst es aber nicht verändern.</div>}
+    {readOnly && <div className="nut-ro"><Icon name="eye"/>Nur Ansicht – als Coach kannst du hier nichts verändern.</div>}
 
     <div className="nut-hero">
       <div className="nut-hero-krow">
@@ -4651,7 +4766,7 @@ function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
                 <div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div>
               </div>
               {isRec && <button className={"nut-entry-exp"+(open?" open":"")} onClick={()=>toggleEntry(e)} aria-label="Zutaten">{CHEV}</button>}
-              {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>}
+              {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen"><Icon name="x"/></button>}
             </div>
             {isRec && open && <div className="nut-bd">
               {!bd ? <div className="muted" style={{fontSize:12,padding:"4px 2px"}}>Lädt…</div>
@@ -4668,7 +4783,7 @@ function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
         <div className="nut-mealcard-head"><span className="nut-mealcard-name">{mn}</span><span className="nut-mealcard-kcal">{nutR(mt)} kcal</span></div>
         {list.map(e=><div key={e.id} className="nut-entrywrap"><div className="nut-entry">
           <div className="nut-entry-main" style={readOnly?{cursor:"default"}:null} onClick={()=>{ if(!readOnly) setAmount({edit:e}); }}><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
-          {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>}
+          {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen"><Icon name="x"/></button>}
         </div></div>)}
       </div>;
     })}
@@ -4677,7 +4792,7 @@ function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
       ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
           <input className="setinput" value={newMeal} onChange={ev=>setNewMeal(ev.target.value)} placeholder="z.B. Frühstück 2" autoFocus onKeyDown={ev=>{ if(ev.key==="Enter") addMealSlot(); }}/>
           <button className="btn" style={{width:"auto",padding:"11px 18px",flexShrink:0}} onClick={addMealSlot}>Hinzufügen</button>
-          <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
+          <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}><Icon name="x"/></button>
         </div>
       : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Mahlzeit hinzufügen</button>)}
 
@@ -4777,7 +4892,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
   // ---------- COACH: Konfiguration + Wochen-Einsicht ----------
   if(role==="coach"){
     return <div className="mbody">
-      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}
+      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}><Icon name="chevL"/>Zurück zum Tracking</button>}
       <div className="sectlabel">Ernährung für diesen Kunden</div>
       <div className="mcard" style={{padding:"6px 16px"}}>
         <div className="tglrow"><div><div className="en">Tracking</div><div className="enote">Tagebuch mit Lebensmitteln, Rezepten & Barcode-Scan</div></div>
@@ -4808,7 +4923,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span className="en">{it.name}</span><span className="tag">{done}/{validDays}</span></div>
               <div className="weekstrip">{weekDates.map(d=>{ const on=checks[d]&&checks[d][it.id]; const fut=d>t;
                 return <div key={d} className="daycol"><div className="lbl">{weekdayShort(d)}</div>
-                  <div className={"dot7"+(on?" done":"")+(d===t?" today":"")+(fut?" fut":"")}>{on?"✓":""}</div>
+                  <div className={"dot7"+(on?" done":"")+(d===t?" today":"")+(fut?" fut":"")}>{on?<Icon name="check"/>:null}</div>
                   <div className="dnum">{d.split("-")[2]}</div></div>; })}</div>
             </div>;
           })}
@@ -4830,7 +4945,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
   }
 
   // ---------- KUNDE ----------
-  if(!macrosOn && !checksOn && !mealsOn) return <div className="mbody">{canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}<div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
+  if(!macrosOn && !checksOn && !mealsOn) return <div className="mbody">{canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}><Icon name="chevL"/>Zurück zum Tracking</button>}<div className="mcard"><h3>Ernährung pausiert</h3><div className="muted" style={{marginTop:4}}>Wir konzentrieren uns gerade auf Training und deine Gewohnheiten. Sobald es passt, schalten wir die Ernährung dazu.</div></div></div>;
 
   const saveMacros=async(d,vals)=>{
     try{ const { error } = await window.supa.from("nutrition_logs").upsert({ client_id:clientId, date:d, ...vals },{onConflict:"client_id,date"}); if(error) throw error; toast("Makros gespeichert"); await loadWeek(); }
@@ -4847,7 +4962,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
   };
 
   return <div className="mbody">
-      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}>‹ Zurück zum Tracking</button>}
+      {canTrack && <button className="link" style={{marginBottom:12}} onClick={()=>setFoodView("track")}><Icon name="chevL"/>Zurück zum Tracking</button>}
     <WeekCalendar weekDates={weekDates} selDate={selDate} setSelDate={setSelDate} weekOffset={weekOffset} changeWeek={changeWeek} dots={dots} t={t}/>
     {macrosOn && <MacroWeek settings={settings} weekDates={weekDates} logs={logs} t={t} onSave={saveMacros} openDate={selDate} setOpenDate={setSelDate}/>}
     {checksOn && <>
@@ -4858,7 +4973,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="hn">{it.name}</div><div className="tag">{done}/{validDays}</div></div>
           <div className="weekstrip">{weekDates.map(d=>{ const on=checks[d]&&checks[d][it.id]; const fut=d>t;
             return <div key={d} className="daycol"><div className="lbl">{weekdayShort(d)}</div>
-              <div className={"dot7"+(on?" done":"")+(d===t?" today":"")+(!fut?" tap":"")+(fut?" fut":"")} onClick={!fut?()=>toggleCheck(it.id,d):undefined}>{on?"✓":""}</div>
+              <div className={"dot7"+(on?" done":"")+(d===t?" today":"")+(!fut?" tap":"")+(fut?" fut":"")} onClick={!fut?()=>toggleCheck(it.id,d):undefined}>{on?<Icon name="check"/>:null}</div>
               <div className="dnum">{d.split("-")[2]}</div></div>; })}</div>
         </div>;
       })}
@@ -4877,7 +4992,7 @@ function LiveFoodTab({clientId,role,selfMode,toast}){
             </div>
             {selDate<=t && <div style={{display:"flex",gap:4,flexShrink:0}}>
               <button className="jny-icobtn" style={{width:30,height:30}} onClick={()=>setEditingMealId(m.id)} aria-label="Bearbeiten"><Icon name="pencil"/></button>
-              <button className="delx" onClick={()=>delMeal(m.id)}>×</button>
+              <button className="delx" onClick={()=>delMeal(m.id)}><Icon name="x"/></button>
             </div>}
           </div>
         </div>
@@ -4976,7 +5091,7 @@ function LiveChecklistEditor({clientId,items,reload,toast}){
   const add=async()=>{ if(!n.trim())return; try{ const { error } = await window.supa.from("nutrition_checklist").insert({ client_id:clientId, name:n.trim(), position:items.length }); if(error) throw error; setN(""); await reload(); }catch(e){ toast("Hinzufügen fehlgeschlagen"); } };
   const del=async(id)=>{ try{ const { error } = await window.supa.from("nutrition_checklist").delete().eq("id",id); if(error) throw error; await reload(); }catch(e){ toast("Löschen fehlgeschlagen"); } };
   return <div className="mcard"><div className="sectlabel" style={{margin:"0 0 10px"}}>Ernährungs-Häkchen</div>
-    {items.map(i=>(<div key={i.id} className="exrow"><div className="en">{i.name}</div><button className="delx" onClick={()=>del(i.id)}>×</button></div>))}
+    {items.map(i=>(<div key={i.id} className="exrow"><div className="en">{i.name}</div><button className="delx" onClick={()=>del(i.id)}><Icon name="x"/></button></div>))}
     <div className="mini" style={{marginTop:12}}><input value={n} onChange={(e)=>setN(e.target.value)} placeholder="Neuer Punkt…"/></div>
     <button className="addbtn" onClick={add}>+ Hinzufügen</button>
   </div>;
@@ -5123,8 +5238,8 @@ function LiveWeightTab({clientId,role,toast}){
         <span style={{display:"flex",alignItems:"center",gap:10}}>
           <span className="ev">{w.kg} kg</span>
           {d!=null && <span className="muted" style={{color:d<=0?"var(--ok)":"var(--accent-2)"}}>{d>0?"+":""}{d}</span>}
-          {role!=="coach" && <button className="iconbtn" title="Bearbeiten" onClick={()=>startEdit(w)}>✎</button>}
-          {role!=="coach" && <button className="iconbtn" title="Löschen" onClick={()=>del(w.id)}>×</button>}
+          {role!=="coach" && <button className="iconbtn" title="Bearbeiten" onClick={()=>startEdit(w)}><Icon name="pencil"/></button>}
+          {role!=="coach" && <button className="iconbtn" title="Löschen" onClick={()=>del(w.id)}><Icon name="x"/></button>}
         </span>
       </div>;
     })}
@@ -5193,9 +5308,9 @@ function DateSheet({value,min,max,onClose,onPick}){
     <div className="sheet datesheet" role="dialog" aria-modal="true">
       <div className="sheet-grab"/>
       <div className="ds-head">
-        <button className="ds-nav" disabled={prevDisabled} onClick={prevMonth} aria-label="Vorheriger Monat">‹</button>
+        <button className="ds-nav" disabled={prevDisabled} onClick={prevMonth} aria-label="Vorheriger Monat"><Icon name="chevL"/></button>
         <div className="ds-title">{MONTHS_DE[ym.m]} {ym.y}</div>
-        <button className="ds-nav" disabled={nextDisabled} onClick={nextMonth} aria-label="Nächster Monat">›</button>
+        <button className="ds-nav" disabled={nextDisabled} onClick={nextMonth} aria-label="Nächster Monat"><Icon name="chevR"/></button>
       </div>
       <div className="ds-wd">{["MO","DI","MI","DO","FR","SA","SO"].map(w=><div key={w}>{w}</div>)}</div>
       <div className="ds-grid">{cells.map((d,i)=>{ if(d===null) return <div key={"e"+i}/>; const ds=mkStr(d); const dis=disabled(ds); const sel=ds===value; const isToday=ds===today();
@@ -5247,13 +5362,13 @@ function FileList({files,canDelete,onDelete}){
       <a key={f.id} className="photo" href={f.url} target="_blank" rel="noopener">
         <img src={f.url} alt={f.name}/>
         <div className="cap">{f.by==="coach"?"Coach · ":""}{fmtFull(f.date)}</div>
-        {canDelete && <span className="del" onClick={(e)=>{e.preventDefault();e.stopPropagation();onDelete(f.id);}}>×</span>}
+        {canDelete && <span className="del" onClick={(e)=>{e.preventDefault();e.stopPropagation();onDelete(f.id);}}><Icon name="x"/></span>}
       </a>))}</div>}
     {docs.map(f=>(<div key={f.id} className="filechip">
       <div className="fi"><Icon name="file"/></div>
       <a className="fn" href={f.url||"#"} download={f.name} target="_blank" rel="noopener">{f.name}</a>
       <span className="fd">{fmtDay(f.date)}</span>
-      {canDelete && <button className="delx" onClick={()=>onDelete(f.id)}>×</button>}
+      {canDelete && <button className="delx" onClick={()=>onDelete(f.id)}><Icon name="x"/></button>}
     </div>))}
   </>;
 }
@@ -5337,7 +5452,7 @@ function LiveCloudTab({clientId,role,toast,mode}){
         row={ scope:"client", client_id:space.clientId, owner_id:meId, kind:isImg(file.name)?"image":"file", name:file.name, bucket, path, folder_id:folderId||null };
       }
       const { error:ie } = await window.supa.from("files").insert(row); if(ie) throw ie;
-      toast("Hochgeladen ✓"); await load();
+      toast("Hochgeladen"); await load();
     }catch(e){ toast("Upload fehlgeschlagen: "+(e.message||"")); }
     finally{ setBusy(false); }
   };
@@ -5380,7 +5495,7 @@ function LiveCloudTab({clientId,role,toast,mode}){
     {/* Breadcrumb */}
     <div className="crumbs">
       <button className="crumb" onClick={()=>goCrumb(-1)}>{rootLabel}</button>
-      {trail.map((t,i)=>(<React.Fragment key={t.id}><span className="crsep">›</span><button className="crumb" onClick={()=>goCrumb(i)}>{t.name}</button></React.Fragment>))}
+      {trail.map((t,i)=>(<React.Fragment key={t.id}><span className="crsep"><Icon name="chevR"/></span><button className="crumb" onClick={()=>goCrumb(i)}>{t.name}</button></React.Fragment>))}
     </div>
 
     {/* Aktionen */}
@@ -5421,7 +5536,7 @@ function FolderRow({label,count,onOpen,onDelete,onRename}){
     <button className="fo-tap" onClick={onOpen}>
       <div className="fo-ico"><Icon name="folder"/></div>
       <div className="fo-main"><div className="fo-name">{label}</div><div className="fo-meta">{count} {count===1?"Eintrag":"Einträge"}</div></div>
-      <div className="dr-chev">›</div>
+      <div className="dr-chev"><Icon name="chevR"/></div>
     </button>
     {onRename && <button className="fo-del" onClick={onRename} aria-label="Ordner umbenennen"><Icon name="pencil"/></button>}
     {onDelete && <button className="fo-del" onClick={onDelete} aria-label="Ordner löschen"><Icon name="trash"/></button>}
@@ -5690,7 +5805,7 @@ function PlanHistory({workoutLog,plan}){
     return <div key={w.id} className="exp">
       <div className="head" onClick={()=>setOpenId(open?null:w.id)}>
         <div><div style={{fontWeight:700}}>{fmtFull(w.date)}</div><div className="enote" style={{marginTop:2}}>{day?day.name:"Training"} · {total} Sätze</div></div>
-        <div className="muted">{open?"▾":"▸"}</div>
+        <div className="muted">{open?<Icon name="chevD"/>:<Icon name="chevR"/>}</div>
       </div>
       {open && <SessionDetail w={w} plan={plan}/>}
     </div>;
@@ -5969,7 +6084,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     {(callState==="calling"||callState==="connected") && <VideoCallOverlay localStream={localStream} remoteStream={remoteStream} partnerName={callPartner?.name||partner.name} callState={callState} muted={muted} frontCam={frontCam} onEnd={vcEnd} onMute={vcToggleMute} onFlipCam={vcFlipCam}/>}
     {callState==="incoming" && <IncomingCallBanner from={callPartner?.name||"Anruf"} fromAvatar={callPartner?.avatar} onAccept={vcAccept} onReject={vcReject}/>}
     <div className="topbar">
-      {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" onClick={onBack || (()=>setTab("home"))}>‹</button>}
+      {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" onClick={onBack || (()=>setTab("home"))}><Icon name="chevL"/></button>}
       <div className="lead">
         {selfMode
           ? <span className="ttl">Self-Coaching</span>
@@ -6045,7 +6160,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
           <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
             <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
         </button>
-        <button className="cr-menu" onClick={()=>setActClient(c)} aria-label="Optionen">⋯</button>
+        <button className="cr-menu" onClick={()=>setActClient(c)} aria-label="Optionen"><Icon name="more"/></button>
       </div>;
     };
     body=<>
@@ -6117,7 +6232,7 @@ function CoachDashboard({clients,onOpen,toast,unread,onChat}){
     <div className="dashgreet">{greet}, Coach.</div>
     <div className="card wkcal">
       <div className="card-h"><span className="ch-l"><Icon name="checkin"/>Kalender</span>
-        <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück">‹</button><span className="cmonth">{monthLabel}</span><button className="cnav" onClick={()=>changeWeek(1)} aria-label="Woche vor">›</button></div>
+        <div className="calnav"><button className="cnav" onClick={()=>changeWeek(-1)} aria-label="Woche zurück"><Icon name="chevL"/></button><span className="cmonth">{monthLabel}</span><button className="cnav" onClick={()=>changeWeek(1)} aria-label="Woche vor"><Icon name="chevR"/></button></div>
       </div>
       <div className="calstrip">{weekDates.map(d=>{ const isSel=d===selDate; const isToday=d===t;
         return <button key={d} className="calcol" onClick={()=>setSelDate(d)}>
@@ -6140,7 +6255,7 @@ function CoachDashboard({clients,onOpen,toast,unread,onChat}){
       return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
         <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
         <div style={{flex:1,minWidth:0}}><div className="nm">{nm}</div><div className="sub">Check-in fällig</div></div>
-        <div className="chev">›</div></button>;
+        <div className="chev"><Icon name="chevR"/></div></button>;
     })}
   </div>;
 }
@@ -6155,7 +6270,7 @@ function CoachChatList({clients,onOpen,unreadByClient}){
       return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
         <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
         <div style={{flex:1,minWidth:0}}><div className="nm">{nm}</div><div className="sub">{n>0?(n===1?"1 neue Nachricht":n+" neue Nachrichten"):"Chat öffnen"}</div></div>
-        {n>0 ? <span className="unread-badge">{n}</span> : <div className="chev">›</div>}</button>;
+        {n>0 ? <span className="unread-badge">{n}</span> : <div className="chev"><Icon name="chevR"/></div>}</button>;
     })}
   </>;
 }
@@ -6200,7 +6315,7 @@ function CoachClientListLive({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,
           <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
           <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
             <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
-          <div className="chev">›</div></button>;
+          <div className="chev"><Icon name="chevR"/></div></button>;
       })}
       <div style={{marginTop:18,display:"flex",flexDirection:"column",gap:10}}>
         <button className="btn btn-ghost" onClick={()=>setBc(true)}>Nachricht an alle</button>
@@ -6254,7 +6369,7 @@ function CreateClientSheet({onClose,onCreate,onCreated,toast}){
         {msg && <div className={"authmsg "+msg.type}>{msg.text}</div>}
         <div style={{textAlign:"center",marginTop:12}}><button className="link" onClick={onClose}>Abbrechen</button></div>
       </> : <>
-        <h3>Kunde angelegt ✓</h3>
+        <h3>Kunde angelegt</h3>
         <div className="muted" style={{marginBottom:14}}>Gib dem Kunden diese Zugangsdaten. Beim ersten Login richtet er Name, echte E-Mail, Passwort und Profilbild selbst ein.</div>
         <div className="mcard" style={{padding:"14px 16px"}}>
           <div className="setline"><span>Benutzername</span><span className="sv">{done.username}</span></div>
@@ -6282,7 +6397,7 @@ function CoachClientList({clients,data,onOpen,onInvite,invite,onCopy,viewerRole,
           <div className="avatar">{cd.avatarUrl?<img src={cd.avatarUrl} alt=""/>:initials(c.name)}</div>
           <div style={{flex:1,minWidth:0}}><div className="nm">{c.name}</div>
             <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{last?(last.from==="coach"?"Du: ":"")+last.body:"Noch keine Nachricht"}</div></div>
-          <div className="chev">›</div></button>;
+          <div className="chev"><Icon name="chevR"/></div></button>;
       })}
       <div style={{marginTop:18,display:"flex",flexDirection:"column",gap:10}}>
         <button className="btn btn-ghost" onClick={()=>setBc(true)}>Nachricht an alle</button>
@@ -6306,7 +6421,7 @@ function NetError({onRetry}){
   return <div className="center">
     <div style={{marginBottom:20}}><img className="logo-auth" src={LOGO} alt="kraftkonzept"/></div>
     <div className="card" style={{textAlign:"center",maxWidth:340}}>
-      <div style={{fontSize:40,marginBottom:8}}>📡</div>
+      <div className="stateicon"><Icon name="signal"/></div>
       <h2 style={{fontSize:21,marginBottom:8}}>Verbindungsproblem</h2>
       <div className="muted" style={{fontSize:14,lineHeight:1.5,marginBottom:16}}>Dein Profil konnte nicht geladen werden. Das liegt meist an einer kurzen Netzwerkstörung.</div>
       <button className="btn" onClick={onRetry}>Erneut versuchen</button>
@@ -6370,7 +6485,7 @@ function Auth(){
         <div className="muted" style={{marginBottom:14,fontSize:13.5}}>Gib deine E-Mail ein – wir schicken dir einen Link, um ein neues Passwort zu setzen.</div>
         <Field label="E-Mail" type="email" value={email} onChange={setEmail} placeholder="du@mail.de"/>
         <button className="btn" disabled={busy} onClick={sendReset}>{busy?"Wird gesendet…":"Link senden"}</button>
-        <button className="link" style={{display:"block",margin:"14px auto 0",color:"var(--dim)"}} onClick={()=>{ setMode("login"); setMsg(null); }}>‹ Zurück zum Login</button>
+        <button className="link" style={{display:"block",margin:"14px auto 0",color:"var(--dim)"}} onClick={()=>{ setMode("login"); setMsg(null); }}><Icon name="chevL"/>Zurück zum Login</button>
       </>}
       {msg && <div className={"authmsg "+msg.type}>{msg.text}</div>}
       {!live && <div className="authnote">Hinweis für die Einrichtung: Trage oben in der Datei deine Supabase&#8209;URL und den anon&#8209;Key ein, dann ist der Login scharf.</div>}
@@ -6397,7 +6512,7 @@ function RecoveryScreen({onDone,toast}){
   if(done) return <div className="center">
     <div style={{marginBottom:24}}><img className="logo-auth" src={LOGO} alt="kraftkonzept"/></div>
     <div className="card" style={{textAlign:"center"}}>
-      <div style={{fontSize:44,marginBottom:10}}>✓</div>
+      <div className="okcircle"><Icon name="check"/></div>
       <h2 style={{fontSize:22,marginBottom:8}}>Passwort geändert</h2>
       <div className="muted" style={{fontSize:14,lineHeight:1.5}}>Öffne jetzt die <b>kraftkonzept</b> App auf deinem Home‑Bildschirm und melde dich mit deinem neuen Passwort an.</div>
     </div>
@@ -6752,7 +6867,7 @@ function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
             <span style={{fontWeight:700,display:"block"}}>{u.display_name||u.email}{u.is_admin?" · Admin":""}{u.active===false?" · deaktiviert":""}</span>
             <span className="muted" style={{fontSize:12.5}}>{typeLabel(u.account_type)}{u.account_type==="client"&&u.coach_id?" · "+coachName(u.coach_id):""}{u.self_coach&&u.account_type==="coach"?" + Self-Coaching":""}</span>
           </span>
-          <span style={{color:"var(--dim)",fontSize:20}}>›</span>
+          <span className="chev"><Icon name="chevR"/></span>
         </button>
       ))}
     </div></div>
@@ -6772,7 +6887,7 @@ function InstallGate(){
 
   if(!mobile) return (
     <div className="gate">
-      <div className="gate-desktop-icon">💻</div>
+      <div className="gate-desktop-icon"><Icon name="monitor"/></div>
       <div className="gate-hl">Nur auf dem Smartphone</div>
       <div className="gate-sub">Öffne diese Seite auf deinem iPhone oder Android-Gerät und füge sie zum Home-Bildschirm hinzu.</div>
       <img className="gate-logo" src={LOGO} alt="kraftkonzept"/>
@@ -6798,7 +6913,7 @@ function InstallGate(){
       <div className="gate-hl">Zum Home‑Bildschirm</div>
       <div className="gate-sub">kraftkonzept läuft nur als installierte App.</div>
       <div className="gate-steps">
-        <div className="gate-step"><span className="gate-num">1</span><span className="gate-step-txt">Tippe unten in Safari auf <span className="gate-arrow">↑ Teilen</span></span></div>
+        <div className="gate-step"><span className="gate-num">1</span><span className="gate-step-txt">Tippe unten in Safari auf <span className="gate-arrow"><Icon name="send"/>Teilen</span></span></div>
         <div className="gate-step"><span className="gate-num">2</span><span className="gate-step-txt">Scrolle und wähle <b>„Zum Home-Bildschirm"</b></span></div>
         <div className="gate-step"><span className="gate-num">3</span><span className="gate-step-txt">Tippe oben rechts auf <b>„Hinzufügen"</b></span></div>
       </div>
@@ -6886,7 +7001,7 @@ function JourneyStageForm({sd,setSd,habits,saving,onSave,onCancel,onDelete}){
     <div className="ci-flabel" style={{marginBottom:7}}>Unterpunkte (Checkliste)</div>
     {subs.map(sub=><div key={sub.id} className="jny-sub-edit">
       <input className="setinput" value={sub.text} onChange={e=>setSubs(a=>a.map(x=>x.id===sub.id?{...x,text:e.target.value}:x))} placeholder="z.B. Trainingsplan verstanden"/>
-      <button className="jny-sub-del" onClick={()=>setSubs(a=>a.filter(x=>x.id!==sub.id))}>×</button>
+      <button className="jny-sub-del" onClick={()=>setSubs(a=>a.filter(x=>x.id!==sub.id))}><Icon name="x"/></button>
     </div>)}
     <button className="jny-addsub" style={{marginBottom:12}} onClick={()=>setSubs(a=>[...a,{id:nid(),text:"",done:false}])}>+ Unterpunkt</button>
 
@@ -6898,7 +7013,7 @@ function JourneyStageForm({sd,setSd,habits,saving,onSave,onCancel,onDelete}){
         {(habits||[]).map(hb=><option key={hb.id} value={hb.id}>{hb.name}</option>)}
       </select>
       <input className="setinput" type="number" min="1" max="365" value={h.days||7} onChange={e=>setShs(a=>a.map((x,i)=>i===idx?{...x,days:parseInt(e.target.value)||7}:x))}/>
-      <button className="jny-sub-del" onClick={()=>setShs(a=>a.filter((_,i)=>i!==idx))}>×</button>
+      <button className="jny-sub-del" onClick={()=>setShs(a=>a.filter((_,i)=>i!==idx))}><Icon name="x"/></button>
     </div>)}
     <button className="jny-addsub" style={{marginBottom:12}} onClick={()=>setShs(a=>[...a,{id:"",days:7}])}>+ Habit verknüpfen</button>
 
@@ -6928,7 +7043,7 @@ function ClientJourneyStage({st,index,state,habitsMap,habitStreaks,onToggleSub,i
   const ico=jnyStageIcon(st,index);
   return <div className="jny-row">
     <div className="jny-lc">
-      <div className={"jny-circ "+state}>{isDone?"✓":isActive?<div className="jny-inner-dot"/>:<LockIcon/>}</div>
+      <div className={"jny-circ "+state}>{isDone?<Icon name="check"/>:isActive?<div className="jny-inner-dot"/>:<LockIcon/>}</div>
       {!isLast&&<div className={"jny-vline"+(isLocked?" dashed":"")}/>}
     </div>
     <div className="jny-rc">
@@ -6960,11 +7075,11 @@ function ClientJourneyStage({st,index,state,habitsMap,habitStreaks,onToggleSub,i
             {subs.length>0&&<div className="jny-ssec">
               <div className="jny-plbl">Schritte</div>
               {subs.map(sub=><div key={sub.id} className="jny-sitem">
-                <div className={"jny-scheck"+(sub.done?" on":"")} onClick={()=>!isLocked&&onToggleSub(st,sub.id)}>{sub.done?"✓":""}</div>
+                <div className={"jny-scheck"+(sub.done?" on":"")} onClick={()=>!isLocked&&onToggleSub(st,sub.id)}>{sub.done?<Icon name="check"/>:null}</div>
                 <div className={"jny-stxt"+(sub.done?" done":"")}>{sub.text}</div>
               </div>)}
             </div>}
-            {isDone&&st.completed_at&&<div><span className="jny-cdate">✓ Erreicht am {fmtFull(st.completed_at.slice(0,10))}</span></div>}
+            {isDone&&st.completed_at&&<div><span className="jny-cdate"><Icon name="check"/>Erreicht am {fmtFull(st.completed_at.slice(0,10))}</span></div>}
           </div></div>
         </div>
       </div>
@@ -6990,7 +7105,7 @@ function ClientJourneyView({journey,stages,habitsMap,habitStreaks,onToggleSub}){
     <div className="jny-tl">
       {stages.map((st,i)=><ClientJourneyStage key={st.id} st={st} index={i} state={stateFor(i)} habitsMap={habitsMap} habitStreaks={habitStreaks} onToggleSub={onToggleSub} isLast={false}/>)}
       <div className="jny-row" ref={goalRef}>
-        <div className="jny-lc"><div className="jny-circ goal">🏆</div></div>
+        <div className="jny-lc"><div className="jny-circ goal"><Icon name="trophy"/></div></div>
         <div className="jny-rc"><div className="jny-card goal">
           <div className="jny-chead nopt">
             <div className="jny-chl">
@@ -7054,7 +7169,7 @@ function CoachJourneyEditor({journey,stages,habits,toast,onRefresh,onCreate,jour
     <div className="sectlabel">Stadien ({stages.length})</div>
     {stages.map((st,i)=>{ const subs=Array.isArray(st.substeps)?st.substeps:[]; const shs=jnyStageHabits(st); return <div key={st.id} className="mcard jny-ecard">
       <div className="jny-ehead">
-        <div className={"jny-echeck"+(st.completed?" on":"")} onClick={()=>completeSt(st)}>{st.completed?"✓":""}</div>
+        <div className={"jny-echeck"+(st.completed?" on":"")} onClick={()=>completeSt(st)}>{st.completed?<Icon name="check"/>:null}</div>
         <div className="jny-icocirc" style={{width:38,height:38}}><Icon name={jnyStageIcon(st,i)}/></div>
         <div style={{flex:1,minWidth:0}}>
           <div className={"jny-etitle"+(st.completed?" done":"")}>{st.title}</div>
@@ -7066,8 +7181,8 @@ function CoachJourneyEditor({journey,stages,habits,toast,onRefresh,onCreate,jour
           </div>
         </div>
         <div className="jny-move">
-          <button disabled={i===0} onClick={()=>moveSt(i,-1)}>▲</button>
-          <button disabled={i===stages.length-1} onClick={()=>moveSt(i,1)}>▼</button>
+          <button disabled={i===0} onClick={()=>moveSt(i,-1)}><Icon name="chevU"/></button>
+          <button disabled={i===stages.length-1} onClick={()=>moveSt(i,1)}><Icon name="chevD"/></button>
         </div>
         <button className="jny-icobtn" onClick={()=>setSd(sd?.id===st.id&&!sd._new?null:{...st,substeps:subs,stage_habits:shs,_new:false})}><Icon name="pencil"/></button>
       </div>
@@ -7470,7 +7585,7 @@ function App(){
   return <>{view}{banner && <div className="msg-banner" onClick={()=>openChatFromBanner(banner)}>
     <div className="mb-av">{banner.avatar?<img src={banner.avatar} alt=""/>:initials(banner.name)}</div>
     <div className="mb-body"><div className="mb-name">{banner.name}</div><div className="mb-text">{banner.text}</div></div>
-    <button className="mb-x" onClick={(e)=>{e.stopPropagation();setBanner(null);}} aria-label="Schließen">×</button>
+    <button className="mb-x" onClick={(e)=>{e.stopPropagation();setBanner(null);}} aria-label="Schließen"><Icon name="x"/></button>
   </div>}{toastMsg && <div className="toast">{toastMsg}</div>}<ConfirmHost/></>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<Root/>);
