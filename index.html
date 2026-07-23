@@ -1389,6 +1389,7 @@
   .bc-photobtn svg{width:17px;height:17px;}
   .bc-photonote{text-align:center;font-size:11.5px;color:var(--faint);margin-top:7px;}
   .bc-photoerr{margin-top:10px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);color:#DC2626;border-radius:12px;padding:11px 13px;font-size:12.5px;line-height:1.5;}
+  .nut-layer{position:fixed;inset:0;}
 </style>
 </head>
 <body>
@@ -4314,8 +4315,20 @@ function NutPortal({children}){
   // Overlays MUESSEN aus dem Scroll-Container (.mbody) heraus gerendert werden.
   // Auf iOS wird position:fixed sonst relativ zum Scroll-Inhalt positioniert
   // (-webkit-overflow-scrolling:touch) -> Luecke oben, Inhalt abgeschnitten.
-  try{ if(typeof ReactDOM!=="undefined" && ReactDOM.createPortal && typeof document!=="undefined" && document.body){ return ReactDOM.createPortal(children, document.body); } }catch(e){}
-  return children;
+  //
+  // WICHTIG: Mehrere Overlays sind Geschwister im <body> mit gleichem z-index.
+  // Welches oben liegt, entscheidet allein die DOM-Reihenfolge. Starten zwei
+  // Overlays im selben Render (z.B. Datenbank + wiederhergestelltes Formular),
+  // kann das neuere DAHINTER landen und ist dann unsichtbar. Deshalb schiebt
+  // sich jede Ebene beim Öffnen ans Ende des <body>.
+  const layerRef=useRef(null);
+  useEffect(()=>{
+    const el=layerRef.current;
+    try{ if(el && el.parentNode===document.body) document.body.appendChild(el); }catch(e){}
+  },[]);
+  const node=<div className="nut-layer" ref={layerRef}>{children}</div>;
+  try{ if(typeof ReactDOM!=="undefined" && ReactDOM.createPortal && typeof document!=="undefined" && document.body){ return ReactDOM.createPortal(node, document.body); } }catch(e){}
+  return node;
 }
 
 function BarcodeScanner({onDetected,onClose,toast}){
