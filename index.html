@@ -1243,7 +1243,6 @@
   .nut-pick-edit svg{width:15px;height:15px;}
   .dash-trk-add{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:var(--on-accent);border:none;border-radius:9px;padding:7px 12px;font-weight:700;font-size:12.5px;cursor:pointer;}
   .dash-trk-add svg{width:14px;height:14px;}
-  .nut-page-top{position:sticky;top:0;z-index:2;}
   .nut-back{width:auto;min-width:38px;height:38px;padding:0 12px 0 8px;gap:3px;font-weight:700;font-size:14px;color:var(--text);}
   .nut-back span{font-size:13.5px;}
 </style>
@@ -4148,6 +4147,14 @@ async function uploadFoodImage(file){ const ext=(file.name.split(".").pop()||"jp
   const { error }=await window.supa.storage.from("food-images").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false}); if(error) throw error; return path; }
 function foodImgUrl(path){ if(!path) return ""; try{ const { data:pub }=window.supa.storage.from("food-images").getPublicUrl(path); return (pub&&pub.publicUrl)||""; }catch(e){ return ""; } }
 
+function NutPortal({children}){
+  // Overlays MUESSEN aus dem Scroll-Container (.mbody) heraus gerendert werden.
+  // Auf iOS wird position:fixed sonst relativ zum Scroll-Inhalt positioniert
+  // (-webkit-overflow-scrolling:touch) -> Luecke oben, Inhalt abgeschnitten.
+  try{ if(typeof ReactDOM!=="undefined" && ReactDOM.createPortal && typeof document!=="undefined" && document.body){ return ReactDOM.createPortal(children, document.body); } }catch(e){}
+  return children;
+}
+
 function BarcodeScanner({onDetected,onClose,toast}){
   const idRef=useRef("bcscan_"+Math.random().toString(36).slice(2));
   const scannerRef=useRef(null);
@@ -4165,7 +4172,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
     ).catch(()=>{ setErr("Kamera konnte nicht gestartet werden. Erlaube den Kamerazugriff in den Einstellungen oder gib den Code manuell ein."); });
     return ()=>{ stopped=true; try{ if(scannerRef.current){ scannerRef.current.stop().then(()=>scannerRef.current.clear()).catch(()=>{}); } }catch(e){} };
   },[]);
-  return <div className="nut-page">
+  return <NutPortal><div className="nut-page">
     <div className="nut-page-top">
       <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button>
       <div className="nut-page-title">Barcode scannen</div>
@@ -4175,19 +4182,19 @@ function BarcodeScanner({onDetected,onClose,toast}){
         : <div className="bcscan-wrap"><div id={idRef.current} className="bcscan-view"/></div>}
       <div className="enote" style={{fontSize:12,marginTop:12,textAlign:"center"}}>Halte den Barcode ruhig und mittig ins Bild.</div>
     </div>
-  </div>;
+  </div></NutPortal>;
 }
 
 function NutSheet({onClose,children,title,full,footer}){
-  if(full) return <div className="nut-page">
+  if(full) return <NutPortal><div className="nut-page">
     <div className="nut-page-top">
       <button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button>
       <div className="nut-page-title">{title}</div>
     </div>
     <div className="nut-page-body">{children}</div>
     {footer}
-  </div>;
-  return <>
+  </div></NutPortal>;
+  return <NutPortal>
     <div className="nut-ov" onClick={onClose}/>
     <div className="nut-bsheet">
       <div className="sheet-grab"/>
@@ -4197,7 +4204,7 @@ function NutSheet({onClose,children,title,full,footer}){
       </div>}
       {children}
     </div>
-  </>;
+  </NutPortal>;
 }
 
 // ---- Lebensmittel anlegen / bearbeiten ----
@@ -6635,7 +6642,7 @@ function AdminFoodDB({onClose,toast}){
   const ql=q.trim().toLowerCase();
   const fFoods=(foods||[]).filter(f=>!ql||f.name.toLowerCase().includes(ql)||(f.brand&&f.brand.toLowerCase().includes(ql))||(f.barcode&&String(f.barcode).includes(ql)));
   const fRecipes=(recipes||[]).filter(r=>!ql||r.name.toLowerCase().includes(ql));
-  return <div className="nut-page">
+  return <NutPortal><div className="nut-page">
     <div className="nut-page-top"><button className="nut-back" onClick={onClose} aria-label="Zurück"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span>Zurück</span></button><div className="nut-page-title">Ernährungs-Datenbank</div></div>
     <div className="nut-page-body">
       <div className="nut-segs"><button className={"nut-seg"+(sub==="foods"?" on":"")} onClick={()=>setSub("foods")}>Lebensmittel</button><button className={"nut-seg"+(sub==="recipes"?" on":"")} onClick={()=>setSub("recipes")}>Rezepte</button></div>
@@ -6663,7 +6670,7 @@ function AdminFoodDB({onClose,toast}){
     </div>
     {foodForm && <FoodForm initial={foodForm.initial} toast={toast} onClose={()=>setFoodForm(null)} onSaved={()=>{ setFoodForm(null); loadFoods(); }} onDeleted={()=>{ setFoodForm(null); loadFoods(); }}/>}
     {recForm && <RecipeForm initial={recForm.initial} toast={toast} onClose={()=>setRecForm(null)} onSaved={()=>{ setRecForm(null); loadRecipes(); }} onDeleted={()=>{ setRecForm(null); loadRecipes(); }}/>}
-  </div>;
+  </div></NutPortal>;
 }
 
 function AdminPanel({modes,onSwitch,onSignOut,theme,setTheme,toast}){
