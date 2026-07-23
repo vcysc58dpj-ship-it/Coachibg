@@ -1129,11 +1129,15 @@
   .nut-prev-macros div{display:flex;flex-direction:column;}
   .nut-prev-macros b{font-weight:700;font-size:15px;}
   .nut-prev-macros span{font-size:10.5px;color:var(--faint);}
-  .bcscan-wrap{position:relative;border-radius:18px;overflow:hidden;background:#0A0A0C;aspect-ratio:3/4;max-height:56vh;transition:box-shadow .3s;}
+  .bcscan-wrap{position:relative;border-radius:18px;overflow:hidden;background:#0A0A0C;min-height:210px;transition:box-shadow .3s;}
+  .bcscan-wrap.live{min-height:0;}
   .bcscan-wrap.ok{box-shadow:0 0 0 3px var(--ok),0 10px 40px rgba(21,129,74,.35);}
-  .bcscan-view{width:100%;height:100%;}
-  .bcscan-view video{width:100%!important;height:100%!important;object-fit:cover;display:block;}
-  .bc-frame{position:absolute;left:6%;right:6%;top:50%;transform:translateY(-50%);height:34%;pointer-events:none;}
+  .bcscan-view{width:100%;}
+  /* Kein object-fit:cover! Sonst zeigt die Vorschau einen anderen Ausschnitt
+     als der Decoder auswertet und breite Codes werden nie erkannt. */
+  .bcscan-view video{width:100%!important;height:auto!important;display:block;}
+  .bcscan-view canvas{display:none!important;}
+  .bc-frame{position:absolute;left:4%;right:4%;top:50%;transform:translateY(-50%);height:44%;pointer-events:none;}
   .bc-frame i{position:absolute;width:26px;height:26px;border:3px solid rgba(255,255,255,.95);border-radius:4px;}
   .bc-frame i:nth-child(1){top:0;left:0;border-right:none;border-bottom:none;border-radius:8px 0 0 0;}
   .bc-frame i:nth-child(2){top:0;right:0;border-left:none;border-bottom:none;border-radius:0 8px 0 0;}
@@ -4332,28 +4336,33 @@ function BarcodeScanner({onDetected,onClose,toast}){
     try{ scanner=new window.Html5Qrcode(idRef.current, ctorCfg); }
     catch(e){ try{ scanner=new window.Html5Qrcode(idRef.current); }catch(e2){ setErr("Scanner konnte nicht gestartet werden."); return; } }
     scannerRef.current=scanner;
-    // Breites, flaches Suchfeld — passend zur Form eines Barcodes
-    const qrbox=(vw,vh)=>{ const w=Math.max(180,Math.floor(vw*0.92)); const h=Math.max(90,Math.floor(Math.min(vh*0.55, w*0.45))); return {width:w,height:h}; };
-    const afterStart=async()=>{
+    // Kein qrbox: das GESAMTE Kamerabild wird ausgewertet.
+    // Ein Ausschnitt schneidet breite EAN-13-Codes ab -> werden nie erkannt.
+    const afterStart=()=>{
       setReady(true);
       try{
         const v=document.querySelector("#"+idRef.current+" video");
         const st=v&&v.srcObject; const tr=st&&st.getVideoTracks&&st.getVideoTracks()[0];
         if(tr){
           trackRef.current=tr;
-          // Höhere Auflösung nachträglich anfordern – hilft dem Decoder deutlich
-          try{ await tr.applyConstraints({width:{ideal:1920},height:{ideal:1080}}); }catch(e){}
           const caps=tr.getCapabilities?tr.getCapabilities():{};
           if(caps && ("torch" in caps)) setHasTorch(true);
         }
       }catch(e){}
     };
     const camFail=()=>setErr("Kamerazugriff nicht möglich. Erlaube die Kamera in den iPhone-Einstellungen unter Safari, oder gib den Code unten ein.");
+    // Auflösung VOR dem Start anfordern (nachträglich würde der Decoder-Bereich nicht mehr passen)
+    const cfgHi={ fps:10, videoConstraints:{ facingMode:"environment", width:{ideal:1280}, height:{ideal:720} } };
     try{
-      scanner.start({facingMode:"environment"}, {fps:15, qrbox},
+      scanner.start({facingMode:"environment"}, cfgHi,
         (decoded)=>{ finish(decoded); },
         ()=>{}
-      ).then(afterStart).catch(camFail);
+      ).then(afterStart).catch(()=>{
+        try{
+          scanner.start({facingMode:"environment"}, {fps:10}, (d)=>finish(d), ()=>{})
+            .then(afterStart).catch(camFail);
+        }catch(e){ camFail(); }
+      });
     }catch(e){ camFail(); }
     return ()=>{ doneRef.current=true; try{ if(scannerRef.current) scannerRef.current.stop().then(()=>{ try{scannerRef.current.clear();}catch(e){} }).catch(()=>{}); }catch(e){} };
   },[]);
@@ -4374,13 +4383,13 @@ function BarcodeScanner({onDetected,onClose,toast}){
     <div className="nut-page-body">
       {err
         ? <div className="mcard"><div className="muted" style={{fontSize:13.5,lineHeight:1.55}}>{err}</div></div>
-        : <div className={"bcscan-wrap"+(hit?" ok":"")}>
+        : <div className={"bcscan-wrap"+(hit?" ok":"")+(ready?" live":"")}>
             <div id={idRef.current} className="bcscan-view"/>
             <div className="bc-frame"><i/><i/><i/><i/>{!hit && ready && <span className="bc-line"/>}</div>
             {!ready && !hit && <div className="bc-status">Kamera wird gestartet…</div>}
             {hit && <div className="bc-found"><span className="bc-found-ic"><Icon name="check"/></span><b>Erkannt</b><code>{hit}</code></div>}
           </div>}
-      {!err && !hit && <div className="bc-hint">Halte den Barcode waagerecht und formatfüllend ins Feld.</div>}
+      {!err && !hit && <div className="bc-hint">Halte den Barcode waagerecht und möglichst bildfüllend vor die Kamera.</div>}
       <div className="bc-manual">
         <div className="ci-flabel" style={{marginBottom:6}}>Code manuell eingeben</div>
         <div style={{display:"flex",gap:8}}>
