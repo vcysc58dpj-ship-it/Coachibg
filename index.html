@@ -7439,7 +7439,8 @@ function App(){
   const [session,setSession]=useState(null);
   const [profile,setProfile]=useState(null); // {id,email,role,coach_id,display_name}
   const [role,setRole]=useState("coach");     // aktive Ansicht (coach kann zu client wechseln)
-  const [selfEdit,setSelfEdit]=useState(false); // Self-Coaching: false=Ansicht, true=Bearbeiten
+  const [selfEdit,setSelfEdit]=useState(()=>!!uiGet("selfEdit",false)); // Self-Coaching: false=Ansicht, true=Bearbeiten
+  useEffect(()=>{ uiSet("selfEdit", selfEdit?1:null); },[selfEdit]);
   const [data,setData]=useState(SEED);
   const [openCid,setOpenCid]=useState(null);
   const cidFirstRef=useRef(true);
@@ -7633,7 +7634,15 @@ function App(){
       }
       setProfile(prof);
       const acct = (prof.account_type==="self_coach") ? "self_coach" : (prof.role==="client" ? "client" : "coach");
-      setRole(acct);
+      // Zuletzt genutzte Ansicht wiederherstellen – SICHERHEIT: nur wenn dieses
+      // Konto sie überhaupt haben darf (ein Kunde bekommt NIE Coach/Admin).
+      const allowed=[];
+      if(prof.is_admin===true || prof.role==="admin") allowed.push("admin");
+      if(prof.account_type==="coach" || prof.role==="coach" || prof.role==="admin") allowed.push("coach");
+      if(prof.self_coach || prof.account_type==="self_coach") allowed.push("self_coach");
+      if(prof.account_type==="client" && prof.role==="client" && !prof.self_coach) allowed.push("client");
+      const savedRole=uiGet("role",null);
+      setRole((savedRole && allowed.indexOf(savedRole)>=0) ? savedRole : acct);
       const needsSetup = prof && (prof.onboarded===false || (prof.email||"").endsWith(LOGIN_DOMAIN));
       if(acct==="self_coach"){
         setScreen(needsSetup ? "onboarding" : "app");   // Self-Coach: Profil-Setup ja, aber KEIN Anamnese-Gate
@@ -7700,7 +7709,7 @@ function App(){
   };
 
   const signOut=async()=>{ if(live){ try{ await window.supa.auth.signOut(); }catch(e){} } setOpenCid(null); setProfile(null); setSession(null); setScreen("auth"); };
-  const switchRole=(r)=>{ setRole(r); if(r!=="coach") setOpenCid(null); };
+  const switchRole=(r)=>{ setRole(r); uiSet("role",r); if(r!=="coach"){ setOpenCid(null); uiSet("openCid",null); } };
 
   // Kunden-Account über die Edge Function anlegen (nur Coach/Admin)
   // Wir nutzen supa.functions.invoke: hängt das Login-Token korrekt an und umgeht CORS-Fallstricke.
