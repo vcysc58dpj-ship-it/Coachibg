@@ -1245,6 +1245,17 @@
   .dash-trk-add svg{width:14px;height:14px;}
   .nut-back{width:auto;min-width:38px;height:38px;padding:0 12px 0 8px;gap:3px;font-weight:700;font-size:14px;color:var(--text);}
   .nut-back span{font-size:13.5px;}
+  /* Bestätigungs-Dialog über allen Ernährungs-Fenstern */
+  .cdlg-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:400;animation:fade .18s ease;}
+  .cdlg{z-index:401;}
+  /* Echte Lösch-Buttons */
+  .nut-delbtn{width:100%;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:1.5px solid #DC2626;color:#DC2626;border-radius:14px;padding:14px;font-weight:700;font-size:14.5px;cursor:pointer;}
+  .nut-delbtn:active{background:rgba(220,38,38,.09);}
+  .nut-delbtn svg{width:17px;height:17px;}
+  /* Coach-Hinweis (nur beobachtend) */
+  .nut-ro{display:flex;align-items:center;gap:9px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:13px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--dim);}
+  .nut-ro svg{width:16px;height:16px;flex-shrink:0;}
+  .nut-check-row.ro{cursor:default;opacity:.85;}
 </style>
 </head>
 <body>
@@ -1454,6 +1465,7 @@ function Icon({name}){
     wheat:<g {...s}><path d="M12 22V10"/><path d="M12 10C12 7 10.2 5.2 7.7 5.2 7.7 8 9.5 10 12 10z"/><path d="M12 10c0-3 1.8-4.8 4.3-4.8C16.3 8 14.5 10 12 10z"/><path d="M12 15c0-2.6-1.7-4.3-4-4.3C8 13.3 9.7 15 12 15z"/><path d="M12 15c0-2.6 1.7-4.3 4-4.3C16 13.3 14.3 15 12 15z"/></g>,
     droplet:<g {...s}><path d="M12 3.5c2.8 3.8 5 6.1 5 9.4a5 5 0 0 1-10 0c0-3.3 2.2-5.6 5-9.4z"/></g>,
     scan:<g {...s}><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8" strokeWidth="1.6"/></g>,
+    eye:<g {...s}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g>,
     plus:<g {...s}><path d="M12 5v14M5 12h14"/></g>,
     more:<g fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></g>,
     bell:<g {...s}><path d="M6 9.5a6 6 0 0 1 12 0c0 4 1.6 5.5 2 6H4c.4-.5 2-2 2-6z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></g>,
@@ -4275,7 +4287,7 @@ function FoodForm({initial,onSaved,onClose,onDeleted,toast,presetBarcode}){
     </div>)}
     <button className="jny-addsub" style={{marginBottom:14}} onClick={()=>setPorts(a=>[...a,{label:"",grams:""}])}>+ Portion</button>
     <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(initial?"Speichern":"Hinzufügen")}</button>
-    {initial && <button className="pe-exdel" style={{marginTop:10}} onClick={del}>Aus Datenbank löschen</button>}
+    {initial && <button className="nut-delbtn" onClick={del}><Icon name="trash"/>Aus Datenbank löschen</button>}
     {scanOpen && <BarcodeScanner toast={toast} onClose={()=>setScanOpen(false)} onDetected={(code)=>{ setBarcode(code); setScanOpen(false); toast("Barcode erfasst: "+code); }}/>}
   </NutSheet>;
 }
@@ -4334,7 +4346,7 @@ function RecipeForm({initial,onSaved,onClose,onDeleted,toast}){
       <div className="nut-recsum-macros"><span>E {nutR1(fullMac.protein)}g</span><span>K {nutR1(fullMac.carbs)}g</span><span>F {nutR1(fullMac.fat)}g</span></div>
     </div>
     <button className="btn" disabled={busy} onClick={save}>{busy?"Speichert…":(initial?"Speichern":"Rezept anlegen")}</button>
-    {initial && <button className="pe-exdel" style={{marginTop:10}} onClick={del}>Rezept löschen</button>}
+    {initial && <button className="nut-delbtn" onClick={del}><Icon name="trash"/>Rezept löschen</button>}
     {pickOpen && <NutPicker toast={toast} foodsOnly onCreateFood={()=>{ setPickOpen(false); setNewFoodOpen(true); }} onClose={()=>setPickOpen(false)} onPick={(item)=>{ setIngs(a=>[...a,{food:item.food,grams:""}]); setPickOpen(false); }}/>}
     {newFoodOpen && <FoodForm toast={toast} onClose={()=>{ setNewFoodOpen(false); setPickOpen(true); }} onSaved={()=>{ setNewFoodOpen(false); setPickOpen(true); }}/>}
   </NutSheet>;
@@ -4446,7 +4458,7 @@ function EditEntrySheet({entry,meals,toast,onClose,onSave,onDelete}){
       {meals.map(m=><button key={m.id} className={"nut-mealchip"+(meal===m.name?" on":"")} onClick={()=>setMeal(m.name)}>{m.name}</button>)}
     </div>
     <button className="btn" disabled={!(parseFloat(grams)>0)} onClick={()=>onSave(grams,meal)}>Speichern</button>
-    <button className="pe-exdel" style={{marginTop:10}} onClick={onDelete}>Eintrag löschen</button>
+    <button className="nut-delbtn" onClick={onDelete}><Icon name="trash"/>Eintrag löschen</button>
   </NutSheet>;
 }
 
@@ -4477,7 +4489,7 @@ function MealManager({clientId,meals,onClose,onChanged,toast}){
   </NutSheet>;
 }
 
-function NutritionTracking({clientId,role,toast,onConfig}){
+function NutritionTracking({clientId,role,readOnly,toast,onConfig}){
   const [sub,setSub]=useState("diary"); // diary | db | recipes
   const [date,setDate]=useState(today());
   const [meals,setMeals]=useState([]);
@@ -4582,6 +4594,8 @@ function NutritionTracking({clientId,role,toast,onConfig}){
       })}</div>
     </div>
 
+    {readOnly && <div className="nut-ro"><Icon name="eye"/>Beobachtungs-Modus: Du siehst das Tagebuch deines Kunden, kannst es aber nicht verändern.</div>}
+
     <div className="nut-hero">
       <div className="nut-hero-krow">
         <div className="nut-hero-kcal">{nutR(dayTot.kcal)}<em>{targets&&targets.kcal?" / "+targets.kcal+" kcal":" kcal"}</em></div>
@@ -4599,7 +4613,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
     {checksOn && checkItems.length>0 && <div className="nut-checkcard">
       <div className="nut-check-h">Checkliste</div>
       {checkItems.map(it=>{ const done=!!checkDone[it.id];
-        return <button key={it.id} className={"nut-check-row"+(done?" done":"")} onClick={()=>toggleCheck(it.id)}>
+        return <button key={it.id} className={"nut-check-row"+(done?" done":"")+(readOnly?" ro":"")} disabled={readOnly} onClick={()=>{ if(!readOnly) toggleCheck(it.id); }}>
           <span className="nut-check-box">{done?<Icon name="habits"/>:null}</span>
           <span className="nut-check-name">{it.name}</span>
         </button>;
@@ -4615,7 +4629,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
             : <span className="nut-mealcard-name">{m.name}</span>}
           <div className="nut-mealhead-right">
             {list.length>0 && renamingMeal!==m.id && <span className="nut-mealcard-kcal">{nutR(mt)} kcal</span>}
-            <div className="pe-daymenu-wrap">
+            {!readOnly && <div className="pe-daymenu-wrap">
               <button className="nut-mc-menu" onClick={()=>setMealMenu(mealMenu===m.id?null:m.id)} aria-label="Optionen"><Icon name="more"/></button>
               {mealMenu===m.id && <>
                 <div className="pe-menuscrim" onClick={()=>setMealMenu(null)}/>
@@ -4626,18 +4640,18 @@ function NutritionTracking({clientId,role,toast,onConfig}){
                   <button className="pe-menu-del" onClick={()=>{ setMealMenu(null); delMeal(m); }}>Löschen</button>
                 </div>
               </>}
-            </div>
+            </div>}
           </div>
         </div>
         {list.map(e=>{ const isRec=e.item_type==="recipe"; const open=expandedEntry.has(e.id); const bd=breakdowns[e.id];
           return <div key={e.id} className="nut-entrywrap">
             <div className="nut-entry">
-              <div className="nut-entry-main" onClick={()=>setAmount({edit:e})}>
+              <div className="nut-entry-main" style={readOnly?{cursor:"default"}:null} onClick={()=>{ if(!readOnly) setAmount({edit:e}); }}>
                 <div className="nut-entry-name">{e.name}{isRec&&<span className="nut-rec-tag">Rezept</span>}</div>
                 <div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal · E{nutR1(e.protein)} K{nutR1(e.carbs)} F{nutR1(e.fat)}</div>
               </div>
               {isRec && <button className={"nut-entry-exp"+(open?" open":"")} onClick={()=>toggleEntry(e)} aria-label="Zutaten">{CHEV}</button>}
-              <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>
+              {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>}
             </div>
             {isRec && open && <div className="nut-bd">
               {!bd ? <div className="muted" style={{fontSize:12,padding:"4px 2px"}}>Lädt…</div>
@@ -4646,26 +4660,26 @@ function NutritionTracking({clientId,role,toast,onConfig}){
             </div>}
           </div>;
         })}
-        <button className="nut-addentry" onClick={()=>setPicker({presetMeal:m.name})}><Icon name="plus"/>Hinzufügen</button>
+        {!readOnly && <button className="nut-addentry" onClick={()=>setPicker({presetMeal:m.name})}><Icon name="plus"/>Hinzufügen</button>}
       </div>;
     })}
     {entries!==null && orphanMeals.map(mn=>{ const list=groupOf(mn); const mt=list.reduce((a,e)=>a+(e.kcal||0),0);
       return <div key={mn} className="nut-mealcard">
         <div className="nut-mealcard-head"><span className="nut-mealcard-name">{mn}</span><span className="nut-mealcard-kcal">{nutR(mt)} kcal</span></div>
         {list.map(e=><div key={e.id} className="nut-entrywrap"><div className="nut-entry">
-          <div className="nut-entry-main" onClick={()=>setAmount({edit:e})}><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
-          <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>
+          <div className="nut-entry-main" style={readOnly?{cursor:"default"}:null} onClick={()=>{ if(!readOnly) setAmount({edit:e}); }}><div className="nut-entry-name">{e.name}</div><div className="nut-entry-sub">{nutR(e.grams)} g · {nutR(e.kcal)} kcal</div></div>
+          {!readOnly && <button className="nut-entry-del" onClick={()=>delEntry(e.id,e.name)} aria-label="Löschen">×</button>}
         </div></div>)}
       </div>;
     })}
 
-    {addMealOpen
+    {!readOnly && (addMealOpen
       ? <div className="mcard" style={{padding:14,display:"flex",gap:8,alignItems:"center"}}>
           <input className="setinput" value={newMeal} onChange={ev=>setNewMeal(ev.target.value)} placeholder="z.B. Frühstück 2" autoFocus onKeyDown={ev=>{ if(ev.key==="Enter") addMealSlot(); }}/>
           <button className="btn" style={{width:"auto",padding:"11px 18px",flexShrink:0}} onClick={addMealSlot}>Hinzufügen</button>
           <button className="jny-sub-del" onClick={()=>{ setAddMealOpen(false); setNewMeal(""); }}>×</button>
         </div>
-      : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Mahlzeit hinzufügen</button>}
+      : <button className="nut-addmeal" onClick={()=>setAddMealOpen(true)}><Icon name="plus"/>Mahlzeit hinzufügen</button>)}
 
     {mealMgrOpen && <MealManager clientId={clientId} meals={meals} toast={toast} onClose={()=>setMealMgrOpen(false)} onChanged={loadMeals}/>}
     {picker && <NutPicker toast={toast} onScanNotFound={(code)=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({presetBarcode:code, reopenMeal:pm}); }} onCreateFood={()=>{ const pm=picker.presetMeal; setPicker(null); setFoodForm({reopenMeal:pm}); }} onCreateRecipe={()=>{ const pm=picker.presetMeal; setPicker(null); setRecForm({reopenMeal:pm}); }} onEditRecipe={async(r)=>{ const pm=picker.presetMeal; setPicker(null); try{ const {data:ri}=await window.supa.from("recipe_ingredients").select("grams,food_id,position").eq("recipe_id",r.id).order("position",{ascending:true}); const ids=[...new Set((ri||[]).map(x=>x.food_id))]; let fmap={}; if(ids.length){ const {data:fs}=await window.supa.from("foods").select("id,name,kcal,protein,carbs,fiber,sugar,fat").in("id",ids); (fs||[]).forEach(f=>fmap[f.id]=f); } setRecForm({initial:{...r,ingredients:(ri||[]).map(x=>({food:fmap[x.food_id]||{name:"?"},grams:x.grams}))}, reopenMeal:pm}); }catch(e){ setRecForm({initial:{...r,ingredients:[]}, reopenMeal:pm}); } }} onClose={()=>setPicker(null)} onPick={(item)=>{ setAmount({item,presetMeal:picker.presetMeal}); setPicker(null); }}/>}
@@ -4678,7 +4692,7 @@ function NutritionTracking({clientId,role,toast,onConfig}){
 
 
 
-function LiveFoodTab({clientId,role,toast}){
+function LiveFoodTab({clientId,role,selfMode,toast}){
   const t=today();
   const [settings,setSettings]=useState(null);
   const [checklist,setChecklist]=useState([]);
@@ -4755,7 +4769,7 @@ function LiveFoodTab({clientId,role,toast}){
   if(settings===null) return <div className="mbody"><div className="muted">Lädt…</div></div>;
   const macrosOn=settings.macros_enabled, checksOn=settings.checks_enabled, mealsOn=settings.meals_enabled;
   const canTrack = settings.tracking_enabled!==false;
-  if(foodView==="track" && canTrack) return <NutritionTracking clientId={clientId} role={role} toast={toast} onConfig={()=>setFoodView("config")}/>;
+  if(foodView==="track" && canTrack) return <NutritionTracking clientId={clientId} role={role} readOnly={role==="coach" && !selfMode} toast={toast} onConfig={()=>setFoodView("config")}/>;
 
   // Punkte unter Tagen: Tag hat Makro-Eintrag, gesetztes Häkchen oder Mahlzeit
   const dots={}; weekDates.forEach(d=>{ const hasM=logs[d]&&logs[d].kcal!=null; const hasC=checks[d]&&Object.keys(checks[d]).length; const hasMl=(meals[d]||[]).length>0; if(hasM||hasC||hasMl) dots[d]=true; });
@@ -5210,7 +5224,7 @@ function ConfirmHost(){
   if(!st) return null;
   const close=(val)=>{ const r=st._resolve; setSt(null); if(r) r(val); };
   return <>
-    <div className="scrim" onClick={()=>close(false)}/>
+    <div className="cdlg-ov" onClick={()=>close(false)}/>
     <div className="cdlg" role="dialog" aria-modal="true">
       {st.title && <div className="cdlg-t">{st.title}</div>}
       <div className="cdlg-m">{st.message}</div>
@@ -5946,7 +5960,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   else if(tab==="checkin") content=(live && clientId) ? <LiveCheckinTab clientId={clientId} role={viewerRole} toast={toast}/> : <CheckinTab cdata={cdata} upd={upd} role={viewerRole} name={name} toast={toast}/>;
   else if(tab==="habits") content=(live && clientId) ? <LiveHabitsTab clientId={clientId} role={viewerRole} toast={toast}/> : <HabitsTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
   else if(tab==="plan") content=(live && clientId) ? <LivePlanTab clientId={clientId} role={viewerRole} toast={toast}/> : <PlanTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
-  else if(tab==="food") content=(live && clientId) ? <LiveFoodTab clientId={clientId} role={viewerRole} toast={toast}/> : <FoodTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
+  else if(tab==="food") content=(live && clientId) ? <LiveFoodTab clientId={clientId} role={viewerRole} selfMode={selfMode} toast={toast}/> : <FoodTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
   else if(tab==="weight") content=(live && clientId) ? <LiveWeightTab clientId={clientId} role={viewerRole} toast={toast}/> : <WeightTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
   else if(tab==="cloud") content=(clientId) ? <LiveCloudTab clientId={clientId} role={viewerRole} toast={toast}/> : <CloudTab cdata={cdata} upd={upd} role={viewerRole} name={name} shared={shared} addShared={addShared} delShared={delShared} toast={toast}/>;
   else if(tab==="journey") content=(live && clientId) ? <JourneyTab clientId={clientId} role={viewerRole} toast={toast}/> : null;
