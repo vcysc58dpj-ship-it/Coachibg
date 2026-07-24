@@ -1437,6 +1437,7 @@ const { useState, useRef, useEffect } = React;
 // iOS beendet PWAs im Hintergrund oft schon nach Sekunden. Ein Kaltstart
 // lässt sich nicht verhindern – aber wir landen wieder da, wo wir waren.
 const NK_UI="nk_ui_state";
+let NK_REOPEN_DONE=false;
 function uiAll(){ try{ return JSON.parse(localStorage.getItem(NK_UI)||"{}")||{}; }catch(e){ return {}; } }
 function uiGet(k,d){ try{ const o=uiAll(); return (k in o)?o[k]:d; }catch(e){ return d; } }
 function uiSet(k,v){ try{ const o=uiAll(); if(v===undefined||v===null||v==="") delete o[k]; else o[k]=v; localStorage.setItem(NK_UI,JSON.stringify(o)); }catch(e){} }
@@ -1707,7 +1708,14 @@ function ChatTab({cdata,upd,role}){
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
   const mrRef=useRef(null), chunksRef=useRef([]), timerRef=useRef(null), streamRef=useRef(null), secsRef=useRef(0);
   const msgs=cdata.messages;
-  useEffect(()=>{ endRef.current && endRef.current.scrollIntoView({behavior:"smooth"}); },[msgs.length]);
+  // NICHT scrollIntoView: das scrollt ALLE übergeordneten Container mit –
+  // auf iOS also die ganze App-Hülle, während die Tastatur animiert.
+  // Stattdessen gezielt nur den tatsächlichen Scroll-Container bewegen.
+  const scrollEnd=()=>{ const el=endRef.current; if(!el) return;
+    let p=el.parentElement;
+    while(p && p.scrollHeight<=p.clientHeight+1) p=p.parentElement;
+    if(p) p.scrollTop=p.scrollHeight; };
+  useEffect(()=>{ scrollEnd(); },[msgs.length]);
   useEffect(()=>()=>{ if(timerRef.current) clearInterval(timerRef.current); if(streamRef.current) streamRef.current.getTracks().forEach(t=>t.stop()); },[]);
   const pushMsg=(extra)=>upd(c=>({...c,messages:[...c.messages,{id:nid(),from:role,ts:Date.now(),...extra}]}));
   const send=()=>{ const b=text.trim(); if(!b) return; pushMsg({kind:"text",body:b}); setText(""); if(taRef.current){taRef.current.style.height="auto";taRef.current.focus();} };
@@ -2088,7 +2096,9 @@ function LiveChatTab({clientId,role,toast}){
   useEffect(()=>{
     const vv=window.visualViewport; if(!vv) return;
     let raf=0;
-    const onResize=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{ if(endRef.current) endRef.current.scrollIntoView({block:"end"}); }); };
+    const onResize=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(()=>{
+      const c=listRef.current; if(c) c.scrollTop=c.scrollHeight;   // nur die Liste, nie die Seite
+    }); };
     vv.addEventListener("resize",onResize);
     return ()=>{ vv.removeEventListener("resize",onResize); cancelAnimationFrame(raf); };
   },[]);
@@ -6198,8 +6208,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   const [tab,setTab]=useState(()=>{
     try{ const p=new URLSearchParams(window.location.search); if(p.get("open")==="chat"){ window.history.replaceState({},"","/"); return "chat"; } }catch(_){}
     const saved=uiGet(wsKey,null); if(saved) return saved;
-    if(selfMode) return "home";
-    return viewerRole==="coach"?"chat":"home";
+    return "home";
   });
   useEffect(()=>{ uiSet(wsKey,tab); },[tab,wsKey]);
   const [menu,setMenu]=useState(false);
@@ -6354,7 +6363,11 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
     {(callState==="calling"||callState==="connected") && <VideoCallOverlay localStream={localStream} remoteStream={remoteStream} partnerName={callPartner?.name||partner.name} callState={callState} muted={muted} frontCam={frontCam} onEnd={vcEnd} onMute={vcToggleMute} onFlipCam={vcFlipCam}/>}
     {callState==="incoming" && <IncomingCallBanner from={callPartner?.name||"Anruf"} fromAvatar={callPartner?.avatar} onAccept={vcAccept} onReject={vcReject}/>}
     <div className="topbar">
-      {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" onClick={onBack || (()=>setTab("home"))}><Icon name="chevL"/></button>}
+      {(onBack || (viewerRole==="client" && tab==="chat")) && <button className="back" aria-label="Zurück" onClick={()=>{
+        // Aus einem Unterbereich zurück aufs Kunden-Dashboard, von dort erst raus.
+        if(tab!=="home"){ setTab("home"); return; }
+        if(onBack) onBack(); else setTab("home");
+      }}><Icon name="chevL"/></button>}
       <div className="lead">
         {selfMode
           ? <span className="ttl">Self-Coaching</span>
@@ -6383,10 +6396,14 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   const [bc,setBc]=useState(false);
   const [showCreate,setShowCreate]=useState(false);
   const [clients,setClients]=useState(null);
-  const reopenedRef=useRef(false);
-  const wantCidRef=useRef(uiGet("openCid",null)); // beim Mount sichern
-  useEffect(()=>{ if(reopenedRef.current||!clients) return; const want=wantCidRef.current; if(!want) return; reopenedRef.current=true;
+  // Nur einmal pro App-Start wiederherstellen. Sonst würde der Zurück-Button
+  // den Kunden sofort wieder öffnen, weil CoachHome dabei neu aufgebaut wird.
+  const wantCidRef=useRef(NK_REOPEN_DONE?null:uiGet("openCid",null));
+  useEffect(()=>{ if(NK_REOPEN_DONE||!clients) return; NK_REOPEN_DONE=true;
+    const want=wantCidRef.current; if(!want) return;
     const c=clients.find(x=>x&&x.id===want); if(c&&onOpen) onOpen(c); },[clients]);
+  // Kunde per Antippen öffnen -> immer beim Dashboard starten
+  const openClient=(c)=>{ uiSet("wsTab_coach",null); if(onOpen) onOpen(c); };
   const [meId,setMeId]=useState(null);
   const [me,setMe]=useState({name:"Coach",avatar:""});
   const [err,setErr]=useState(null);
@@ -6430,7 +6447,7 @@ function CoachHome({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,onBroadcas
   else if(tab==="clients"){ const act=(clients||[]).filter(c=>c.active!==false); const inact=(clients||[]).filter(c=>c.active===false);
     const Row=(c)=>{ const nm=c.display_name||c.email||"Kunde";
       return <div key={c.id} className="clientrow">
-        <button className="cr-tap" onClick={()=>onOpen(c)}>
+        <button className="cr-tap" onClick={()=>openClient(c)}>
           <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
           <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
             <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
@@ -6527,7 +6544,7 @@ function CoachDashboard({clients,onOpen,toast,unread,onChat}){
     {clients===null && <div className="muted">Lädt…</div>}
     {clients!==null && due.length===0 && <div className="mcard"><div className="muted">Kein Kunde hat an diesem Tag Check-in.</div></div>}
     {due.map(c=>{ const nm=c.display_name||c.email||"Kunde";
-      return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
+      return <button key={c.id} className="clientrow" onClick={()=>openClient(c)}>
         <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
         <div style={{flex:1,minWidth:0}}><div className="nm">{nm}</div><div className="sub">Check-in fällig</div></div>
         <div className="chev"><Icon name="chevR"/></div></button>;
@@ -6542,7 +6559,7 @@ function CoachChatList({clients,onOpen,unreadByClient}){
     {clients===null && <div className="muted">Lädt…</div>}
     {clients!==null && clients.length===0 && <div className="muted">Noch keine Kunden.</div>}
     {(clients||[]).map(c=>{ const nm=c.display_name||c.email||"Kunde"; const n=ub[c.id]||0;
-      return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
+      return <button key={c.id} className="clientrow" onClick={()=>openClient(c)}>
         <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
         <div style={{flex:1,minWidth:0}}><div className="nm">{nm}</div><div className="sub">{n>0?(n===1?"1 neue Nachricht":n+" neue Nachrichten"):"Chat öffnen"}</div></div>
         {n>0 ? <span className="unread-badge">{n}</span> : <div className="chev"><Icon name="chevR"/></div>}</button>;
@@ -6586,7 +6603,7 @@ function CoachClientListLive({onOpen,onCreate,onSwitch,onSignOut,theme,setTheme,
           <div className="muted">Lege deinen ersten Coachee an – er erscheint dann automatisch hier.</div>
         </div>}
       {clients && clients.map(c=>{ const nm=c.display_name||c.email||"Kunde";
-        return <button key={c.id} className="clientrow" onClick={()=>onOpen(c)}>
+        return <button key={c.id} className="clientrow" onClick={()=>openClient(c)}>
           <div className="avatar">{c.avatar_url?<img src={c.avatar_url} alt=""/>:initials(nm)}</div>
           <div style={{flex:1,minWidth:0}}><div className="nm">{nm}{c.onboarded===false?<span className="badge" style={{marginLeft:8}}>Neu</span>:null}</div>
             <div className="sub" style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.onboarded===false?"Profil noch nicht eingerichtet":(c.email||"")}</div></div>
@@ -7872,7 +7889,7 @@ function App(){
   else if(role==="admin") view=<AdminPanel modes={modes} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} toast={toast}/>;
   else if(role==="self_coach"){ const myId=profile&&profile.id; const myName=(profile&&(profile.display_name||profile.email))||"Ich"; const _baseSelf={plan:true,food:true,habits:true,checkin:true,weight:true,journey:true,chat:false,cloud:false,call:false}; const selfTools=(profile&&profile.account_type==="self_coach")?{..._baseSelf,...((profile&&profile.tools)||{})}:_baseSelf; const cd={...data["tim"], name:myName, avatarUrl:(profile&&profile.avatar_url)||data["tim"].avatarUrl}; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole={selfEdit?"coach":"client"} selfMode={true} selfEdit={selfEdit} onToggleSelfEdit={()=>setSelfEdit(e=>!e)} name={myName} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={myId} onRefresh={refreshProfile} modes={modes} mode={"self_coach"} onMode={switchRole} tools={selfTools}/>; }
   else if(role==="client"){ const cid="tim"; const realName=(profile&&(profile.display_name||profile.email))||data[cid].name; const cd={...data[cid], name:realName, avatarUrl:(profile&&profile.avatar_url)||data[cid].avatarUrl}; view=<ClientWorkspace cid={cid} cdata={cd} upd={(fn)=>updClient(cid,fn)} viewerRole="client" name={realName} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={profile&&profile.id} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={profile&&profile.tools} unread={unread}/>; }
-  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>setOpenCid(null)} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools} canCall={!(profile&&profile.tools&&profile.tools.call===false)}/>; }
+  else if(openCid){ const nm=(openCid.display_name||openCid.email||data[openCid]&&data[openCid].name)||"Kunde"; const cd=data["tim"]; view=<ClientWorkspace cid={"tim"} cdata={cd} upd={(fn)=>updClient("tim",fn)} viewerRole="coach" name={nm} onBack={()=>{ uiSet("openCid",null); uiSet("wsTab_coach",null); setOpenCid(null); }} onSwitch={switchRole} onSignOut={signOut} toast={toast} theme={theme} setTheme={setTheme} shared={shared} addShared={addShared} delShared={delShared} live={live} clientId={openCid&&openCid.id} partnerAvatar={openCid&&openCid.avatar_url} onRefresh={refreshProfile} modes={modes} mode={role} onMode={switchRole} tools={openCid&&openCid.tools} canCall={!(profile&&profile.tools&&profile.tools.call===false)}/>; }
   else if(live) view=<CoachHome onOpen={setOpenCid} onCreate={createClientAccount} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast} toast={toast} onRefresh={refreshProfile} modes={modes} mode={"coach"} onMode={switchRole} unread={unread} unreadByClient={unreadByClient}/>;
   else view=<CoachClientList clients={CLIENT_IDS.map(id=>({id,name:data[id].name}))} data={data} onOpen={setOpenCid} onInvite={()=>{}} invite={null} onCopy={copy} viewerRole={role} onSwitch={switchRole} onSignOut={signOut} theme={theme} setTheme={setTheme} onBroadcast={broadcast}/>;
 
