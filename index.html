@@ -97,9 +97,9 @@
   .mine{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-bottom-right-radius:5px;}
   .theirs{align-self:flex-start;background:var(--bg-3);color:var(--text);border:1px solid var(--line);border-bottom-left-radius:5px;}
   .composer{display:flex;gap:9px;align-items:flex-end;padding:10px 12px max(10px, env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);}
-  .kb-open .composer{padding-bottom:8px;margin-bottom:var(--kb,0px);}
-  .kb-open .mbody,.kb-open .anwiz-body{padding-bottom:calc(var(--kb,0px) + 28px);}
-  .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;padding-bottom:calc(var(--kb,0px) + 20px);}
+  .kb-open .composer{padding-bottom:8px;margin-bottom:0;}
+  .kb-open .mbody,.kb-open .anwiz-body{padding-bottom:28px;}
+  .kb-open .center{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:24px;padding-bottom:20px;}
   .kb-open .anwiz-foot{padding-bottom:12px;}
   .composer textarea{flex:1;resize:none;background:var(--bg-3);border:1px solid var(--line);color:var(--text);font-size:16px;
     line-height:1.4;padding:11px 13px;border-radius:16px;max-height:120px;outline:none;overflow-y:auto;overscroll-behavior:contain;}
@@ -1705,20 +1705,6 @@ function MsgBubble({m,mine}){
   else inner=m.body;
   return <div className={"bubble "+(mine?"mine":"theirs")+(isMedia?" media":"")}>{inner}<span className="t">{fmtTime(m.ts)}</span></div>;
 }
-function kbPreLift(){
-  // iOS scrollt beim Fokus SOFORT, unser Anheben käme erst mit dem
-  // Größenänderungs-Ereignis -> beides addiert sich und die Leiste springt
-  // zu weit hoch. Deshalb die bekannte Tastaturhöhe sofort anwenden.
-  try{
-    // Beim ersten Antippen ist die echte Höhe noch unbekannt -> Schätzwert
-    // aus der Bildschirmhöhe (iPhone-Tastatur liegt bei rund 36 %).
-    let h=window.__kbH;
-    if(!h||h<120){ h=Math.round(Math.min(Math.max(window.innerHeight*0.36,260),360)); }
-    const r=document.documentElement;
-    r.style.setProperty("--kb", h+"px");
-    r.classList.add("kb-open");
-  }catch(e){}
-}
 function ChatTab({cdata,upd,role}){
   const [text,setText]=useState(""); const endRef=useRef(null), taRef=useRef(null);
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
@@ -1765,7 +1751,7 @@ function ChatTab({cdata,upd,role}){
       {isCoach && <label className="attach" title="Foto oder Video"><Icon name="photo"/><input type="file" accept="image/*,video/*" onChange={onPickMedia}/></label>}
       {recording
         ? <div className="recbar"><span className="recdot"/>Aufnahme… {fmtDur(recSecs)}</div>
-        : <textarea ref={taRef} rows="1" value={text} placeholder="Nachricht…" onFocus={kbPreLift} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>}
+        : <textarea ref={taRef} rows="1" value={text} placeholder="Nachricht…" onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>}
       {(isCoach && !text.trim())
         ? <button className={"mic"+(recording?" rec":"")} onClick={recording?stopRec:startRec} aria-label="Sprachnachricht">{recording?<span className="recdot"/>:<Icon name="mic"/>}</button>
         : <button className="send" onClick={send} disabled={!text.trim()}><Icon name="send"/></button>}
@@ -2190,7 +2176,7 @@ function LiveChatTab({clientId,role,toast}){
           </>
         : <>
             <label className="attach" title="Foto oder Video"><Icon name="photo"/><input type="file" accept="image/*,video/*" onChange={onPickMedia}/></label>
-            <textarea ref={taRef} rows="1" value={text} placeholder={busy?"Lädt…":"Nachricht…"} onFocus={kbPreLift} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
+            <textarea ref={taRef} rows="1" value={text} placeholder={busy?"Lädt…":"Nachricht…"} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
             {(!text.trim())
               ? <button className="mic" onClick={startRec} aria-label="Sprachnachricht"><Icon name="mic"/></button>
               : <button className="send" onClick={send} disabled={!text.trim()||busy}><Icon name="send"/></button>}
@@ -7704,7 +7690,11 @@ function App(){
       const vh=vv?vv.height:window.innerHeight;
       maxVH=Math.max(maxVH, vh); // volle sichtbare Höhe (Tastatur zu) = größter Wert
       const kbOpen=(maxVH - vh > 120);
-      root.style.setProperty("--vh", maxVH+"px"); // volle Höhe -> Body deckt immer den Schirm -> keine schwarze Lücke
+      // Tastatur ZU: volle Höhe (verhindert eine kurze schwarze Lücke beim Schließen).
+      // Tastatur AUF: exakt die sichtbare Höhe -> die Eingabeleiste sitzt von
+      // selbst direkt über der Tastatur. Kein Nachschieben per Rand nötig,
+      // und iOS hat nichts mehr zu scrollen -> kein Springen.
+      root.style.setProperty("--vh", (kbOpen? vh : maxVH)+"px");
       root.style.setProperty("--kb", (kbOpen?(maxVH-vh):0)+"px"); // Tastaturhöhe
       root.classList.toggle("kb-open", kbOpen);
       if(kbOpen){ window.__kbH = maxVH - vh; } // Tastaturhöhe merken
