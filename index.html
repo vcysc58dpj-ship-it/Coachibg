@@ -1390,6 +1390,11 @@
   .bc-photonote{text-align:center;font-size:11.5px;color:var(--faint);margin-top:7px;}
   .bc-photoerr{margin-top:10px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.3);color:#DC2626;border-radius:12px;padding:11px 13px;font-size:12.5px;line-height:1.5;}
   .nut-layer{position:fixed;inset:0;}
+  .bcscan-view .bc-off{display:none!important;}
+  .bcscan-view video{background:#0A0A0C;}
+  /* Rückfall-Container fürs Foto: MUSS breit sein, sonst skaliert die
+     Bibliothek das Foto auf Containergröße herunter und findet nichts. */
+  .bc-filebox{position:absolute;left:-99999px;top:0;width:1600px;height:1200px;overflow:hidden;pointer-events:none;opacity:0;}
 </style>
 </head>
 <body>
@@ -1401,6 +1406,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script>
   // ===== Supabase Konfiguration =====
   // Trage hier die zwei Werte aus deinem Supabase-Projekt ein:
@@ -4332,8 +4338,11 @@ function NutPortal({children}){
 }
 
 function BarcodeScanner({onDetected,onClose,toast}){
-  const idRef=useRef("bcscan_"+Math.random().toString(36).slice(2));
-  const scannerRef=useRef(null);
+  const videoRef=useRef(null);
+  const readerRef=useRef(null);
+  const h5Ref=useRef(null);
+  const h5IdRef=useRef("bch5_"+Math.random().toString(36).slice(2));
+  const fileIdRef=useRef("bcfile_"+Math.random().toString(36).slice(2));
   const trackRef=useRef(null);
   const doneRef=useRef(false);
   const [err,setErr]=useState(null);
@@ -4342,85 +4351,93 @@ function BarcodeScanner({onDetected,onClose,toast}){
   const [torchOn,setTorchOn]=useState(false);
   const [hasTorch,setHasTorch]=useState(false);
   const [manual,setManual]=useState("");
-  const fileIdRef=useRef("bcfile_"+Math.random().toString(36).slice(2));
   const [photoBusy,setPhotoBusy]=useState(false);
   const [photoErr,setPhotoErr]=useState(null);
+  const [engine,setEngine]=useState(null); // "zxing" | "h5"
+
+  const zxHints=()=>{ const Z=window.ZXing; const h=new Map();
+    h.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.CODE_39,Z.BarcodeFormat.ITF]);
+    h.set(Z.DecodeHintType.TRY_HARDER,true); // mehr Suchlinien pro Bild
+    return h; };
+
+  const stopAll=()=>{
+    try{ if(readerRef.current&&readerRef.current.reset) readerRef.current.reset(); }catch(e){}
+    try{ if(h5Ref.current) h5Ref.current.stop().then(()=>{ try{h5Ref.current.clear();}catch(_){}}).catch(()=>{}); }catch(e){}
+    try{ const v=videoRef.current; const st=v&&v.srcObject; if(st&&st.getTracks) st.getTracks().forEach(t=>{try{t.stop();}catch(_){}}); }catch(e){}
+  };
 
   const finish=(code)=>{
     if(doneRef.current) return; doneRef.current=true;
-    setHit(code);
+    setHit(String(code));
     try{ if(navigator.vibrate) navigator.vibrate(60); }catch(e){}
-    try{ if(scannerRef.current) scannerRef.current.stop().catch(()=>{}); }catch(e){}
+    stopAll();
     setTimeout(()=>{ onDetected(String(code)); }, 480);
   };
 
+  const grabTrack=()=>{ try{
+      const v=videoRef.current||document.querySelector("#"+h5IdRef.current+" video");
+      const st=v&&v.srcObject; const tr=st&&st.getVideoTracks&&st.getVideoTracks()[0];
+      if(!tr) return; trackRef.current=tr;
+      const caps=tr.getCapabilities?tr.getCapabilities():{};
+      if(caps&&("torch" in caps)) setHasTorch(true);
+      if(caps&&caps.focusMode&&caps.focusMode.indexOf&&caps.focusMode.indexOf("continuous")>=0){ try{ tr.applyConstraints({advanced:[{focusMode:"continuous"}]}); }catch(e){} }
+    }catch(e){} };
+
   useEffect(()=>{
-    if(!window.Html5Qrcode){ setErr("Der Scanner konnte nicht geladen werden. Prüfe deine Verbindung oder gib den Code unten ein."); return; }
-    const F=window.Html5QrcodeSupportedFormats;
-    // WICHTIG: formatsToSupport gehört in den Konstruktor, nicht in start()
-    const ctorCfg={ verbose:false, experimentalFeatures:{ useBarCodeDetectorIfSupported:true } };
-    if(F) ctorCfg.formatsToSupport=[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.CODABAR];
-    let scanner;
-    try{ scanner=new window.Html5Qrcode(idRef.current, ctorCfg); }
-    catch(e){ try{ scanner=new window.Html5Qrcode(idRef.current); }catch(e2){ setErr("Scanner konnte nicht gestartet werden."); return; } }
-    scannerRef.current=scanner;
-    // Auswertung auf ein breites, flaches Mittelband begrenzen.
-    // Grund: Der Decoder legt pro Bild nur ~15 waagerechte Suchlinien an.
-    // Über das ganze Bild verteilt treffen die meisten den Barcode nicht.
-    // Im Band liegen ALLE Linien auf dem Code -> viel höhere Trefferquote,
-    // und weniger Pixel pro Bild -> deutlich mehr Versuche pro Sekunde.
-    // (Zulässig, seit die Vorschau nicht mehr beschnitten wird: Band = sichtbarer Rahmen.)
-    const qrbox=(vw,vh)=>({ width:Math.max(160,Math.floor(vw*0.92)), height:Math.max(80,Math.floor(vh*0.40)) });
-    const afterStart=()=>{
-      setReady(true);
+    const camFail=()=>setErr("Kamerazugriff nicht möglich. Erlaube die Kamera in den iPhone-Einstellungen unter Safari, oder nutze Foto bzw. manuelle Eingabe.");
+    // Bevorzugt ZXing: dekodiert in KAMERA-Auflösung (html5-qrcode rechnet auf
+    // Anzeigegröße herunter -> lange EAN-13 haben dort zu wenig Pixel pro Strich).
+    if(window.ZXing && window.ZXing.BrowserMultiFormatReader){
+      setEngine("zxing");
       try{
-        const v=document.querySelector("#"+idRef.current+" video");
-        const st=v&&v.srcObject; const tr=st&&st.getVideoTracks&&st.getVideoTracks()[0];
-        if(tr){
-          trackRef.current=tr;
-          const caps=tr.getCapabilities?tr.getCapabilities():{};
-          if(caps && ("torch" in caps)) setHasTorch(true);
-          // Dauer-Autofokus anfordern (ändert die Bildgröße nicht, daher unkritisch)
-          if(caps && caps.focusMode && caps.focusMode.indexOf && caps.focusMode.indexOf("continuous")>=0){
-            try{ tr.applyConstraints({advanced:[{focusMode:"continuous"}]}); }catch(e){}
-          }
-        }
-      }catch(e){}
-    };
-    const camFail=()=>setErr("Kamerazugriff nicht möglich. Erlaube die Kamera in den iPhone-Einstellungen unter Safari, oder gib den Code unten ein.");
-    // Auflösung VOR dem Start anfordern (nachträglich würde der Decoder-Bereich nicht mehr passen)
-    // 25 statt 10 Bilder/s: Mehr Versuche schlagen mehr Pixel, wenn der Code
-    // nur kurz durchs Bild zieht. 720p reicht dafür locker (EAN-13 = 95 Striche).
-    const cfgHi={ fps:25, qrbox, disableFlip:true, videoConstraints:{ facingMode:"environment", width:{ideal:1280}, height:{ideal:720} } };
-    try{
-      scanner.start({facingMode:"environment"}, cfgHi,
-        (decoded)=>{ finish(decoded); },
-        ()=>{}
-      ).then(afterStart).catch(()=>{
-        try{
-          scanner.start({facingMode:"environment"}, {fps:25, qrbox, disableFlip:true}, (d)=>finish(d), ()=>{})
-            .then(afterStart).catch(camFail);
-        }catch(e){ camFail(); }
-      });
-    }catch(e){ camFail(); }
-    return ()=>{ doneRef.current=true; try{ if(scannerRef.current) scannerRef.current.stop().then(()=>{ try{scannerRef.current.clear();}catch(e){} }).catch(()=>{}); }catch(e){} };
+        const reader=new window.ZXing.BrowserMultiFormatReader(zxHints(),120);
+        readerRef.current=reader;
+        const cb=(res)=>{ if(res) finish(res.getText()); };
+        reader.decodeFromConstraints({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}}}, videoRef.current, cb)
+          .then(()=>{ setReady(true); grabTrack(); })
+          .catch(()=>{ reader.decodeFromConstraints({video:{facingMode:"environment"}}, videoRef.current, cb)
+              .then(()=>{ setReady(true); grabTrack(); }).catch(camFail); });
+      }catch(e){ camFail(); }
+    }
+    else if(window.Html5Qrcode){
+      setEngine("h5");
+      try{
+        const F=window.Html5QrcodeSupportedFormats;
+        const cfg={ verbose:false };
+        if(F) cfg.formatsToSupport=[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF];
+        let sc; try{ sc=new window.Html5Qrcode(h5IdRef.current,cfg); }catch(e){ sc=new window.Html5Qrcode(h5IdRef.current); }
+        h5Ref.current=sc;
+        sc.start({facingMode:"environment"},{fps:20,disableFlip:true},(d)=>finish(d),()=>{})
+          .then(()=>{ setReady(true); grabTrack(); }).catch(camFail);
+      }catch(e){ camFail(); }
+    }
+    else setErr("Der Scanner konnte nicht geladen werden. Nutze Foto oder gib den Code unten ein.");
+    return ()=>{ doneRef.current=true; stopAll(); };
   },[]);
 
   const scanPhoto=async(file)=>{
     if(!file) return;
     setPhotoErr(null); setPhotoBusy(true);
+    let url=null;
     try{
-      if(!window.Html5Qrcode) throw new Error("nolib");
-      const F=window.Html5QrcodeSupportedFormats;
-      const cfg={ verbose:false };
-      if(F) cfg.formatsToSupport=[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.CODABAR];
-      let fs; try{ fs=new window.Html5Qrcode(fileIdRef.current, cfg); }catch(e){ fs=new window.Html5Qrcode(fileIdRef.current); }
-      const code=await fs.scanFile(file, false);
-      try{ fs.clear(); }catch(e){}
-      finish(code);
+      if(window.ZXing && window.ZXing.BrowserMultiFormatReader){
+        url=URL.createObjectURL(file);
+        const r2=new window.ZXing.BrowserMultiFormatReader(zxHints());
+        const res=await r2.decodeFromImageUrl(url);   // volle Bildauflösung
+        try{ r2.reset(); }catch(e){}
+        finish(res.getText());
+      } else if(window.Html5Qrcode){
+        const F=window.Html5QrcodeSupportedFormats;
+        const cfg={ verbose:false };
+        if(F) cfg.formatsToSupport=[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF];
+        let fs; try{ fs=new window.Html5Qrcode(fileIdRef.current,cfg); }catch(e){ fs=new window.Html5Qrcode(fileIdRef.current); }
+        const code=await fs.scanFile(file,false);
+        try{ fs.clear(); }catch(e){}
+        finish(code);
+      } else throw new Error("nolib");
     }catch(e){
       setPhotoErr("Auf dem Foto wurde kein Barcode gefunden. Halte den Code formatfüllend und scharf ins Bild, oder tippe ihn unten ein.");
-    } finally { setPhotoBusy(false); }
+    } finally { setPhotoBusy(false); if(url){ try{ URL.revokeObjectURL(url); }catch(e){} } }
   };
 
   const toggleTorch=async()=>{
@@ -4440,22 +4457,24 @@ function BarcodeScanner({onDetected,onClose,toast}){
       {err
         ? <div className="mcard"><div className="muted" style={{fontSize:13.5,lineHeight:1.55}}>{err}</div></div>
         : <div className={"bcscan-wrap"+(hit?" ok":"")+(ready?" live":"")}>
-            <div id={idRef.current} className="bcscan-view"/>
+            <div className="bcscan-view">
+              <video ref={videoRef} playsInline muted autoPlay className={engine==="h5"?"bc-off":""}/>
+              <div id={h5IdRef.current} className={engine==="h5"?"":"bc-off"}/>
+            </div>
             <div className="bc-frame"><i/><i/><i/><i/>{!hit && ready && <span className="bc-line"/>}</div>
             {!ready && !hit && <div className="bc-status">Kamera wird gestartet…</div>}
             {hit && <div className="bc-found"><span className="bc-found-ic"><Icon name="check"/></span><b>Erkannt</b><code>{hit}</code></div>}
           </div>}
-      {!err && !hit && <div className="bc-hint">Nur der Bereich im Rahmen wird ausgewertet – Code waagerecht und formatfüllend hineinhalten.</div>}
+      {!err && !hit && <div className="bc-hint">Code waagerecht in den Rahmen halten – langsames Vorbeiziehen reicht.</div>}
       {!hit && <>
         <label className="bc-photobtn">
           <Icon name="photo"/>{photoBusy?"Foto wird ausgewertet…":"Stattdessen Foto aufnehmen"}
           <input type="file" accept="image/*" style={{display:"none"}} disabled={photoBusy}
             onChange={e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) scanPhoto(f); }}/>
         </label>
-        <div className="bc-photonote">Ein Foto ist meist deutlich schärfer als das Live-Bild und wird zuverlässiger erkannt.</div>
         {photoErr && <div className="bc-photoerr">{photoErr}</div>}
       </>}
-      <div id={fileIdRef.current} style={{position:"absolute",width:1,height:1,opacity:0,overflow:"hidden",pointerEvents:"none"}}/>
+      <div id={fileIdRef.current} className="bc-filebox"/>
       <div className="bc-manual">
         <div className="ci-flabel" style={{marginBottom:6}}>Code manuell eingeben</div>
         <div style={{display:"flex",gap:8}}>
