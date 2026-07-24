@@ -4344,6 +4344,9 @@ function BarcodeScanner({onDetected,onClose,toast}){
   const h5IdRef=useRef("bch5_"+Math.random().toString(36).slice(2));
   const fileIdRef=useRef("bcfile_"+Math.random().toString(36).slice(2));
   const trackRef=useRef(null);
+  const canvARef=useRef(null);
+  const canvBRef=useRef(null);
+  const loopRef=useRef(null);
   const doneRef=useRef(false);
   const [err,setErr]=useState(null);
   const [ready,setReady]=useState(false);
@@ -4361,6 +4364,7 @@ function BarcodeScanner({onDetected,onClose,toast}){
     return h; };
 
   const stopAll=()=>{
+    try{ if(loopRef.current){ clearInterval(loopRef.current); loopRef.current=null; } }catch(e){}
     try{ if(readerRef.current&&readerRef.current.reset) readerRef.current.reset(); }catch(e){}
     try{ if(h5Ref.current) h5Ref.current.stop().then(()=>{ try{h5Ref.current.clear();}catch(_){}}).catch(()=>{}); }catch(e){}
     try{ const v=videoRef.current; const st=v&&v.srcObject; if(st&&st.getTracks) st.getTracks().forEach(t=>{try{t.stop();}catch(_){}}); }catch(e){}
@@ -4383,14 +4387,70 @@ function BarcodeScanner({onDetected,onClose,toast}){
       if(caps&&caps.focusMode&&caps.focusMode.indexOf&&caps.focusMode.indexOf("continuous")>=0){ try{ tr.applyConstraints({advanced:[{focusMode:"continuous"}]}); }catch(e){} }
     }catch(e){} };
 
+  // ── Eigene Bildaufnahme + Auswertung in BEIDEN Ausrichtungen ────────────
+  // Der Decoder legt seine Suchlinien nur waagerecht über das Bild. Liegt das
+  // Kamerabild gegenüber der Anzeige gedreht (auf iOS üblich), wird nur eine
+  // Halterichtung erkannt. Deshalb prüfen wir jedes Bild aufrecht UND um 90°
+  // gedreht – dann ist die Halterichtung egal.
+  const zxDecode=(cv)=>{
+    const Z=window.ZXing, rd=readerRef.current;
+    if(!Z||!rd||!Z.HTMLCanvasElementLuminanceSource) return null;
+    try{
+      const src=new Z.HTMLCanvasElementLuminanceSource(cv);
+      const bmp=new Z.BinaryBitmap(new Z.HybridBinarizer(src));
+      const res=rd.decode(bmp);
+      return res? res.getText() : null;
+    }catch(e){ return null; }
+    finally{ try{ rd.reset(); }catch(e){} }
+  };
+  const tick=()=>{
+    if(doneRef.current) return;
+    const v=videoRef.current; if(!v||!v.videoWidth||!v.videoHeight) return;
+    const w=v.videoWidth, h=v.videoHeight;
+    let c1=canvARef.current, c2=canvBRef.current;
+    if(!c1){ c1=canvARef.current=document.createElement("canvas"); }
+    if(!c2){ c2=canvBRef.current=document.createElement("canvas"); }
+    try{
+      if(c1.width!==w||c1.height!==h){ c1.width=w; c1.height=h; }
+      c1.getContext("2d",{willReadFrequently:true}).drawImage(v,0,0,w,h);
+      let code=zxDecode(c1);
+      if(!code){
+        if(c2.width!==h||c2.height!==w){ c2.width=h; c2.height=w; }
+        const x=c2.getContext("2d",{willReadFrequently:true});
+        x.save(); x.translate(h,0); x.rotate(Math.PI/2); x.drawImage(c1,0,0); x.restore();
+        code=zxDecode(c2);
+      }
+      if(code) finish(code);
+    }catch(e){}
+  };
+
   useEffect(()=>{
     const camFail=()=>setErr("Kamerazugriff nicht möglich. Erlaube die Kamera in den iPhone-Einstellungen unter Safari, oder nutze Foto bzw. manuelle Eingabe.");
     // Bevorzugt ZXing: dekodiert in KAMERA-Auflösung (html5-qrcode rechnet auf
     // Anzeigegröße herunter -> lange EAN-13 haben dort zu wenig Pixel pro Strich).
-    if(window.ZXing && window.ZXing.BrowserMultiFormatReader){
+    const Z=window.ZXing;
+    if(Z && Z.MultiFormatReader && Z.HTMLCanvasElementLuminanceSource){
+      setEngine("zxing");
+      (async()=>{
+        try{
+          const rd=new Z.MultiFormatReader();
+          if(rd.setHints) rd.setHints(zxHints());
+          readerRef.current=rd;
+          let stream=null;
+          try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}}}); }
+          catch(e){ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); }
+          const v=videoRef.current; if(!v){ camFail(); return; }
+          v.srcObject=stream; v.setAttribute("playsinline","true"); v.muted=true;
+          try{ await v.play(); }catch(e){}
+          setReady(true); grabTrack();
+          loopRef.current=setInterval(tick,90);
+        }catch(e){ camFail(); }
+      })();
+    }
+    else if(Z && Z.BrowserMultiFormatReader){
       setEngine("zxing");
       try{
-        const reader=new window.ZXing.BrowserMultiFormatReader(zxHints(),120);
+        const reader=new Z.BrowserMultiFormatReader(zxHints(),120);
         readerRef.current=reader;
         const cb=(res)=>{ if(res) finish(res.getText()); };
         reader.decodeFromConstraints({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}}}, videoRef.current, cb)
@@ -4420,10 +4480,30 @@ function BarcodeScanner({onDetected,onClose,toast}){
     setPhotoErr(null); setPhotoBusy(true);
     let url=null;
     try{
-      if(window.ZXing && window.ZXing.BrowserMultiFormatReader){
+      const Z=window.ZXing;
+      if(Z && Z.MultiFormatReader && Z.HTMLCanvasElementLuminanceSource){
+        // Foto in voller Auflösung – ebenfalls in beiden Ausrichtungen prüfen
         url=URL.createObjectURL(file);
-        const r2=new window.ZXing.BrowserMultiFormatReader(zxHints());
-        const res=await r2.decodeFromImageUrl(url);   // volle Bildauflösung
+        const img=await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; });
+        const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+        const rd=new Z.MultiFormatReader(); if(rd.setHints) rd.setHints(zxHints());
+        const prev=readerRef.current; readerRef.current=rd;
+        const ca=document.createElement("canvas"); ca.width=w; ca.height=h;
+        ca.getContext("2d",{willReadFrequently:true}).drawImage(img,0,0,w,h);
+        let code=zxDecode(ca);
+        if(!code){
+          const cb=document.createElement("canvas"); cb.width=h; cb.height=w;
+          const x=cb.getContext("2d",{willReadFrequently:true});
+          x.save(); x.translate(h,0); x.rotate(Math.PI/2); x.drawImage(ca,0,0); x.restore();
+          code=zxDecode(cb);
+        }
+        readerRef.current=prev;
+        if(!code) throw new Error("notfound");
+        finish(code);
+      } else if(Z && Z.BrowserMultiFormatReader){
+        url=URL.createObjectURL(file);
+        const r2=new Z.BrowserMultiFormatReader(zxHints());
+        const res=await r2.decodeFromImageUrl(url);
         try{ r2.reset(); }catch(e){}
         finish(res.getText());
       } else if(window.Html5Qrcode){
