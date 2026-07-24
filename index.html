@@ -1395,6 +1395,8 @@
   /* Rückfall-Container fürs Foto: MUSS breit sein, sonst skaliert die
      Bibliothek das Foto auf Containergröße herunter und findet nichts. */
   .bc-filebox{position:absolute;left:-99999px;top:0;width:1600px;height:1200px;overflow:hidden;pointer-events:none;opacity:0;}
+  .habline.ro{cursor:default;}
+  .habline.ro:active{background:transparent;}
 </style>
 </head>
 <body>
@@ -1708,7 +1710,10 @@ function kbPreLift(){
   // Größenänderungs-Ereignis -> beides addiert sich und die Leiste springt
   // zu weit hoch. Deshalb die bekannte Tastaturhöhe sofort anwenden.
   try{
-    const h=window.__kbH; if(!h||h<120) return;
+    // Beim ersten Antippen ist die echte Höhe noch unbekannt -> Schätzwert
+    // aus der Bildschirmhöhe (iPhone-Tastatur liegt bei rund 36 %).
+    let h=window.__kbH;
+    if(!h||h<120){ h=Math.round(Math.min(Math.max(window.innerHeight*0.36,260),360)); }
     const r=document.documentElement;
     r.style.setProperty("--kb", h+"px");
     r.classList.add("kb-open");
@@ -1783,7 +1788,7 @@ function WeekCalendar({weekDates,selDate,setSelDate,weekOffset,changeWeek,dots,t
     })}</div>
   </div>;
 }
-function LiveDashboard({clientId,toast,go,name,unread}){
+function LiveDashboard({clientId,toast,go,name,unread,readOnly}){
   const t=today();
   const mondayOf=(d)=>{ const x=new Date(d); x.setHours(0,0,0,0); const dow=(x.getDay()+6)%7; x.setDate(x.getDate()-dow); return x; };
 
@@ -1851,6 +1856,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
   useEffect(()=>{ if(clientId) loadDots(); },[clientId, weekOffset]);
 
   const toggleHabit=async(hid)=>{
+    if(readOnly) return; // Coach sieht nur zu
     if(selDate>t) return;
     const cur=!!habitDone[hid]; const next=!cur;
     setHabitDone(s=>{ const n={...s}; if(next) n[hid]=true; else delete n[hid]; return n; });
@@ -1902,7 +1908,7 @@ function LiveDashboard({clientId,toast,go,name,unread}){
     {habits.length>0 && <div className="card">
       <div className="card-h"><span className="ch-l"><Icon name="habits"/>{habTitle}</span><span className="ch-count"><b>{habDone}</b> / {habits.length}</span></div>
       <div className="hablist">{habits.map(h=>{ const on=habitDone[h.id];
-        return <div key={h.id} className="habline" onClick={()=>toggleHabit(h.id)}>
+        return <div key={h.id} className={"habline"+(readOnly?" ro":"")} onClick={()=>{ if(!readOnly) toggleHabit(h.id); }}>
           <span className="hl-name">{h.name}</span>
           <span className={"hl-check"+(on?" on":"")}>{on?<Icon name="check"/>:null}</span>
         </div>;
@@ -6360,7 +6366,7 @@ function ClientWorkspace({cid,cdata,upd,viewerRole,name,onBack,onSwitch,onSignOu
   useEffect(()=>{ if(tabs.length && !tabs.some(t=>t.k===tab)) setTab(tabs[0].k); },[tabKeys,tab]);
   const title=selfMode?"Self-Coaching":(viewerRole==="coach"?name:"Mein Coaching");
   let content;
-  if(tab==="home") content=(live && clientId) ? <LiveDashboard clientId={clientId} toast={toast} go={setTab} name={viewerRole==="coach"?name:cdata.name} unread={(!selfMode && viewerRole==="client")?(unread||0):0}/> : <div className="mbody"><div className="muted">Dashboard</div></div>;
+  if(tab==="home") content=(live && clientId) ? <LiveDashboard clientId={clientId} toast={toast} go={setTab} readOnly={viewerRole==="coach" && !selfMode} name={viewerRole==="coach"?name:cdata.name} unread={(!selfMode && viewerRole==="client")?(unread||0):0}/> : <div className="mbody"><div className="muted">Dashboard</div></div>;
   else if(tab==="chat") content=(live && clientId) ? <LiveChatTab clientId={clientId} role={viewerRole} toast={toast}/> : <ChatTab cdata={cdata} upd={upd} role={viewerRole}/>;
   else if(tab==="checkin") content=(live && clientId) ? <LiveCheckinTab clientId={clientId} role={viewerRole} toast={toast}/> : <CheckinTab cdata={cdata} upd={upd} role={viewerRole} name={name} toast={toast}/>;
   else if(tab==="habits") content=(live && clientId) ? <LiveHabitsTab clientId={clientId} role={viewerRole} toast={toast}/> : <HabitsTab cdata={cdata} upd={upd} role={viewerRole} toast={toast}/>;
