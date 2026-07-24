@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>kraftkonzept</title>
 <meta name="theme-color" content="#FFFFFF" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -7697,7 +7697,13 @@ function App(){
       root.style.setProperty("--vh", (kbOpen? vh : maxVH)+"px");
       root.style.setProperty("--kb", (kbOpen?(maxVH-vh):0)+"px"); // Tastaturhöhe
       root.classList.toggle("kb-open", kbOpen);
+      // iOS scrollt beim Öffnen das GANZE Fenster hoch. Sofort zurücksetzen,
+      // damit die (jetzt verkleinerte) App wieder bündig am oberen Rand sitzt.
+      if(kbOpen){ try{ window.scrollTo(0,0); }catch(e){} }
       if(kbOpen){ window.__kbH = maxVH - vh; } // Tastaturhöhe merken
+      // Bei offener Tastatur die Seite an die sichtbare Position schieben, falls
+      // iOS den Viewport hochscrollt (offsetTop). Verhindert, dass die verkleinerte
+      // App unter den oberen Bildschirmrand rutscht.
     };
     update();
     if(vv){ vv.addEventListener("resize",update); vv.addEventListener("scroll",update); }
