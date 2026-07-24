@@ -1703,6 +1703,17 @@ function MsgBubble({m,mine}){
   else inner=m.body;
   return <div className={"bubble "+(mine?"mine":"theirs")+(isMedia?" media":"")}>{inner}<span className="t">{fmtTime(m.ts)}</span></div>;
 }
+function kbPreLift(){
+  // iOS scrollt beim Fokus SOFORT, unser Anheben käme erst mit dem
+  // Größenänderungs-Ereignis -> beides addiert sich und die Leiste springt
+  // zu weit hoch. Deshalb die bekannte Tastaturhöhe sofort anwenden.
+  try{
+    const h=window.__kbH; if(!h||h<120) return;
+    const r=document.documentElement;
+    r.style.setProperty("--kb", h+"px");
+    r.classList.add("kb-open");
+  }catch(e){}
+}
 function ChatTab({cdata,upd,role}){
   const [text,setText]=useState(""); const endRef=useRef(null), taRef=useRef(null);
   const [recording,setRecording]=useState(false); const [recSecs,setRecSecs]=useState(0);
@@ -1749,7 +1760,7 @@ function ChatTab({cdata,upd,role}){
       {isCoach && <label className="attach" title="Foto oder Video"><Icon name="photo"/><input type="file" accept="image/*,video/*" onChange={onPickMedia}/></label>}
       {recording
         ? <div className="recbar"><span className="recdot"/>Aufnahme… {fmtDur(recSecs)}</div>
-        : <textarea ref={taRef} rows="1" value={text} placeholder="Nachricht…" onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>}
+        : <textarea ref={taRef} rows="1" value={text} placeholder="Nachricht…" onFocus={kbPreLift} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>}
       {(isCoach && !text.trim())
         ? <button className={"mic"+(recording?" rec":"")} onClick={recording?stopRec:startRec} aria-label="Sprachnachricht">{recording?<span className="recdot"/>:<Icon name="mic"/>}</button>
         : <button className="send" onClick={send} disabled={!text.trim()}><Icon name="send"/></button>}
@@ -2173,7 +2184,7 @@ function LiveChatTab({clientId,role,toast}){
           </>
         : <>
             <label className="attach" title="Foto oder Video"><Icon name="photo"/><input type="file" accept="image/*,video/*" onChange={onPickMedia}/></label>
-            <textarea ref={taRef} rows="1" value={text} placeholder={busy?"Lädt…":"Nachricht…"} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
+            <textarea ref={taRef} rows="1" value={text} placeholder={busy?"Lädt…":"Nachricht…"} onFocus={kbPreLift} onChange={(e)=>{setText(e.target.value);e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
             {(!text.trim())
               ? <button className="mic" onClick={startRec} aria-label="Sprachnachricht"><Icon name="mic"/></button>
               : <button className="send" onClick={send} disabled={!text.trim()||busy}><Icon name="send"/></button>}
@@ -6140,7 +6151,7 @@ function BroadcastSheet({onClose,onSend,count}){
 
 /* ---------- WORKSPACE ---------- */
 const CLIENT_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
-const COACH_TABS=[{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
+const COACH_TABS=[{k:"home",l:"Start",i:"home"},{k:"chat",l:"Chat",i:"chat"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"habits",l:"Habits",i:"habits"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"}];
 const SELF_TABS=[{k:"home",l:"Start",i:"home"},{k:"journey",l:"Journey",i:"flag"},{k:"plan",l:"Trainingsplan",i:"plan"},{k:"food",l:"Ernährung",i:"food"},{k:"habits",l:"Habits",i:"habits"},{k:"checkin",l:"Check-in",i:"checkin"},{k:"weight",l:"Gewicht",i:"weight"},{k:"cloud",l:"Cloud",i:"cloud"},{k:"settings",l:"Einstellungen",i:"settings"}];
 const MODE_LABEL={admin:"Admin-Bereich",coach:"Coach-Bereich",self_coach:"Self-Coaching",client:"Kunden-Ansicht"};
 const MODE_ICON={admin:"settings",coach:"home",self_coach:"chest",client:"home"};
